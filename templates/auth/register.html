@@ -1,20 +1,23 @@
 {% extends "base.html" %}
-
-{% block title %}登录 - Inkflow{% endblock %}
+{% block title %}注册 - Inkflow{% endblock %}
 {% block content %}
 <div class="container" style="max-width: 450px; margin-top: 100px;">
-        <h1>登录</h1>
+    <div class="card">
+        <h1>注册<small>加入 Inkflow，开始创作</small></h1>
         <form method="POST">
             <label>用户名</label>
-            <input type="text" name="username" placeholder="请输入用户名" required>
+            <input type="text" name="username" placeholder="请设置用户名" required>
 
-            <label>密码</label>
-            <input type="password" name="password" placeholder="请输入密码" required>
+            <label>邮箱</label>
+            <input type="email" name="email" placeholder="请输入邮箱" required>
 
-            <button type="submit" class="btn btn-primary">登录</button>
+            <label>密码（至少6位）</label>
+            <input type="password" name="password" placeholder="请设置密码" minlength="6" required>
+
+            <button type="submit" class="btn btn-primary" style="width:100%;">注册</button>
         </form>
         <div class="auth-link">
-            还没有账号？<a href="{{ url_for('auth.register') }}">立即注册</a>
+            已有账号？<a href="{{ url_for('auth.login') }}">去登录</a>
         </div>
     </div>
 </div>
