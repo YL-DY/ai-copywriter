@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Inkflow - 生成文案{% endblock %}
+{% block content %}
+<div class="container">
+        <h1>生成文案<small>输入产品，Inkflow为您写作</small></h1>
+
+        <form method="POST" id="generateForm">
+            <label>产品名称</label>
+            <input type="text" name="product" placeholder="例如：咖啡、护肤品、一本书…" value="{{ reuse_product or request.form.get('product', '') }}" required>
+
+            <div class="form-row">
+                <div class="form-col">
+                    <label>文案风格</label>
+                    <select name="style" id="styleSelect">
+                        {% for s in style_list %}
+                        <option value="{{ s }}" {% if (reuse_style or request.form.get('style', '')) == s %}selected{% endif %}>{{ style_icons[s] }} {{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-col">
+                    <label>字数</label>
+                    <select name="word_count">
+                        <option value="">不限</option>
+                        <option value="100-200" {% if word_count == '100-200' %}selected{% endif %}>100-200</option>
+                        <option value="200-300" {% if word_count == '200-300' %}selected{% endif %}>200-300</option>
+                        <option value="300-500" {% if word_count == '300-500' %}selected{% endif %}>300-500</option>
+                        <option value="500-800" {% if word_count == '500-800' %}selected{% endif %}>500-800</option>
+                    </select>
+                </div>
+            </div>
+
+            <details {% if show_extra and custom_prompt %}open{% endif %} style="margin-bottom: 18px;">
+                <summary>自定义要求（选填）</summary>
+                <div class="mt-12">
+                    <textarea name="custom_prompt" rows="3" placeholder="补充你的想法…&#10;例如：适合大学生 / 突出性价比 / 语气活泼">{{ custom_prompt or '' }}</textarea>
+                </div>
+            </details>
+
+            <button type="submit" class="btn btn-primary" id="generateBtn" style="width:100%;">
+                生成文案
+            </button>
+        </form>
+
+        {% if result %}
+        <div class="divider"></div>
+        <div class="result-area">
+            <div class="result-header">
+                <span style="font-size: 12px; color: #475569;">消耗 {{ result_tokens }} tokens</span>
+                <div class="result-actions">
+                    <button onclick="exportText('txt')" class="btn-sm btn-outline">TXT</button>
+                    <button onclick="exportText('md')" class="btn-sm btn-outline">MD</button>
+                    <button onclick="copyText()" class="btn-sm btn-success">复制</button>
+                </div>
+            </div>
+            <div class="result-box" id="resultBox">{{ result }}</div>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if not result %}
+    <div style="text-align: center; margin-top: 32px; font-size: 13px; color: #334155; letter-spacing: 1px;">
+        输入产品名称，点击生成 · 支持 7 种风格
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const form = document.getElementById('generateForm');
+    const button = document.getElementById('generateBtn');
+
+    form.addEventListener('submit', () => {
+        button.innerText = '生成中…';
+        button.disabled = true;
+    });
+
+    function copyText() {
+        const text = document.getElementById('resultBox').innerText;
+        navigator.clipboard.writeText(text).then(() => showToast('已复制')).catch(() => {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            showToast('已复制');
+        });
+    }
+
+    function exportText(format) {
+        const text = document.getElementById('resultBox').innerText;
+        const filename = 'lingbi_copy.' + format;
+        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(a.href);
+        showToast('已导出 ' + filename);
+    }
+
+    function showToast(msg) {
+        const old = document.querySelector('.toast');
+        if (old) old.remove();
+        const t = document.createElement('div');
+        t.className = 'toast';
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.classList.add('show'), 10);
+        setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 2000);
+    }
+</script>
+{% endblock %}
