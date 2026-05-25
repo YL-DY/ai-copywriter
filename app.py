@@ -41,19 +41,33 @@ _db_initialized = False
 def ensure_db():
     global _db_initialized
     if not _db_initialized:
-        with app.app_context():
+        import sqlite3
+        db_path = "instance/xiaohongshu.db"
+        os.makedirs("instance", exist_ok=True)
+        db.create_all()
+        # 检查表是否存在
+        try:
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='users'")
+            table_exists = cursor.fetchone() is not None
+            conn.close()
+            if not table_exists:
+                # 表不存在，完全重建
+                db.create_all()
+        except Exception:
             db.create_all()
-            try:
-                from sqlalchemy import inspect, text as _text
-                ins = inspect(db.engine)
-                columns = [c["name"] for c in ins.get_columns("users")]
-                if "daily_count" not in columns:
-                    db.session.execute(_text("ALTER TABLE users ADD COLUMN daily_count INTEGER DEFAULT 0"))
-                if "daily_date" not in columns:
-                    db.session.execute(_text("ALTER TABLE users ADD COLUMN daily_date VARCHAR(10) DEFAULT ''"))
-                db.session.commit()
-            except Exception:
-                db.session.rollback()
+        try:
+            from sqlalchemy import inspect, text as _text
+            ins = inspect(db.engine)
+            columns = [c["name"] for c in ins.get_columns("users")]
+            if "daily_count" not in columns:
+                db.session.execute(_text("ALTER TABLE users ADD COLUMN daily_count INTEGER DEFAULT 0"))
+            if "daily_date" not in columns:
+                db.session.execute(_text("ALTER TABLE users ADD COLUMN daily_date VARCHAR(10) DEFAULT ''"))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
         _db_initialized = True
 
 DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "sk-929e447310024be5bec2a1587f2c414f")
