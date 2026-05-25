@@ -34,6 +34,22 @@ def load_user(user_id):
 
 app.register_blueprint(auth_bp)
 
+# 确保数据库表创建（gunicorn 部署时也会执行）
+with app.app_context():
+    db.create_all()
+    try:
+        from sqlalchemy import inspect, text as _text
+        ins = inspect(db.engine)
+        columns = [c["name"] for c in ins.get_columns("users")]
+        dialect = db.engine.dialect.name
+        if "daily_count" not in columns:
+            db.session.execute(_text("ALTER TABLE users ADD COLUMN daily_count INTEGER DEFAULT 0"))
+        if "daily_date" not in columns:
+            db.session.execute(_text("ALTER TABLE users ADD COLUMN daily_date VARCHAR(10) DEFAULT ''"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+
 DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "sk-929e447310024be5bec2a1587f2c414f")
 
 
@@ -300,26 +316,4 @@ def inject_globals():
 
 
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-        # 自动添加缺少的字段（兼容旧数据库）
-        try:
-            from sqlalchemy import inspect, text as _text
-            ins = inspect(db.engine)
-            columns = [c["name"] for c in ins.get_columns("users")]
-            dialect = db.engine.dialect.name
-            if "daily_count" not in columns:
-                if dialect == "sqlite":
-                    db.session.execute(_text("ALTER TABLE users ADD COLUMN daily_count INTEGER DEFAULT 0"))
-                else:
-                    db.session.execute(_text("ALTER TABLE users ADD COLUMN daily_count INTEGER DEFAULT 0"))
-            if "daily_date" not in columns:
-                if dialect == "sqlite":
-                    db.session.execute(_text("ALTER TABLE users ADD COLUMN daily_date VARCHAR(10) DEFAULT ''"))
-                else:
-                    db.session.execute(_text('ALTER TABLE users ADD COLUMN "daily_date" VARCHAR(10) DEFAULT \'\''))
-            db.session.commit()
-        except Exception as e:
-            print(f"Migration warning (non-fatal): {e}")
-            db.session.rollback()
     app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
