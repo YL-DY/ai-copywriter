@@ -26,7 +26,10 @@ login_manager.login_message = "请先登录"
 
 @login_manager.user_loader
 def load_user(user_id):
-    return db.session.get(User, int(user_id))
+    try:
+        return db.session.get(User, int(user_id))
+    except Exception:
+        return None
 
 
 app.register_blueprint(auth_bp)
@@ -304,11 +307,19 @@ if __name__ == "__main__":
             from sqlalchemy import inspect, text as _text
             ins = inspect(db.engine)
             columns = [c["name"] for c in ins.get_columns("users")]
+            dialect = db.engine.dialect.name
             if "daily_count" not in columns:
-                db.session.execute(_text("ALTER TABLE users ADD COLUMN daily_count INTEGER DEFAULT 0"))
+                if dialect == "sqlite":
+                    db.session.execute(_text("ALTER TABLE users ADD COLUMN daily_count INTEGER DEFAULT 0"))
+                else:
+                    db.session.execute(_text("ALTER TABLE users ADD COLUMN daily_count INTEGER DEFAULT 0"))
             if "daily_date" not in columns:
-                db.session.execute(_text("ALTER TABLE users ADD COLUMN daily_date VARCHAR(10) DEFAULT ''"))
+                if dialect == "sqlite":
+                    db.session.execute(_text("ALTER TABLE users ADD COLUMN daily_date VARCHAR(10) DEFAULT ''"))
+                else:
+                    db.session.execute(_text('ALTER TABLE users ADD COLUMN "daily_date" VARCHAR(10) DEFAULT \'\''))
             db.session.commit()
-        except Exception:
+        except Exception as e:
+            print(f"Migration warning (non-fatal): {e}")
             db.session.rollback()
     app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))

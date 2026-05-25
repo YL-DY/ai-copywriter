@@ -1,8 +1,6 @@
 flask
 requests
 gunicorn
-flask_login
-flask_sqlalchemy
-gunicorn
-flask-login
-flask-sqlalchemy
+Flask-Login
+Flask-SQLAlchemy
+
