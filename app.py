@@ -10,7 +10,11 @@ from auth.routes import auth_bp
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "xiaohongshu-secret-key-2024")
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///xiaohongshu.db"
+# Railway 部署用 PostgreSQL，本地开发用 SQLite
+database_url = os.environ.get("DATABASE_URL", "sqlite:///xiaohongshu.db")
+if database_url and database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 
 db.init_app(app)
 
@@ -295,4 +299,16 @@ def inject_globals():
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+        # 自动添加缺少的字段（兼容旧数据库）
+        try:
+            from sqlalchemy import inspect, text as _text
+            ins = inspect(db.engine)
+            columns = [c["name"] for c in ins.get_columns("users")]
+            if "daily_count" not in columns:
+                db.session.execute(_text("ALTER TABLE users ADD COLUMN daily_count INTEGER DEFAULT 0"))
+            if "daily_date" not in columns:
+                db.session.execute(_text("ALTER TABLE users ADD COLUMN daily_date VARCHAR(10) DEFAULT ''"))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
