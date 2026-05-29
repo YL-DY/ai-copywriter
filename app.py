@@ -73,112 +73,169 @@ def ensure_db():
 DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "sk-929e447310024be5bec2a1587f2c414f")
 
 
-# ========== Prompt 模板库 ==========
-STYLE_PROMPTS = {
-    "爆款风": """请帮我写一篇小红书爆款文案。
+# ========== Prompt 工程系统 ==========
+# 每个风格有独立的 system_prompt（角色设定）+ user_prompt（任务指令）
+
+SYSTEM_PROMPTS = {
+    "爆款风": """你是一位小红书爆款文案专家，擅长写情绪强烈、标题夸张、容易引发互动的内容。
+你的文风特点是：
+- 标题一定要吸睛、有冲击力、制造悬念
+- 大量使用 emoji 表达情绪
+- 语气像热门博主，口语化、亲切、有共鸣
+- 善用"姐妹们"、"谁懂啊"、"绝了"等爆款话术
+- 内容要有节奏感，短句为主，段落分明""",
+
+    "高级感": """你是一位高端生活方式博主，擅长写有品味、有氛围感的精致文案。
+你的文风特点是：
+- 用词优雅、精致，避免口语化表达
+- 营造画面感和氛围感
+- 适当留白，不堆砌
+- 少量高质量 emoji（每段不超过1个）
+- 就像顶级杂志的专栏写作""",
+
+    "带货风": """你是一位专业带货博主，擅长写让人忍不住下单的种草文案。
+你的文风特点是：
+- 开篇直接痛点，制造需求
+- 突出产品的核心卖点和差异化优势
+- 用具体的使用场景和真实体验打动读者
+- 语言有说服力，善用"我用了之后……"的亲身分享
+- 结尾有明确的购买引导（CTA），但不生硬
+- 带适量 emoji""",
+
+    "情绪风": """你是一位擅长写情绪文案的生活分享博主。
+你的文风特点是：
+- 以真实感受和生活故事切入
+- 构建情感共鸣，让人"感同身受"
+- 语言细腻、真诚、不造作
+- 用细节打动人心
+- 带适量 emoji，不喧宾夺主""",
+
+    "搞笑风": """你是一位幽默搞笑的生活段子手。
+你的文风特点是：
+- 用轻松幽默的方式讲述产品体验
+- 善用网络热梗、夸张比喻
+- 有段子感，让人看完会心一笑
+- 节奏明快，不拖沓
+- 大量使用 emoji 和表情""",
+
+    "干货教程": """你是一位专业领域的知识博主，擅长写实用、易跟学的教程类内容。
+你的文风特点是：
+- 结构清晰，步骤明确
+- 信息密度高，不说废话
+- 专业但易懂，适合新手
+- 善用数字编号和分段
+- 适量使用 emoji 增加可读性""",
+
+    "测评对比": """你是一位真实的测评博主，擅长做客观、有说服力的产品对比。
+你的文风特点是：
+- 开头说明测评背景和真实使用时长
+- 优缺点都写，不吹不黑
+- 对比数据或体验要具体
+- 结尾给出明确的购买建议
+- 像朋友分享真实使用心得""",
+}
+
+USER_PROMPTS = {
+    "爆款风": """请帮我写一篇小红书爆款文案，关于以下产品：
 
 产品：{product}
 
 要求：
-1. 标题夸张吸睛
-2. 情绪强烈
-3. 带很多emoji
-4. 容易引发点赞评论
-5. 像热门博主语气
+- 标题要夸张吸睛，制造悬念
+- 正文情绪强烈，口语化，有共鸣
+- 大量使用 emoji
+- 像热门博主的话术风格
+- 容易引发点赞和评论
 {extra}
 
 请严格按照以下 JSON 格式返回结果，不要加任何额外的文字：
-{{"title": "文案标题", "emoji": "🔥", "content": "正文内容", "tags": ["标签1", "标签2"]}}""",
+{{"title": "文案标题", "emoji": "🔥", "content": "正文内容（多段落，用\\n\\n分隔）", "tags": ["标签1", "标签2"]}}""",
 
-    "高级感": """请帮我写一篇高级感小红书文案。
+    "高级感": """请帮我写一篇高级感文案，关于以下产品：
 
 产品：{product}
 
 要求：
-1. 文案精致
-2. 有氛围感
-3. 像高端生活方式博主
-4. 用词高级
-5. 带适量emoji
+- 文案精致、有氛围感
+- 用词高级，像高端杂志风格
+- 适度留白，不堆砌
+- 少量高质量 emoji
 {extra}
 
 请严格按照以下 JSON 格式返回结果，不要加任何额外的文字：
-{{"title": "文案标题", "emoji": "✨", "content": "正文内容", "tags": ["标签1", "标签2"]}}""",
+{{"title": "文案标题", "emoji": "✨", "content": "正文内容（多段落，用\\n\\n分隔）", "tags": ["标签1", "标签2"]}}""",
 
-    "带货风": """请帮我写一篇带货型小红书文案。
+    "带货风": """请帮我写一篇带货型文案，关于以下产品：
 
 产品：{product}
 
 要求：
-1. 强调产品优点
-2. 有购买欲
-3. 有种草感
-4. 引导下单
-5. 像专业博主推荐
+- 开篇直击痛点
+- 突出核心卖点
+- 有真实使用感受
+- 结尾有购买引导（CTA）
+- 带适量 emoji
 {extra}
 
 请严格按照以下 JSON 格式返回结果，不要加任何额外的文字：
-{{"title": "文案标题", "emoji": "🛍️", "content": "正文内容", "tags": ["标签1", "标签2"]}}""",
+{{"title": "文案标题", "emoji": "🛍️", "content": "正文内容（多段落，用\\n\\n分隔）", "tags": ["标签1", "标签2"]}}""",
 
-    "情绪风": """请帮我写一篇情绪感强的小红书文案。
+    "情绪风": """请帮我写一篇情绪感文案，关于以下产品：
 
 产品：{product}
 
 要求：
-1. 有情绪表达
-2. 容易共鸣
-3. 像真实生活分享
-4. 有故事感
-5. 带emoji
+- 以真实生活故事或感受切入
+- 构建情感共鸣
+- 语言细腻、真诚
+- 带适量 emoji
 {extra}
 
 请严格按照以下 JSON 格式返回结果，不要加任何额外的文字：
-{{"title": "文案标题", "emoji": "💭", "content": "正文内容", "tags": ["标签1", "标签2"]}}""",
+{{"title": "文案标题", "emoji": "💭", "content": "正文内容（多段落，用\\n\\n分隔）", "tags": ["标签1", "标签2"]}}""",
 
-    "搞笑风": """请帮我写一篇搞笑风格小红书文案。
+    "搞笑风": """请帮我写一篇搞笑风格文案，关于以下产品：
 
 产品：{product}
 
 要求：
-1. 幽默搞笑
-2. 网络热梗
-3. 有段子感
-4. 轻松有趣
-5. 带emoji
+- 幽默搞笑，轻松有趣
+- 善用网络热梗
+- 有段子感
+- 大量使用 emoji
 {extra}
 
 请严格按照以下 JSON 格式返回结果，不要加任何额外的文字：
-{{"title": "文案标题", "emoji": "😂", "content": "正文内容", "tags": ["标签1", "标签2"]}}""",
+{{"title": "文案标题", "emoji": "😂", "content": "正文内容（多段落，用\\n\\n分隔）", "tags": ["标签1", "标签2"]}}""",
 
-    "干货教程": """请帮我写一篇干货型小红书教程。
+    "干货教程": """请帮我写一篇干货教程型文案，关于以下产品：
 
 产品：{product}
 
 要求：
-1. 教学性强
-2. 步骤清晰
-3. 实用价值高
-4. 像专业领域博主
-5. 带适量emoji
+- 步骤清晰，结构分明
+- 信息密度高
+- 专业但易懂
+- 善用数字编号
+- 适量 emoji
 {extra}
 
 请严格按照以下 JSON 格式返回结果，不要加任何额外的文字：
-{{"title": "文案标题", "emoji": "📖", "content": "正文内容", "tags": ["标签1", "标签2"]}}""",
+{{"title": "文案标题", "emoji": "📖", "content": "正文内容（多段落，用\\n\\n分隔）", "tags": ["标签1", "标签2"]}}""",
 
-    "测评对比": """请帮我写一篇测评对比型小红书文案。
+    "测评对比": """请帮我写一篇测评对比型文案，关于以下产品：
 
 产品：{product}
 
 要求：
-1. 客观对比
-2. 优缺点分析
-3. 真实使用感受
-4. 有说服力
-5. 像真实用户测评
+- 说明测评背景和使用时长
+- 优缺点都写，真实客观
+- 对比要具体
+- 结尾给购买建议
 {extra}
 
 请严格按照以下 JSON 格式返回结果，不要加任何额外的文字：
-{{"title": "文案标题", "emoji": "⚖️", "content": "正文内容", "tags": ["标签1", "标签2"]}}""",
+{{"title": "文案标题", "emoji": "⚖️", "content": "正文内容（多段落，用\\n\\n分隔）", "tags": ["标签1", "标签2"]}}""",
 }
 
 STYLE_ICONS = {
@@ -228,8 +285,10 @@ def parse_result(raw):
     return title, emoji, content, tags
 
 
-def generate_prompt(product, style, custom_prompt="", word_count=""):
-    base = STYLE_PROMPTS.get(style, STYLE_PROMPTS["爆款风"])
+def generate_messages(product, style, custom_prompt="", word_count=""):
+    """返回 system + user 消息对"""
+    system = SYSTEM_PROMPTS.get(style, SYSTEM_PROMPTS["爆款风"])
+    user_template = USER_PROMPTS.get(style, USER_PROMPTS["爆款风"])
 
     extra_parts = []
     if custom_prompt:
@@ -238,7 +297,8 @@ def generate_prompt(product, style, custom_prompt="", word_count=""):
         extra_parts.append(f"\n字数要求：请控制在 {word_count} 字左右")
 
     extra = "\n".join(extra_parts)
-    return base.format(product=product, extra=extra)
+    user_msg = user_template.format(product=product, extra=extra)
+    return system, user_msg
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -278,8 +338,8 @@ def home():
                                    reuse_product=reuse_product, reuse_style=reuse_style,
                                    reuse_custom_prompt=reuse_custom_prompt, reuse_word_count=reuse_word_count)
 
-        prompt = generate_prompt(product, style, custom_prompt, word_count)
-        prompt_tokens = estimate_tokens(prompt)
+        system_msg, user_msg = generate_messages(product, style, custom_prompt, word_count)
+        prompt_tokens = estimate_tokens(system_msg + user_msg)
 
         url = "https://api.deepseek.com/chat/completions"
         headers = {
@@ -288,7 +348,10 @@ def home():
         }
         data = {
             "model": "deepseek-chat",
-            "messages": [{"role": "user", "content": prompt}]
+            "messages": [
+                {"role": "system", "content": system_msg},
+                {"role": "user", "content": user_msg}
+            ]
         }
 
         try:
@@ -313,7 +376,7 @@ def home():
                 user_id=current_user.id,
                 product=product,
                 style=style,
-                prompt=prompt,
+                prompt=system_msg + "\n\n" + user_msg,
                 result=result_raw,
                 tokens_used=result_tokens,
             )
@@ -407,11 +470,11 @@ def inject_globals():
         return dict(user_token_remaining=remaining,
                     daily_remaining=daily_remaining,
                     style_icons=STYLE_ICONS,
-                    style_list=list(STYLE_PROMPTS.keys()))
+                    style_list=list(SYSTEM_PROMPTS.keys()))
     return dict(user_token_remaining=0,
                 daily_remaining=10,
                 style_icons=STYLE_ICONS,
-                style_list=list(STYLE_PROMPTS.keys()))
+                style_list=list(SYSTEM_PROMPTS.keys()))
 
 
 if __name__ == "__main__":
