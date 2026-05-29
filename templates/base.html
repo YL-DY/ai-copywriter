@@ -80,7 +80,7 @@
         .navbar .user-info { color: #475569; font-size: 13px; margin-left: 4px; }
 
         /* ===== Flash ===== */
-        .flash-messages { max-width: 640px; margin: 16px auto 0; padding: 0 20px; }
+        .flash-messages { max-width: 640px; margin: 16px auto 0; padding: 0 20px; animation: cardUp 0.5s 0.15s cubic-bezier(0.16, 1, 0.3, 1) both; }
         .flash-msg {
             padding: 12px 18px;
             border-radius: 10px;
@@ -94,13 +94,32 @@
 
         /* ===== Card ===== */
         .container { max-width: 680px; margin: 40px auto; padding: 0 20px; }
-        .card {
+                .card {
             background: rgba(20, 23, 42, 0.45);
             backdrop-filter: blur(12px);
             padding: 36px 40px;
             border-radius: 20px;
             border: 1px solid rgba(51, 65, 85, 0.2);
             box-shadow: 0 4px 32px rgba(0,0,0,0.2);
+            animation: cardUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        .card-delay-1 { animation-delay: 0.1s; }
+        .card-delay-2 { animation-delay: 0.2s; }
+        .card-delay-3 { animation-delay: 0.3s; }
+
+        /* ===== Entrance Animations ===== */
+        .page-fade-in { animation: bodyIn 0.4s ease both; }
+        @keyframes bodyIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes cardUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .navbar {
+            animation: navIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        @keyframes navIn {
+            from { opacity: 0; transform: translateY(-16px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* ===== Typography ===== */
@@ -340,10 +359,10 @@
             h1 { font-size: 20px; }
             .stat-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
         }
-    </style>
+        </style>
     {% block extra_head %}{% endblock %}
 </head>
-<body>
+<body class="page-fade-in">
     {% if current_user.is_authenticated %}
     <nav class="navbar">
         <a href="{{ url_for('home') }}" class="brand">Inkflow</a>
