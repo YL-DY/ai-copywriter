@@ -1,12 +1,178 @@
 {% extends "base.html" %}
 
-{% block title %}Inkflow - 生成文案{% endblock %}
+{% block title %}InkFlow - AI 驱动的营销文案创作平台{% endblock %}
+{% block extra_head %}
+<style>
+/* ===== Hero ===== */
+.hero {
+    min-height: calc(100vh - 64px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 20px;
+    position: relative;
+    overflow: hidden;
+}
+/* 动态光晕 */
+.hero::before {
+    content: '';
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(56,189,248,0.06) 0%, transparent 70%);
+    top: -10%;
+    left: -10%;
+    animation: glowA 8s ease-in-out infinite alternate;
+    pointer-events: none;
+}
+.hero::after {
+    content: '';
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(167,139,250,0.06) 0%, transparent 70%);
+    bottom: -10%;
+    right: -10%;
+    animation: glowB 8s ease-in-out infinite alternate;
+    pointer-events: none;
+}
+@keyframes glowA {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(60px, 40px) scale(1.15); }
+}
+@keyframes glowB {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(-60px, -40px) scale(1.15); }
+}
+
+.hero-inner {
+    max-width: 720px;
+    position: relative;
+    z-index: 1;
+}
+.hero-title {
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+    margin-bottom: 20px;
+}
+.hero-title .brand-highlight {
+    background: linear-gradient(135deg, #38bdf8 0%, #a78bfa 50%, #f472b6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-family: "Dancing Script", "Caveat", cursive;
+    font-size: 48px;
+    letter-spacing: 2px;
+    transform: rotate(-1deg);
+    display: inline-block;
+}
+.hero-subtitle {
+    font-size: 17px;
+    color: #64748b;
+    line-height: 1.6;
+    margin-bottom: 36px;
+    font-weight: 400;
+}
+.hero-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 40px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #1d4ed8, #2563eb);
+    color: white;
+    text-decoration: none;
+    box-shadow: 0 4px 24px rgba(37, 99, 235, 0.3);
+    transition: all 0.3s;
+    border: none;
+    cursor: pointer;
+}
+.hero-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(37, 99, 235, 0.4);
+}
+.hero-features {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 48px;
+    flex-wrap: wrap;
+}
+.hero-feature {
+    background: rgba(20, 23, 42, 0.4);
+    border: 1px solid rgba(51, 65, 85, 0.2);
+    border-radius: 12px;
+    padding: 14px 20px;
+    font-size: 13px;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    backdrop-filter: blur(8px);
+}
+
+/* ===== 生成页 ===== */
+#generatePage { display: none; }
+#generatePage .card { animation: cardUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* 粒子 canvas */
+#particles-canvas {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 0;
+}
+.hero, #generatePage .container { position: relative; z-index: 1; }
+
+@media (max-width: 600px) {
+    .hero-title { font-size: 28px; }
+    .hero-title .brand-highlight { font-size: 32px; }
+    .hero-subtitle { font-size: 14px; }
+    .hero-features { gap: 10px; }
+    .hero-feature { font-size: 12px; padding: 10px 14px; }
+}
+</style>
+{% endblock %}
+
 {% block content %}
+<canvas id="particles-canvas"></canvas>
+
+<!-- ===== Hero 区 ===== -->
+<div id="heroPage" class="hero">
+    <div class="hero-inner">
+        <div class="hero-title">
+            <span class="brand-highlight">InkFlow</span> 灵笔<br>
+            AI 驱动的新一代<br>营销文案创作平台
+        </div>
+        <div class="hero-subtitle">
+            几秒钟生成高质量广告文案、品牌内容与社交媒体营销文案
+        </div>
+        <a href="#" class="hero-cta" id="ctaBtn">
+            立即体验 →
+        </a>
+        <div class="hero-features">
+            <div class="hero-feature">✨ 7 种文案风格</div>
+            <div class="hero-feature">⚡ 秒级生成</div>
+            <div class="hero-feature">🎯 精准营销</div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 生成页 ===== -->
+<div id="generatePage">
 <div class="container">
+    <div class="card">
         <h1>生成文案<small>输入产品，Inkflow为您写作</small></h1>
 
         <form method="POST" id="generateForm">
-            <label>产品名称</label>
+            <label>你想推广什么产品？</label>
             <input type="text" name="product" placeholder="例如：咖啡、护肤品、一本书…" value="{{ reuse_product or request.form.get('product', '') }}" required>
 
             <div class="form-row">
@@ -64,52 +230,119 @@
     </div>
     {% endif %}
 </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    const form = document.getElementById('generateForm');
-    const button = document.getElementById('generateBtn');
+// ===== 粒子动画 =====
+const canvas = document.getElementById('particles-canvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
 
-    form.addEventListener('submit', () => {
-        button.innerText = '生成中…';
-        button.disabled = true;
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+class Particle {
+    constructor() { this.reset(); }
+    reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 2 + 0.5;
+        this.speedX = (Math.random() - 0.5) * 0.3;
+        this.speedY = (Math.random() - 0.5) * 0.3;
+        this.opacity = Math.random() * 0.3 + 0.1;
+    }
+    update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) this.reset();
+    }
+    draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(56, 189, 248, ${this.opacity})`;
+        ctx.fill();
+    }
+}
+for (let i = 0; i < 80; i++) particles.push(new Particle());
+
+function animateParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => { p.update(); p.draw(); });
+    for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+            const dx = particles[i].x - particles[j].x;
+            const dy = particles[i].y - particles[j].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 120) {
+                ctx.beginPath();
+                ctx.moveTo(particles[i].x, particles[i].y);
+                ctx.lineTo(particles[j].x, particles[j].y);
+                ctx.strokeStyle = `rgba(56, 189, 248, ${0.05 * (1 - dist / 120)})`;
+                ctx.lineWidth = 0.5;
+                ctx.stroke();
+            }
+        }
+    }
+    requestAnimationFrame(animateParticles);
+}
+animateParticles();
+
+// ===== Hero → 生成页切换 =====
+document.getElementById('ctaBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('heroPage').style.display = 'none';
+    document.getElementById('generatePage').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// ===== 生成表单 =====
+const form = document.getElementById('generateForm');
+const button = document.getElementById('generateBtn');
+form.addEventListener('submit', () => {
+    button.innerText = '生成中…';
+    button.disabled = true;
+});
+
+function copyText() {
+    const text = document.getElementById('resultBox').innerText;
+    navigator.clipboard.writeText(text).then(() => showToast('已复制到剪贴板 ✅')).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('已复制到剪贴板 ✅');
     });
+}
 
-    function copyText() {
-        const text = document.getElementById('resultBox').innerText;
-        navigator.clipboard.writeText(text).then(() => showToast('已复制')).catch(() => {
-            const ta = document.createElement('textarea');
-            ta.value = text;
-            document.body.appendChild(ta);
-            ta.select();
-            document.execCommand('copy');
-            document.body.removeChild(ta);
-            showToast('已复制');
-        });
-    }
+function exportText(format) {
+    const text = document.getElementById('resultBox').innerText;
+    const filename = 'inkflow_copy.' + format;
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast('已导出 ' + filename);
+}
 
-    function exportText(format) {
-        const text = document.getElementById('resultBox').innerText;
-        const filename = 'lingbi_copy.' + format;
-        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(a.href);
-        showToast('已导出 ' + filename);
-    }
-
-    function showToast(msg) {
-        const old = document.querySelector('.toast');
-        if (old) old.remove();
-        const t = document.createElement('div');
-        t.className = 'toast';
-        t.textContent = msg;
-        document.body.appendChild(t);
-        setTimeout(() => t.classList.add('show'), 10);
-        setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 2000);
-    }
+function showToast(msg) {
+    const old = document.querySelector('.toast');
+    if (old) old.remove();
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.classList.add('show'), 10);
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 2500);
+}
 </script>
 {% endblock %}
