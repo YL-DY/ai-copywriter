@@ -427,6 +427,11 @@
                         <span class="result-tokens">⚡ {{ result_tokens }} tokens</span>
                     </div>
                     <div class="result-actions">
+                        {% if result_raw %}
+                        <form method="POST" action="{{ url_for('toggle_favorite', history_id=0) }}" style="display:inline;" id="favForm" class="fav-form">
+                            <button type="submit" class="btn-sm btn-outline" id="favBtn">☆ 收藏</button>
+                        </form>
+                        {% endif %}
                         <button onclick="exportText('txt')" class="btn-sm btn-outline">📄 TXT</button>
                         <button onclick="exportText('md')" class="btn-sm btn-outline">📝 MD</button>
                         <button onclick="copyText()" class="btn-sm btn-success">📋 复制</button>
@@ -612,66 +617,86 @@ function showToast(msg) {
 }
 
 // ===== AI 二次编辑 =====
-document.querySelectorAll('.btn-rewrite').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-        var action = this.getAttribute('data-action');
-        var titleEl = document.querySelector('.result-card-title');
-        var bodyEl = document.getElementById('resultBox');
-        var tagEls = document.querySelectorAll('.result-tag');
+(function() {
+    var rewriteBtns = document.querySelectorAll('.btn-rewrite');
+    var actionLabels = {
+        shorter: '📏 改短一点',
+        premium: '👑 更高级',
+        xiaohongshu: '📱 更适合小红书',
+        emotional: '💫 更有情绪感'
+    };
 
-        var fullText = '';
-        if (titleEl) fullText += titleEl.textContent.trim() + '\n\n';
-        fullText += bodyEl.innerText;
+    function resetButtons() {
+        rewriteBtns.forEach(function(b) {
+            b.disabled = false;
+            b.textContent = actionLabels[b.getAttribute('data-action')] || '编辑';
+        });
+    }
 
-        var allBtns = document.querySelectorAll('.btn-rewrite');
-        allBtns.forEach(function(b) { b.disabled = true; b.textContent = '...'; });
+    rewriteBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var action = this.getAttribute('data-action');
+            var titleEl = document.querySelector('.result-card-title');
+            var bodyEl = document.getElementById('resultBox');
 
-        var styleTag = document.querySelector('.result-style-tag');
-        var style = styleTag ? styleTag.textContent.trim().replace(/[^\u4e00-\u9fa5]/g, '') : '爆款风';
-        if (!style) style = '爆款风';
+            // 收集完整文本
+            var fullText = '';
+            if (titleEl) fullText += titleEl.textContent.trim() + '\n\n';
+            fullText += bodyEl.innerText;
 
-        fetch('/rewrite', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: fullText, action: action, style: style })
-        })
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            if (data.error) {
-                showToast('改写失败：' + data.error);
-                return;
-            }
-            if (data.title && titleEl) {
-                titleEl.textContent = data.emoji + ' ' + data.title;
-            }
-            if (data.content) {
-                bodyEl.textContent = data.content;
-            }
-            if (data.tags && data.tags.length > 0) {
-                var tagContainer = document.querySelector('.result-card-tags-section');
-                if (tagContainer) {
-                    tagContainer.innerHTML = '';
-                    data.tags.forEach(function(t) {
-                        var span = document.createElement('span');
-                        span.className = 'result-tag';
-                        span.textContent = '#' + t;
-                        tagContainer.appendChild(span);
-                    });
+            // 从 select 读取风格，而非从 DOM 文本解析
+            var styleSelect = document.getElementById('styleSelect');
+            var style = styleSelect ? styleSelect.value : '爆款风';
+
+            // 禁用所有按钮
+            rewriteBtns.forEach(function(b) {
+                b.disabled = true;
+                b.textContent = '...';
+            });
+
+            fetch('/rewrite', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: fullText, action: action, style: style })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (!data.ok) {
+                    showToast('❌ ' + (data.error || '改写失败'));
+                    return;
                 }
-            }
-            showToast('✅ 已按「' + this.textContent.trim() + '」优化');
-        }.bind(this))
-        .catch(function(err) {
-            showToast('改写失败，请重试');
-        })
-        .finally(function() {
-            allBtns.forEach(function(b) {
-                b.disabled = false;
-                var actions = { shorter: '📏 改短一点', premium: '👑 更高级', xiaohongshu: '📱 更适合小红书', emotional: '💫 更有情绪感' };
-                b.textContent = actions[b.getAttribute('data-action')] || '编辑';
+                // 更新标题
+                if (data.title && titleEl) {
+                    titleEl.textContent = (data.emoji || '') + ' ' + data.title;
+                }
+                // 更新正文
+                if (data.content) {
+                    bodyEl.textContent = data.content;
+                }
+                // 更新标签
+                if (data.tags && data.tags.length > 0) {
+                    var tagContainer = document.querySelector('.result-card-tags-section');
+                    if (tagContainer) {
+                        tagContainer.innerHTML = '';
+                        data.tags.forEach(function(t) {
+                            var span = document.createElement('span');
+                            span.className = 'result-tag';
+                            span.textContent = '#' + t;
+                            tagContainer.appendChild(span);
+                        });
+                    }
+                }
+                var label = actionLabels[action] || '编辑';
+                showToast('✅ 已按「' + label + '」优化');
+            })
+            .catch(function() {
+                showToast('❌ 网络错误，请重试');
+            })
+            .finally(function() {
+                resetButtons();
             });
         });
     });
-});
+})();
 </script>
 {% endblock %}

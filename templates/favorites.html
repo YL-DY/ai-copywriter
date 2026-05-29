@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}我的收藏 - InkFlow{% endblock %}
+{% block content %}
+<div class="container" style="padding-top: 20px;">
+    <div class="card">
+        <h1>⭐ 我的收藏</h1>
+        {% if pagination.items %}
+        <div class="history-list" style="margin-top: 0;">
+            {% for item in pagination.items %}
+            <div class="history-item">
+                <div class="history-main">
+                    <div class="history-product">{{ item.product }}</div>
+                    <div class="history-meta">
+                        <span class="history-style">{{ style_icons.get(item.style, '📝') }} {{ item.style }}</span>
+                        <span class="history-date">{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                        <span class="history-tokens">⚡ {{ item.tokens_used }} tokens</span>
+                    </div>
+                    <div class="history-preview">{{ item.result[:120] }}{% if item.result|length > 120 %}...{% endif %}</div>
+                </div>
+                <div class="history-actions">
+                    <form action="{{ url_for('toggle_favorite', history_id=item.id) }}" method="POST" class="fav-form" style="display:inline;">
+                        <button type="submit" class="btn-sm btn-fav" title="取消收藏">⭐</button>
+                    </form>
+                    <a href="{{ url_for('regenerate', history_id=item.id) }}" class="btn-sm btn-outline">✨ 重新生成</a>
+                    <form action="{{ url_for('delete_history', history_id=item.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('确定删除？');">
+                        <button type="submit" class="btn-sm btn-danger">🗑️</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">⭐</div>
+            <div class="empty-text">还没有收藏任何文案</div>
+            <p style="color:#64748b;font-size:14px;margin-bottom:24px;">在历史记录或生成结果中点击 ⭐ 即可收藏</p>
+            <a href="{{ url_for('home') }}" class="btn btn-primary">去生成文案</a>
+        </div>
+        {% endif %}
+
+        <!-- 分页 -->
+        {% if pagination.pages > 1 %}
+        <div class="pagination">
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('favorites', page=pagination.prev_num) }}" class="page-link">← 上一页</a>
+            {% endif %}
+            <span class="page-info">第 {{ pagination.page }} / {{ pagination.pages }} 页</span>
+            {% if pagination.has_next %}
+            <a href="{{ url_for('favorites', page=pagination.next_num) }}" class="page-link">下一页 →</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+<script>
+// 收藏按钮异步切换
+document.querySelectorAll('.fav-form').forEach(function(form) {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var btn = this.querySelector('button');
+        var action = this.getAttribute('action');
+        fetch(action, { method: 'POST' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.ok) {
+                // 取消收藏后直接移除这个 item
+                var item = btn.closest('.history-item');
+                item.style.opacity = '0';
+                setTimeout(function() { item.remove(); }, 300);
+                // 如果没 item 了刷新
+                var remaining = document.querySelectorAll('.history-item');
+                if (remaining.length === 0) {
+                    setTimeout(function() { location.reload(); }, 400);
+                }
+            }
+        })
+        .catch(function() { location.reload(); });
+    });
+});
+</script>
+{% endblock %}

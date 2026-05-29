@@ -368,8 +368,9 @@
         <a href="{{ url_for('home') }}" class="brand">Inkflow</a>
         <div class="nav-links">
             <span class="token-badge">⚡ {{ user_token_remaining }}{% if not current_user.is_premium %}/月 · 今日 {{ daily_remaining }}/10{% endif %}</span>
-            <a href="{{ url_for('home') }}">生成</a>
+                        <a href="{{ url_for('home') }}">生成</a>
             <a href="{{ url_for('history') }}">历史</a>
+            <a href="{{ url_for('favorites') }}">⭐ 收藏</a>
             <a href="{{ url_for('profile') }}">个人</a>
             <span class="user-info">{{ current_user.username }}</span>
             <a href="{{ url_for('auth.logout') }}" style="color:rgba(239,68,68,0.7);">退出</a>

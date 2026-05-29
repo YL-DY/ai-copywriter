@@ -68,6 +68,15 @@ def ensure_db():
             db.session.commit()
         except Exception:
             db.session.rollback()
+        try:
+            from sqlalchemy import inspect as _inspect2
+            ins2 = _inspect2(db.engine)
+            h_cols = [c["name"] for c in ins2.get_columns("histories")]
+            if "is_favorited" not in h_cols:
+                db.session.execute(_text("ALTER TABLE histories ADD COLUMN is_favorited BOOLEAN DEFAULT 0"))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
         _db_initialized = True
 
 DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "sk-929e447310024be5bec2a1587f2c414f")
@@ -522,8 +531,30 @@ def profile():
     total_count = History.query.filter_by(user_id=current_user.id).count()
     total_tokens_used = db.session.query(db.func.sum(History.tokens_used))\
         .filter(History.user_id == current_user.id).scalar() or 0
+    fav_count = History.query.filter_by(user_id=current_user.id, is_favorited=True).count()
     return render_template("profile.html", total_count=total_count,
-                           total_tokens_used=total_tokens_used)
+                           total_tokens_used=total_tokens_used, fav_count=fav_count)
+
+
+@app.route("/favorites")
+@login_required
+def favorites():
+    page = request.args.get("page", 1, type=int)
+    pagination = History.query.filter_by(user_id=current_user.id, is_favorited=True)\
+        .order_by(History.created_at.desc())\
+        .paginate(page=page, per_page=10, error_out=False)
+    return render_template("favorites.html", pagination=pagination)
+
+
+@app.route("/favorite/toggle/<int:history_id>", methods=["POST"])
+@login_required
+def toggle_favorite(history_id):
+    item = History.query.get_or_404(history_id)
+    if item.user_id != current_user.id:
+        return {"ok": False, "error": "无权限"}, 403
+    item.is_favorited = not item.is_favorited
+    db.session.commit()
+    return {"ok": True, "is_favorited": item.is_favorited}
 
 
 @app.context_processor

@@ -27,7 +27,10 @@
                     <span class="history-product">{{ style_icons.get(item.style, '📝') }} {{ item.product }}</span>
                     <span class="history-style">{{ item.style }}</span>
                 </div>
-                <div class="history-actions">
+                                <div class="history-actions">
+                    <form method="POST" action="{{ url_for('toggle_favorite', history_id=item.id) }}" style="display:inline;" class="fav-form">
+                        <button type="submit" class="btn-sm {{ 'btn-success' if item.is_favorited else 'btn-outline' }}" title="收藏">{% if item.is_favorited %}⭐{% else %}☆{% endif %}</button>
+                    </form>
                     <a href="{{ url_for('regenerate', history_id=item.id) }}" class="btn-sm btn-outline" title="再次生成" onclick="return confirm('基于此记录重新生成？')">🔄 再来</a>
                     <form method="POST" action="{{ url_for('delete_history', history_id=item.id) }}" style="display:inline;" onsubmit="return confirm('确定删除？')">
                         <button type="submit" class="btn-sm btn-danger" title="删除">🗑️</button>
@@ -101,5 +104,30 @@
         setTimeout(() => t.classList.add('show'), 10);
         setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 2000);
     }
+
+    // 收藏按钮异步切换
+    document.querySelectorAll('.fav-form').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var btn = this.querySelector('button');
+            var action = this.getAttribute('action');
+            fetch(action, { method: 'POST' })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.ok) {
+                    if (data.is_favorited) {
+                        btn.className = 'btn-sm btn-success';
+                        btn.textContent = '⭐';
+                        showToast('已收藏 ⭐');
+                    } else {
+                        btn.className = 'btn-sm btn-outline';
+                        btn.textContent = '☆';
+                        showToast('已取消收藏');
+                    }
+                }
+            })
+            .catch(function() { location.reload(); });
+        });
+    });
 </script>
 {% endblock %}

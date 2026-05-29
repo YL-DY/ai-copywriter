@@ -50,4 +50,5 @@ class History(db.Model):
     result = db.Column(db.Text, nullable=False)
     tokens_used = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    is_favorited = db.Column(db.Boolean, default=False)
 
