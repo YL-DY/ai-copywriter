@@ -196,6 +196,38 @@ def estimate_tokens(text):
     return len(text)
 
 
+def parse_result(raw):
+    """解析模型返回的 JSON，解析失败则退回纯文本"""
+    import json as _json
+    title = ""
+    emoji = ""
+    content = raw
+    tags = []
+    try:
+        text = raw.strip()
+        # 去掉可能的 markdown 代码块包裹
+        if text.startswith("```"):
+            lines = text.split("\n", 1)
+            if len(lines) > 1:
+                text = lines[1]
+            if text.endswith("```"):
+                text = text[:-3].rstrip()
+        # 尝试提取 JSON 对象（可能文本前面有内容）
+        start = text.find("{")
+        end = text.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            text = text[start:end+1]
+        parsed = _json.loads(text)
+        title = parsed.get("title", "")
+        emoji = parsed.get("emoji", "")
+        content = parsed.get("content", raw)
+        tags = parsed.get("tags", [])
+    except Exception:
+        # 解析失败，content 保持原样
+        pass
+    return title, emoji, content, tags
+
+
 def generate_prompt(product, style, custom_prompt="", word_count=""):
     base = STYLE_PROMPTS.get(style, STYLE_PROMPTS["爆款风"])
 
@@ -274,26 +306,8 @@ def home():
             output_tokens = estimate_tokens(result_raw)
             result_tokens = prompt_tokens + output_tokens
 
-            # 尝试解析 JSON
-            try:
-                import json as _json
-                # 尝试提取 JSON（可能被 markdown 包裹）
-                raw = result_raw.strip()
-                if raw.startswith("```"):
-                    raw = raw.split("\n", 1)[1]
-                    if raw.endswith("```"):
-                        raw = raw[:-3]
-                    raw = raw.strip()
-                parsed = _json.loads(raw)
-                result_title = parsed.get("title", "")
-                result_emoji = parsed.get("emoji", "")
-                result_content = parsed.get("content", result_raw)
-                result_tags = parsed.get("tags", [])
-            except Exception:
-                result_title = ""
-                result_emoji = ""
-                result_content = result_raw
-                result_tags = []
+            # 解析 JSON 结构化结果
+            result_title, result_emoji, result_content, result_tags = parse_result(result_raw)
 
             history = History(
                 user_id=current_user.id,

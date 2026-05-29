@@ -181,21 +181,34 @@
 }
 .hero, #generatePage .container { position: relative; z-index: 1; }
 
-/* ===== Result Card ===== */
+/* ===== Result Card (Magazine Style) ===== */
 .result-card {
-    background: rgba(11, 15, 26, 0.5);
-    border: 1px solid rgba(51, 65, 85, 0.25);
-    border-radius: 16px;
+    border-radius: 20px;
     overflow: hidden;
-    animation: cardUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    background: rgba(11, 15, 26, 0.6);
+    border: 1px solid rgba(51, 65, 85, 0.2);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+    animation: cardUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.result-card-cover {
+    position: relative;
+    padding: 28px 28px 20px;
+    background: linear-gradient(135deg, rgba(56,189,248,0.04) 0%, rgba(167,139,250,0.04) 100%);
+    border-bottom: 1px solid rgba(51, 65, 85, 0.15);
+}
+.result-card-ornament {
+    position: absolute;
+    top: 0; right: 0;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle at top right, rgba(56,189,248,0.06) 0%, transparent 70%);
+    pointer-events: none;
 }
 .result-card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 20px;
-    background: rgba(20, 23, 42, 0.4);
-    border-bottom: 1px solid rgba(51, 65, 85, 0.15);
+    margin-bottom: 16px;
 }
 .result-card-meta {
     display: flex;
@@ -208,45 +221,56 @@
     gap: 4px;
     background: rgba(56, 189, 248, 0.08);
     color: #38bdf8;
-    padding: 3px 10px;
+    padding: 4px 12px;
     border-radius: 20px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
+    letter-spacing: 0.5px;
 }
 .result-tokens {
     font-size: 11px;
     color: #475569;
 }
+.result-card-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #f1f5f9;
+    line-height: 1.35;
+    letter-spacing: -0.3px;
+    padding-right: 40px;
+}
+.result-card-tags {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+.result-tag {
+    color: #64748b;
+    font-size: 12px;
+    transition: color 0.2s;
+}
+.result-tag:hover {
+    color: #38bdf8;
+}
 .result-card-body {
-    padding: 20px 24px;
+    padding: 20px 28px 28px;
 }
 .result-card-body .result-box {
     white-space: pre-wrap;
-    line-height: 1.8;
+    line-height: 1.85;
     font-size: 14px;
-    color: #e2e8f0;
+    color: #cbd5e1;
     border: none;
     background: transparent;
     padding: 0;
     border-radius: 0;
 }
-.result-card-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: #f1f5f9;
-    margin-bottom: 8px;
-    line-height: 1.4;
-}
-.result-card-tags {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 12px;
-}
-.result-tag {
-    color: #38bdf8;
-    font-size: 12px;
-    opacity: 0.7;
+@media (max-width: 600px) {
+    .result-card-header { flex-direction: column; gap: 10px; align-items: flex-start; }
+    .result-card-cover { padding: 20px 18px 16px; }
+    .result-card-body { padding: 16px 18px 22px; }
+    .result-card-title { font-size: 18px; padding-right: 0; }
 }
 @media (max-width: 600px) {
     .result-card-header { flex-direction: column; gap: 10px; align-items: flex-start; }
@@ -328,18 +352,19 @@
         {% if result_content %}
         <div class="divider"></div>
         <div class="result-card">
-            <div class="result-card-header">
-                <div class="result-card-meta">
-                    <span class="result-style-tag">{{ style_icons.get(reuse_style, '📝') }} {{ reuse_style or '' }}</span>
-                    <span class="result-tokens">消耗 {{ result_tokens }} tokens</span>
+            <div class="result-card-cover">
+                <div class="result-card-ornament"></div>
+                <div class="result-card-header">
+                    <div class="result-card-meta">
+                        <span class="result-style-tag">{{ style_icons.get(reuse_style, '📝') }} {{ reuse_style or '' }}</span>
+                        <span class="result-tokens">⚡ {{ result_tokens }} tokens</span>
+                    </div>
+                    <div class="result-actions">
+                        <button onclick="exportText('txt')" class="btn-sm btn-outline">📄 TXT</button>
+                        <button onclick="exportText('md')" class="btn-sm btn-outline">📝 MD</button>
+                        <button onclick="copyText()" class="btn-sm btn-success">📋 复制</button>
+                    </div>
                 </div>
-                <div class="result-actions">
-                    <button onclick="exportText('txt')" class="btn-sm btn-outline">📄 TXT</button>
-                    <button onclick="exportText('md')" class="btn-sm btn-outline">📝 MD</button>
-                    <button onclick="copyText()" class="btn-sm btn-success">📋 复制</button>
-                </div>
-            </div>
-            <div class="result-card-body">
                 {% if result_title %}
                 <div class="result-card-title">{{ result_emoji }} {{ result_title }}</div>
                 {% endif %}
@@ -350,6 +375,8 @@
                     {% endfor %}
                 </div>
                 {% endif %}
+            </div>
+            <div class="result-card-body">
                 <div class="result-box" id="resultBox">{{ result_content }}</div>
             </div>
         </div>
