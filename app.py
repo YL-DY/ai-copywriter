@@ -85,7 +85,10 @@ STYLE_PROMPTS = {
 3. 带很多emoji
 4. 容易引发点赞评论
 5. 像热门博主语气
-{extra}""",
+{extra}
+
+请严格按照以下 JSON 格式返回结果，不要加任何额外的文字：
+{{"title": "文案标题", "emoji": "🔥", "content": "正文内容", "tags": ["标签1", "标签2"]}}""",
 
     "高级感": """请帮我写一篇高级感小红书文案。
 
@@ -97,7 +100,10 @@ STYLE_PROMPTS = {
 3. 像高端生活方式博主
 4. 用词高级
 5. 带适量emoji
-{extra}""",
+{extra}
+
+请严格按照以下 JSON 格式返回结果，不要加任何额外的文字：
+{{"title": "文案标题", "emoji": "✨", "content": "正文内容", "tags": ["标签1", "标签2"]}}""",
 
     "带货风": """请帮我写一篇带货型小红书文案。
 
@@ -109,7 +115,10 @@ STYLE_PROMPTS = {
 3. 有种草感
 4. 引导下单
 5. 像专业博主推荐
-{extra}""",
+{extra}
+
+请严格按照以下 JSON 格式返回结果，不要加任何额外的文字：
+{{"title": "文案标题", "emoji": "🛍️", "content": "正文内容", "tags": ["标签1", "标签2"]}}""",
 
     "情绪风": """请帮我写一篇情绪感强的小红书文案。
 
@@ -121,7 +130,10 @@ STYLE_PROMPTS = {
 3. 像真实生活分享
 4. 有故事感
 5. 带emoji
-{extra}""",
+{extra}
+
+请严格按照以下 JSON 格式返回结果，不要加任何额外的文字：
+{{"title": "文案标题", "emoji": "💭", "content": "正文内容", "tags": ["标签1", "标签2"]}}""",
 
     "搞笑风": """请帮我写一篇搞笑风格小红书文案。
 
@@ -133,7 +145,10 @@ STYLE_PROMPTS = {
 3. 有段子感
 4. 轻松有趣
 5. 带emoji
-{extra}""",
+{extra}
+
+请严格按照以下 JSON 格式返回结果，不要加任何额外的文字：
+{{"title": "文案标题", "emoji": "😂", "content": "正文内容", "tags": ["标签1", "标签2"]}}""",
 
     "干货教程": """请帮我写一篇干货型小红书教程。
 
@@ -145,7 +160,10 @@ STYLE_PROMPTS = {
 3. 实用价值高
 4. 像专业领域博主
 5. 带适量emoji
-{extra}""",
+{extra}
+
+请严格按照以下 JSON 格式返回结果，不要加任何额外的文字：
+{{"title": "文案标题", "emoji": "📖", "content": "正文内容", "tags": ["标签1", "标签2"]}}""",
 
     "测评对比": """请帮我写一篇测评对比型小红书文案。
 
@@ -157,7 +175,10 @@ STYLE_PROMPTS = {
 3. 真实使用感受
 4. 有说服力
 5. 像真实用户测评
-{extra}""",
+{extra}
+
+请严格按照以下 JSON 格式返回结果，不要加任何额外的文字：
+{{"title": "文案标题", "emoji": "⚖️", "content": "正文内容", "tags": ["标签1", "标签2"]}}""",
 }
 
 STYLE_ICONS = {
@@ -191,7 +212,11 @@ def generate_prompt(product, style, custom_prompt="", word_count=""):
 @app.route("/", methods=["GET", "POST"])
 @login_required
 def home():
-    result = ""
+    result_raw = ""
+    result_title = ""
+    result_emoji = ""
+    result_content = ""
+    result_tags = []
     result_tokens = 0
     reuse_product = ""
     reuse_style = ""
@@ -216,7 +241,8 @@ def home():
 
         if not current_user.is_premium and current_user.daily_count >= 10:
             flash("今日免费次数已用完（每日 10 次），明天再来吧", "error")
-            return render_template("home.html", result="", result_tokens=0,
+            return render_template("home.html", result_raw="", result_title="", result_emoji="", result_content="", result_tags=[],
+                                   result_tokens=0,
                                    reuse_product=reuse_product, reuse_style=reuse_style,
                                    reuse_custom_prompt=reuse_custom_prompt, reuse_word_count=reuse_word_count)
 
@@ -239,20 +265,42 @@ def home():
 
             if "choices" not in resp_data:
                 flash(f"API 调用失败：{resp_data}", "error")
-                return render_template("home.html", result="", result_tokens=0,
+                return render_template("home.html", result_raw="", result_title="", result_emoji="", result_content="", result_tags=[],
+                                       result_tokens=0,
                                        reuse_product=reuse_product, reuse_style=reuse_style,
                                        reuse_custom_prompt=reuse_custom_prompt, reuse_word_count=reuse_word_count)
 
-            result = resp_data["choices"][0]["message"]["content"]
-            output_tokens = estimate_tokens(result)
+            result_raw = resp_data["choices"][0]["message"]["content"]
+            output_tokens = estimate_tokens(result_raw)
             result_tokens = prompt_tokens + output_tokens
+
+            # 尝试解析 JSON
+            try:
+                import json as _json
+                # 尝试提取 JSON（可能被 markdown 包裹）
+                raw = result_raw.strip()
+                if raw.startswith("```"):
+                    raw = raw.split("\n", 1)[1]
+                    if raw.endswith("```"):
+                        raw = raw[:-3]
+                    raw = raw.strip()
+                parsed = _json.loads(raw)
+                result_title = parsed.get("title", "")
+                result_emoji = parsed.get("emoji", "")
+                result_content = parsed.get("content", result_raw)
+                result_tags = parsed.get("tags", [])
+            except Exception:
+                result_title = ""
+                result_emoji = ""
+                result_content = result_raw
+                result_tags = []
 
             history = History(
                 user_id=current_user.id,
                 product=product,
                 style=style,
                 prompt=prompt,
-                result=result,
+                result=result_raw,
                 tokens_used=result_tokens,
             )
             db.session.add(history)
@@ -267,9 +315,17 @@ def home():
         except Exception as e:
             flash(f"生成失败：{str(e)}", "error")
 
-    return render_template("home.html", result=result, result_tokens=result_tokens,
-                           reuse_product=reuse_product, reuse_style=reuse_style,
-                           reuse_custom_prompt=reuse_custom_prompt, reuse_word_count=reuse_word_count)
+    return render_template("home.html",
+                           result_raw=result_raw,
+                           result_title=result_title,
+                           result_emoji=result_emoji,
+                           result_content=result_content,
+                           result_tags=result_tags,
+                           result_tokens=result_tokens,
+                           reuse_product=reuse_product,
+                           reuse_style=reuse_style,
+                           reuse_custom_prompt=reuse_custom_prompt,
+                           reuse_word_count=reuse_word_count)
 
 
 @app.route("/history")

@@ -230,6 +230,24 @@
     padding: 0;
     border-radius: 0;
 }
+.result-card-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+.result-card-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+.result-tag {
+    color: #38bdf8;
+    font-size: 12px;
+    opacity: 0.7;
+}
 @media (max-width: 600px) {
     .result-card-header { flex-direction: column; gap: 10px; align-items: flex-start; }
 }
@@ -307,7 +325,7 @@
             </button>
         </form>
 
-        {% if result %}
+        {% if result_content %}
         <div class="divider"></div>
         <div class="result-card">
             <div class="result-card-header">
@@ -322,7 +340,17 @@
                 </div>
             </div>
             <div class="result-card-body">
-                <div class="result-box" id="resultBox">{{ result }}</div>
+                {% if result_title %}
+                <div class="result-card-title">{{ result_emoji }} {{ result_title }}</div>
+                {% endif %}
+                {% if result_tags %}
+                <div class="result-card-tags">
+                    {% for tag in result_tags %}
+                    <span class="result-tag">#{{ tag }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <div class="result-box" id="resultBox">{{ result_content }}</div>
             </div>
         </div>
         {% endif %}
@@ -433,7 +461,11 @@ form.addEventListener('submit', function() {
 });
 
 function copyText() {
-    var text = document.getElementById('resultBox').innerText;
+    var title = document.querySelector('.result-card-title');
+    var body = document.getElementById('resultBox');
+    var text = '';
+    if (title) text += title.innerText + '\n\n';
+    if (body) text += body.innerText;
     navigator.clipboard.writeText(text).then(function() {
         showToast('已复制到剪贴板');
     }).catch(function() {
