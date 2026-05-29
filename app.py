@@ -550,6 +550,25 @@ def favorites():
     return render_template("favorites.html", pagination=pagination)
 
 
+@app.route("/compare", methods=["GET", "POST"])
+@login_required
+def compare():
+    if request.method == "POST":
+        ids = request.form.getlist("history_ids")
+        if not ids:
+            flash("请至少选择一条记录", "error")
+            return redirect(url_for("history"))
+        items = History.query.filter(
+            History.id.in_(ids),
+            History.user_id == current_user.id
+        ).order_by(History.created_at.desc()).all()
+        if not items:
+            flash("记录不存在", "error")
+            return redirect(url_for("history"))
+        return render_template("compare.html", items=items)
+    return redirect(url_for("history"))
+
+
 @app.route("/favorite/toggle/<int:history_id>", methods=["POST"])
 @login_required
 def toggle_favorite(history_id):

@@ -5,11 +5,13 @@
     <div class="card">
         <div class="flex-between mb-20">
             <h1 style="margin-bottom: 0;">历史记录</h1>
-            <a href="{{ url_for('home') }}" style="color: #38bdf8; text-decoration: none; font-size: 14px;">← 返回生成</a>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <a href="{{ url_for('home') }}" style="color: #38bdf8; text-decoration: none; font-size: 14px;">← 返回生成</a>
+            </div>
         </div>
 
-        <!-- 搜索 -->
-        <form method="GET" class="search-form">
+        <!-- 搜索 & 对比入口 -->
+        <form method="GET" class="search-form" id="searchForm">
             <div class="search-box">
                 <input type="text" name="search" placeholder="🔍 搜索产品名称..." value="{{ search }}" style="margin-bottom:0;flex:1;">
                 <button type="submit" class="btn btn-primary" style="width:auto;padding:14px 20px;margin-left:8px;">搜索</button>
@@ -19,15 +21,30 @@
             </div>
         </form>
 
+        <!-- 对比模式切换 -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <div style="font-size:12px;color:#475569;" id="compareCount">已选 0 条</div>
+            <div style="display:flex;gap:8px;">
+                <button type="button" class="btn-sm btn-outline" id="toggleCompareBtn">☑️ 选择对比</button>
+                <form method="POST" action="{{ url_for('compare') }}" id="compareForm" style="display:none;">
+                    <div id="compareIdsContainer"></div>
+                    <button type="submit" class="btn-sm btn-success" id="doCompareBtn">📊 开始对比</button>
+                </form>
+            </div>
+        </div>
+
         {% if pagination.items %}
         {% for item in pagination.items %}
-        <div class="history-item">
+        <div class="history-item" data-history-id="{{ item.id }}">
             <div class="flex-between">
-                <div>
-                    <span class="history-product">{{ style_icons.get(item.style, '📝') }} {{ item.product }}</span>
-                    <span class="history-style">{{ item.style }}</span>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <input type="checkbox" class="compare-checkbox" value="{{ item.id }}" style="width:16px;height:16px;display:none;">
+                    <div>
+                        <span class="history-product">{{ style_icons.get(item.style, '📝') }} {{ item.product }}</span>
+                        <span class="history-style">{{ item.style }}</span>
+                    </div>
                 </div>
-                                <div class="history-actions">
+                <div class="history-actions">
                     <form method="POST" action="{{ url_for('toggle_favorite', history_id=item.id) }}" style="display:inline;" class="fav-form">
                         <button type="submit" class="btn-sm {{ 'btn-success' if item.is_favorited else 'btn-outline' }}" title="收藏">{% if item.is_favorited %}⭐{% else %}☆{% endif %}</button>
                     </form>
@@ -105,13 +122,12 @@
         setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 2000);
     }
 
-    // 收藏按钮异步切换
+    // 收藏按钮异步
     document.querySelectorAll('.fav-form').forEach(function(form) {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             var btn = this.querySelector('button');
-            var action = this.getAttribute('action');
-            fetch(action, { method: 'POST' })
+            fetch(this.getAttribute('action'), { method: 'POST' })
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 if (data.ok) {
@@ -129,5 +145,41 @@
             .catch(function() { location.reload(); });
         });
     });
+
+    // 对比模式
+    var compareMode = false;
+    var toggleBtn = document.getElementById('toggleCompareBtn');
+    var compareForm = document.getElementById('compareForm');
+    var compareCount = document.getElementById('compareCount');
+
+    toggleBtn.addEventListener('click', function() {
+        compareMode = !compareMode;
+        var checkboxes = document.querySelectorAll('.compare-checkbox');
+        checkboxes.forEach(function(cb) {
+            cb.style.display = compareMode ? 'inline-block' : 'none';
+            if (!compareMode) cb.checked = false;
+        });
+        compareForm.style.display = compareMode ? 'inline-block' : 'none';
+        toggleBtn.textContent = compareMode ? '❌ 取消选择' : '☑️ 选择对比';
+        updateCompareCount();
+    });
+
+    document.querySelectorAll('.compare-checkbox').forEach(function(cb) {
+        cb.addEventListener('change', updateCompareCount);
+    });
+
+    function updateCompareCount() {
+        var checked = document.querySelectorAll('.compare-checkbox:checked');
+        compareCount.textContent = '已选 ' + checked.length + ' 条';
+        var container = document.getElementById('compareIdsContainer');
+        container.innerHTML = '';
+        checked.forEach(function(cb) {
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'history_ids';
+            input.value = cb.value;
+            container.appendChild(input);
+        });
+    }
 </script>
 {% endblock %}
