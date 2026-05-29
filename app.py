@@ -604,7 +604,17 @@ def view_share(token):
     if not item:
         return "该分享不存在或已失效", 404
     style_icon = STYLE_ICONS.get(item.style, "📝")
-    return render_template("share.html", item=item, style_icon=style_icon)
+    # 解析 result JSON，拆分成结构化数据
+    title, emoji, content, tags = parse_result(item.result)
+    # 如果解析后 content 还是原始 JSON 样子（包含 "title" 等字段），回退到纯文本
+    if content and content.strip().startswith("{"):
+        content = item.result
+        title = ""
+        emoji = ""
+        tags = []
+    return render_template("share.html", item=item, style_icon=style_icon,
+                           parsed_title=title, parsed_emoji=emoji,
+                           parsed_content=content, parsed_tags=tags)
 
 
 @app.context_processor
