@@ -181,7 +181,7 @@
 }
 .hero, #generatePage .container { position: relative; z-index: 1; }
 
-/* ===== Result Card (Magazine Style) ===== */
+/* ===== Result Card (Magazine Style v2) ===== */
 .result-card {
     border-radius: 20px;
     overflow: hidden;
@@ -190,17 +190,18 @@
     box-shadow: 0 8px 40px rgba(0,0,0,0.25);
     animation: cardUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+/* ---- Cover / Headline ---- */
 .result-card-cover {
     position: relative;
-    padding: 28px 28px 20px;
+    padding: 24px 28px 18px;
     background: linear-gradient(135deg, rgba(56,189,248,0.04) 0%, rgba(167,139,250,0.04) 100%);
-    border-bottom: 1px solid rgba(51, 65, 85, 0.15);
+    border-bottom: 1px solid rgba(51, 65, 85, 0.12);
 }
 .result-card-ornament {
     position: absolute;
     top: 0; right: 0;
-    width: 120px;
-    height: 120px;
+    width: 160px;
+    height: 160px;
     background: radial-gradient(circle at top right, rgba(56,189,248,0.06) 0%, transparent 70%);
     pointer-events: none;
 }
@@ -208,7 +209,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 18px;
 }
 .result-card-meta {
     display: flex;
@@ -221,7 +222,7 @@
     gap: 4px;
     background: rgba(56, 189, 248, 0.08);
     color: #38bdf8;
-    padding: 4px 12px;
+    padding: 4px 14px;
     border-radius: 20px;
     font-size: 12px;
     font-weight: 600;
@@ -231,34 +232,58 @@
     font-size: 11px;
     color: #475569;
 }
+.result-card-headline {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding-right: 40px;
+}
+.result-card-headline-accent {
+    flex-shrink: 0;
+    width: 4px;
+    height: 36px;
+    background: linear-gradient(180deg, #38bdf8, #a78bfa);
+    border-radius: 4px;
+    margin-top: 6px;
+}
 .result-card-title {
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 700;
     color: #f1f5f9;
     line-height: 1.35;
     letter-spacing: -0.3px;
-    padding-right: 40px;
 }
-.result-card-tags {
+/* ---- Tags Section ---- */
+.result-card-tags-section {
+    padding: 14px 28px;
     display: flex;
-    gap: 10px;
+    gap: 8px;
     flex-wrap: wrap;
-    margin-top: 12px;
+    background: rgba(56, 189, 248, 0.02);
+    border-bottom: 1px solid rgba(51, 65, 85, 0.08);
 }
 .result-tag {
-    color: #64748b;
+    display: inline-block;
+    background: rgba(56, 189, 248, 0.06);
+    color: #94a3b8;
+    padding: 3px 12px;
+    border-radius: 6px;
     font-size: 12px;
-    transition: color 0.2s;
+    transition: all 0.2s;
+    border: 1px solid rgba(51, 65, 85, 0.15);
 }
 .result-tag:hover {
     color: #38bdf8;
+    border-color: rgba(56, 189, 248, 0.2);
+    background: rgba(56, 189, 248, 0.08);
 }
+/* ---- Body / Content ---- */
 .result-card-body {
-    padding: 20px 28px 28px;
+    padding: 22px 28px 28px;
 }
 .result-card-body .result-box {
     white-space: pre-wrap;
-    line-height: 1.85;
+    line-height: 1.9;
     font-size: 14px;
     color: #cbd5e1;
     border: none;
@@ -266,14 +291,18 @@
     padding: 0;
     border-radius: 0;
 }
-@media (max-width: 600px) {
-    .result-card-header { flex-direction: column; gap: 10px; align-items: flex-start; }
-    .result-card-cover { padding: 20px 18px 16px; }
-    .result-card-body { padding: 16px 18px 22px; }
-    .result-card-title { font-size: 18px; padding-right: 0; }
+/* 正文段落之间加间距 */
+.result-card-body .result-box p {
+    margin-bottom: 14px;
 }
 @media (max-width: 600px) {
     .result-card-header { flex-direction: column; gap: 10px; align-items: flex-start; }
+    .result-card-cover { padding: 18px 16px 14px; }
+    .result-card-body { padding: 16px 16px 22px; }
+    .result-card-title { font-size: 20px; padding-right: 0; }
+    .result-card-headline { gap: 10px; padding-right: 0; }
+    .result-card-headline-accent { height: 28px; }
+    .result-card-tags-section { padding: 12px 16px; }
 }
 @media (max-width: 600px) {
     .hero-title { font-size: 28px; }
@@ -366,16 +395,19 @@
                     </div>
                 </div>
                 {% if result_title %}
-                <div class="result-card-title">{{ result_emoji }} {{ result_title }}</div>
-                {% endif %}
-                {% if result_tags %}
-                <div class="result-card-tags">
-                    {% for tag in result_tags %}
-                    <span class="result-tag">#{{ tag }}</span>
-                    {% endfor %}
+                <div class="result-card-headline">
+                    <div class="result-card-headline-accent"></div>
+                    <div class="result-card-title">{{ result_emoji }} {{ result_title }}</div>
                 </div>
                 {% endif %}
             </div>
+            {% if result_tags %}
+            <div class="result-card-tags-section">
+                {% for tag in result_tags %}
+                <span class="result-tag">#{{ tag }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
             <div class="result-card-body">
                 <div class="result-box" id="resultBox">{{ result_content }}</div>
             </div>
