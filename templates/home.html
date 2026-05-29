@@ -251,27 +251,27 @@
                 </div>
             </details>
 
-            <button type="submit" class="btn btn-primary" id="generateBtn" style="width:100%;font-size:15px;padding:14px;">
-                            ✨ 让灵笔为你创作
-                        </button>
-                    </form>
-
-                    <!-- ===== Loading Overlay ===== -->
-                    <div id="loadingOverlay" style="display:none;">
-                        <div class="loading-backdrop"></div>
-                        <div class="loading-modal">
-                            <div class="loading-icon">✍️</div>
-                            <div class="loading-text">灵笔正在创作中</div>
-                            <div class="loading-dots">
-                                <span class="dot"></span>
-                                <span class="dot"></span>
-                                <span class="dot"></span>
-                            </div>
-                            <div class="loading-hint">为你精心打磨每一段文案...</div>
-                        </div>
-                    </div>
+                        <button type="submit" class="btn btn-primary" id="generateBtn" style="width:100%;font-size:15px;padding:14px;">
+                ✨ 让灵笔为你创作
+            </button>
+        </form>
     </div>
 </div>
+</div>
+
+<!-- ===== Loading Overlay ===== -->
+<div id="loadingOverlay" style="display:none;">
+    <div class="loading-backdrop"></div>
+    <div class="loading-modal">
+        <div class="loading-icon">✍️</div>
+        <div class="loading-text">灵笔正在创作中</div>
+        <div class="loading-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+        </div>
+        <div class="loading-hint">为你精心打磨每一段文案...</div>
+    </div>
 </div>
 {% endblock %}
 
@@ -342,18 +342,20 @@ document.getElementById('ctaBtn').addEventListener('click', function(e) {
 var form = document.getElementById('generateForm');
 var button = document.getElementById('generateBtn');
 var loading = document.getElementById('loadingOverlay');
+
 form.addEventListener('submit', function() {
     loading.style.display = 'block';
     button.innerText = '灵笔正在创作中...';
     button.disabled = true;
 });
-// 如果页面已有结果（后端渲染），隐藏loading
+
+// 如果已经有结果（如重新生成），直接显示生成页和按钮正常状态
 window.addEventListener('DOMContentLoaded', function() {
-    {% if result %}
-    loading.style.display = 'none';
-    button.innerText = '✨ 让灵笔为你创作';
-    button.disabled = false;
-    {% endif %}
+    var resultBox = document.querySelector('.result-box');
+    if (resultBox) {
+        document.getElementById('heroPage').style.display = 'none';
+        document.getElementById('generatePage').style.display = 'block';
+    }
 });
 </script>
 {% endblock %}
