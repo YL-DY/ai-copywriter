@@ -287,10 +287,10 @@
                     <label>字数</label>
                     <select name="word_count">
                         <option value="">不限</option>
-                        <option value="100-200">100-200 字</option>
-                        <option value="200-300">200-300 字</option>
-                        <option value="300-500">300-500 字</option>
-                        <option value="500-800">500-800 字</option>
+                        <option value="100-200" {% if (reuse_word_count or request.form.get('word_count', '')) == '100-200' %}selected{% endif %}>100-200 字</option>
+                        <option value="200-300" {% if (reuse_word_count or request.form.get('word_count', '')) == '200-300' %}selected{% endif %}>200-300 字</option>
+                        <option value="300-500" {% if (reuse_word_count or request.form.get('word_count', '')) == '300-500' %}selected{% endif %}>300-500 字</option>
+                        <option value="500-800" {% if (reuse_word_count or request.form.get('word_count', '')) == '500-800' %}selected{% endif %}>500-800 字</option>
                     </select>
                 </div>
             </div>
@@ -298,7 +298,7 @@
             <details style="margin-bottom: 18px;">
                 <summary style="color:#64748b;font-size:13px;">📎 补充要求（选填，让文案更精准）</summary>
                 <div class="mt-12">
-                    <textarea name="custom_prompt" rows="3" placeholder="例如：面向大学生 / 突出性价比 / 语气活泼可爱 / 强调环保理念...">{{ custom_prompt or '' }}</textarea>
+                    <textarea name="custom_prompt" rows="3" placeholder="例如：面向大学生 / 突出性价比 / 语气活泼可爱 / 强调环保理念...">{{ reuse_custom_prompt or request.form.get('custom_prompt', '') }}</textarea>
                 </div>
             </details>
 
@@ -312,7 +312,7 @@
         <div class="result-card">
             <div class="result-card-header">
                 <div class="result-card-meta">
-                    <span class="result-style-tag">{{ style_icons.get(request.form.get('style', reuse_style or ''), '📝') }} {{ request.form.get('style', reuse_style or '') }}</span>
+                    <span class="result-style-tag">{{ style_icons.get(reuse_style, '📝') }} {{ reuse_style or '' }}</span>
                     <span class="result-tokens">消耗 {{ result_tokens }} tokens</span>
                 </div>
                 <div class="result-actions">

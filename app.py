@@ -193,12 +193,20 @@ def generate_prompt(product, style, custom_prompt="", word_count=""):
 def home():
     result = ""
     result_tokens = 0
+    reuse_product = ""
+    reuse_style = ""
+    reuse_custom_prompt = ""
+    reuse_word_count = ""
 
     if request.method == "POST":
         product = request.form["product"]
         style = request.form["style"]
+        reuse_product = product
+        reuse_style = style
         custom_prompt = request.form.get("custom_prompt", "").strip()
         word_count = request.form.get("word_count", "").strip()
+        reuse_custom_prompt = custom_prompt
+        reuse_word_count = word_count
 
         # 每日限额检查
         today = date.today().isoformat()
@@ -208,9 +216,9 @@ def home():
 
         if not current_user.is_premium and current_user.daily_count >= 10:
             flash("今日免费次数已用完（每日 10 次），明天再来吧", "error")
-            return render_template("home.html", result="",
-                                   show_extra=True, custom_prompt=custom_prompt,
-                                   word_count=word_count)
+            return render_template("home.html", result="", result_tokens=0,
+                                   reuse_product=reuse_product, reuse_style=reuse_style,
+                                   reuse_custom_prompt=reuse_custom_prompt, reuse_word_count=reuse_word_count)
 
         prompt = generate_prompt(product, style, custom_prompt, word_count)
         prompt_tokens = estimate_tokens(prompt)
@@ -231,9 +239,9 @@ def home():
 
             if "choices" not in resp_data:
                 flash(f"API 调用失败：{resp_data}", "error")
-                return render_template("home.html", result="",
-                                       show_extra=True, custom_prompt=custom_prompt,
-                                       word_count=word_count)
+                return render_template("home.html", result="", result_tokens=0,
+                                       reuse_product=reuse_product, reuse_style=reuse_style,
+                                       reuse_custom_prompt=reuse_custom_prompt, reuse_word_count=reuse_word_count)
 
             result = resp_data["choices"][0]["message"]["content"]
             output_tokens = estimate_tokens(result)
@@ -260,7 +268,8 @@ def home():
             flash(f"生成失败：{str(e)}", "error")
 
     return render_template("home.html", result=result, result_tokens=result_tokens,
-                           show_extra=True)
+                           reuse_product=reuse_product, reuse_style=reuse_style,
+                           reuse_custom_prompt=reuse_custom_prompt, reuse_word_count=reuse_word_count)
 
 
 @app.route("/history")
