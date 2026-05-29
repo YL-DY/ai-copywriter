@@ -319,6 +319,7 @@ def home():
     result_content = ""
     result_tags = []
     result_tokens = 0
+    last_history_id = 0
     reuse_product = ""
     reuse_style = ""
     reuse_custom_prompt = ""
@@ -390,6 +391,8 @@ def home():
                 tokens_used=result_tokens,
             )
             db.session.add(history)
+            db.session.flush()  # 获取 id 而不提交
+            last_history_id = history.id
             current_user.total_tokens += result_tokens
             current_user.daily_count += 1
             db.session.commit()
@@ -408,6 +411,7 @@ def home():
                            result_content=result_content,
                            result_tags=result_tags,
                            result_tokens=result_tokens,
+                           last_history_id=last_history_id,
                            reuse_product=reuse_product,
                            reuse_style=reuse_style,
                            reuse_custom_prompt=reuse_custom_prompt,

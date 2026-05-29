@@ -427,9 +427,9 @@
                         <span class="result-tokens">⚡ {{ result_tokens }} tokens</span>
                     </div>
                     <div class="result-actions">
-                        {% if result_raw %}
-                        <form method="POST" action="{{ url_for('toggle_favorite', history_id=0) }}" style="display:inline;" id="favForm" class="fav-form">
-                            <button type="submit" class="btn-sm btn-outline" id="favBtn">☆ 收藏</button>
+                        {% if last_history_id and last_history_id > 0 %}
+                        <form method="POST" action="{{ url_for('toggle_favorite', history_id=last_history_id) }}" style="display:inline;" class="fav-form">
+                            <button type="submit" class="btn-sm btn-outline" title="收藏">☆</button>
                         </form>
                         {% endif %}
                         <button onclick="exportText('txt')" class="btn-sm btn-outline">📄 TXT</button>
@@ -695,6 +695,31 @@ function showToast(msg) {
             .finally(function() {
                 resetButtons();
             });
+        });
+    });
+
+    // 首页收藏按钮异步切换
+    document.querySelectorAll('.fav-form').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var btn = this.querySelector('button');
+            var action = this.getAttribute('action');
+            fetch(action, { method: 'POST' })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.ok) {
+                    if (data.is_favorited) {
+                        btn.className = 'btn-sm btn-success';
+                        btn.textContent = '⭐';
+                        showToast('已收藏 ⭐');
+                    } else {
+                        btn.className = 'btn-sm btn-outline';
+                        btn.textContent = '☆';
+                        showToast('已取消收藏');
+                    }
+                }
+            })
+            .catch(function() { location.reload(); });
         });
     });
 })();
