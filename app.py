@@ -74,6 +74,8 @@ def ensure_db():
             h_cols = [c["name"] for c in ins2.get_columns("histories")]
             if "is_favorited" not in h_cols:
                 db.session.execute(_text("ALTER TABLE histories ADD COLUMN is_favorited BOOLEAN DEFAULT 0"))
+            if "share_token" not in h_cols:
+                db.session.execute(_text("ALTER TABLE histories ADD COLUMN share_token VARCHAR(64) DEFAULT ''"))
             db.session.commit()
         except Exception:
             db.session.rollback()
@@ -578,6 +580,31 @@ def toggle_favorite(history_id):
     item.is_favorited = not item.is_favorited
     db.session.commit()
     return {"ok": True, "is_favorited": item.is_favorited}
+
+
+import secrets as _secrets
+
+@app.route("/share/create/<int:history_id>", methods=["POST"])
+@login_required
+def create_share(history_id):
+    item = History.query.get_or_404(history_id)
+    if item.user_id != current_user.id:
+        return {"ok": False, "error": "无权限"}, 403
+    if not item.share_token:
+        item.share_token = _secrets.token_hex(24)
+        db.session.commit()
+    return {"ok": True, "share_token": item.share_token}
+
+
+@app.route("/share/<token>")
+def view_share(token):
+    if not token:
+        return "分享链接无效", 404
+    item = History.query.filter_by(share_token=token).first()
+    if not item:
+        return "该分享不存在或已失效", 404
+    style_icon = STYLE_ICONS.get(item.style, "📝")
+    return render_template("share.html", item=item, style_icon=style_icon)
 
 
 @app.context_processor

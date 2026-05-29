@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ item.product }} - InkFlow 分享</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(160deg, #0b0f1a 0%, #14172a 40%, #0f172a 70%, #0a0f1f 100%);
+            color: #e2e8f0;
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+        .container { max-width: 680px; width: 100%; }
+        .card {
+            background: rgba(20, 23, 42, 0.45);
+            backdrop-filter: blur(12px);
+            padding: 36px 40px;
+            border-radius: 20px;
+            border: 1px solid rgba(51, 65, 85, 0.2);
+            box-shadow: 0 4px 32px rgba(0,0,0,0.2);
+            animation: cardUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        @keyframes cardUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .brand {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #38bdf8 0%, #a78bfa 50%, #f472b6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-family: "Dancing Script", "Caveat", cursive;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(56, 189, 248, 0.08);
+            color: #38bdf8;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .product-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 6px;
+        }
+        .meta {
+            font-size: 12px;
+            color: #475569;
+            margin-bottom: 20px;
+        }
+        .divider {
+            height: 1px;
+            background: rgba(51, 65, 85, 0.2);
+            margin: 20px 0;
+        }
+        .content {
+            white-space: pre-wrap;
+            line-height: 1.9;
+            font-size: 14px;
+            color: #cbd5e1;
+        }
+        .footer {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 12px;
+            color: #475569;
+        }
+        .footer a {
+            color: #38bdf8;
+            text-decoration: none;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 24px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #1d4ed8, #2563eb);
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: all 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+        }
+        @media (max-width: 600px) {
+            .card { padding: 24px 18px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <span class="brand">InkFlow</span>
+                <span class="badge">{{ style_icon }} {{ item.style }}</span>
+            </div>
+            <div class="product-name">{{ item.product }}</div>
+            <div class="meta">
+                由 {{ item.user.username }} 创作 · {{ item.created_at.strftime('%Y-%m-%d %H:%M') }}
+            </div>
+            <div class="divider"></div>
+            <div class="content">{{ item.result }}</div>
+            <div class="footer">
+                <p>使用 <a href="{{ url_for('home', _external=True) }}">InkFlow</a> AI 文案创作平台生成</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -44,10 +44,11 @@
                         <span class="history-style">{{ item.style }}</span>
                     </div>
                 </div>
-                <div class="history-actions">
+                                <div class="history-actions">
                     <form method="POST" action="{{ url_for('toggle_favorite', history_id=item.id) }}" style="display:inline;" class="fav-form">
                         <button type="submit" class="btn-sm {{ 'btn-success' if item.is_favorited else 'btn-outline' }}" title="收藏">{% if item.is_favorited %}⭐{% else %}☆{% endif %}</button>
                     </form>
+                    <button class="btn-sm btn-outline share-btn" data-history-id="{{ item.id }}" title="分享">🔗</button>
                     <a href="{{ url_for('regenerate', history_id=item.id) }}" class="btn-sm btn-outline" title="再次生成" onclick="return confirm('基于此记录重新生成？')">🔄 再来</a>
                     <form method="POST" action="{{ url_for('delete_history', history_id=item.id) }}" style="display:inline;" onsubmit="return confirm('确定删除？')">
                         <button type="submit" class="btn-sm btn-danger" title="删除">🗑️</button>
@@ -146,7 +147,7 @@
         });
     });
 
-    // 对比模式
+        // 对比模式
     var compareMode = false;
     var toggleBtn = document.getElementById('toggleCompareBtn');
     var compareForm = document.getElementById('compareForm');
@@ -181,5 +182,43 @@
             container.appendChild(input);
         });
     }
+
+    // 分享功能
+    document.querySelectorAll('.share-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var historyId = this.getAttribute('data-history-id');
+            var btn = this;
+            btn.textContent = '...';
+            btn.disabled = true;
+            fetch('/share/create/' + historyId, { method: 'POST' })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.ok) {
+                    var url = window.location.origin + '/share/' + data.share_token;
+                    navigator.clipboard.writeText(url).then(function() {
+                        showToast('🔗 分享链接已复制到剪贴板');
+                    }).catch(function() {
+                        // fallback
+                        var ta = document.createElement('textarea');
+                        ta.value = url;
+                        document.body.appendChild(ta);
+                        ta.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(ta);
+                        showToast('🔗 分享链接已复制');
+                    });
+                } else {
+                    showToast('❌ ' + (data.error || '创建分享失败'));
+                }
+            })
+            .catch(function() {
+                showToast('❌ 网络错误');
+            })
+            .finally(function() {
+                btn.textContent = '🔗';
+                btn.disabled = false;
+            });
+        });
+    });
 </script>
 {% endblock %}
