@@ -722,6 +722,90 @@ function showToast(msg) {
             .catch(function() { location.reload(); });
         });
     });
+
+    // ===== 自动保存草稿 (localStorage) =====
+    (function() {
+        var STORAGE_KEY = 'inkflow_draft';
+        var form = document.getElementById('generateForm');
+        if (!form) return;
+
+        var fields = {
+            product: form.querySelector('[name="product"]'),
+            style: form.querySelector('[name="style"]'),
+            word_count: form.querySelector('[name="word_count"]'),
+            custom_prompt: form.querySelector('[name="custom_prompt"]')
+        };
+
+        // 恢复草稿（仅当无预填数据时恢复）
+        function restoreDraft() {
+            // 如果服务端有预填数据（reuse_product等），不恢复草稿
+            var hasPrefill = false;
+            if (fields.product && fields.product.value.trim()) hasPrefill = true;
+            if (hasPrefill) return;
+
+            try {
+                var saved = localStorage.getItem(STORAGE_KEY);
+                if (!saved) return;
+                var data = JSON.parse(saved);
+                if (fields.product && data.product) fields.product.value = data.product;
+                if (fields.style && data.style) fields.style.value = data.style;
+                if (fields.word_count && data.word_count) fields.word_count.value = data.word_count;
+                if (fields.custom_prompt && data.custom_prompt) fields.custom_prompt.value = data.custom_prompt;
+                // 如果恢复了内容，自动展开生成页面
+                if (data.product && data.product.trim()) {
+                    var heroPage = document.getElementById('heroPage');
+                    var genPage = document.getElementById('generatePage');
+                    if (heroPage && genPage && heroPage.style.display !== 'none') {
+                        heroPage.style.display = 'none';
+                        genPage.style.display = 'block';
+                    }
+                }
+            } catch(e) {}
+        }
+
+        // 保存草稿
+        function saveDraft() {
+            var data = {};
+            if (fields.product) data.product = fields.product.value;
+            if (fields.style) data.style = fields.style.value;
+            if (fields.word_count) data.word_count = fields.word_count.value;
+            if (fields.custom_prompt) data.custom_prompt = fields.custom_prompt.value;
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            } catch(e) {}
+        }
+
+        // 清空草稿（提交成功后）
+        function clearDraft() {
+            try {
+                localStorage.removeItem(STORAGE_KEY);
+            } catch(e) {}
+        }
+
+        // 自动保存：输入变化时保存
+        var saveTimer = null;
+        Object.values(fields).forEach(function(el) {
+            if (!el) return;
+            el.addEventListener('input', function() {
+                clearTimeout(saveTimer);
+                saveTimer = setTimeout(saveDraft, 500);
+            });
+            el.addEventListener('change', function() {
+                clearTimeout(saveTimer);
+                saveTimer = setTimeout(saveDraft, 300);
+            });
+        });
+
+        // 提交成功后清空草稿
+        // 检测页面是否有结果（说明刚生成成功）
+        var hasResult = document.querySelector('.result-card');
+        if (hasResult) {
+            clearDraft();
+        }
+
+        // 恢复草稿
+        restoreDraft();
+    })();
 })();
 </script>
 {% endblock %}
