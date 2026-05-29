@@ -122,6 +122,65 @@
     pointer-events: none;
     z-index: 0;
 }
+
+/* ===== Loading Overlay ===== */
+.loading-backdrop {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(11, 15, 26, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 998;
+}
+.loading-modal {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 999;
+    text-align: center;
+    animation: loadingIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.loading-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    animation: loadingBounce 1s ease-in-out infinite;
+}
+.loading-text {
+    font-size: 22px;
+    font-weight: 600;
+    color: #f1f5f9;
+    margin-bottom: 12px;
+}
+.loading-dots {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #38bdf8;
+    animation: dotPulse 1.4s ease-in-out infinite;
+}
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+.loading-hint {
+    font-size: 13px;
+    color: #64748b;
+}
+@keyframes loadingIn {
+    from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+    to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+@keyframes loadingBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+@keyframes dotPulse {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
+    40% { transform: scale(1); opacity: 1; }
+}
 .hero, #generatePage .container { position: relative; z-index: 1; }
 @media (max-width: 600px) {
     .hero-title { font-size: 28px; }
@@ -193,9 +252,24 @@
             </details>
 
             <button type="submit" class="btn btn-primary" id="generateBtn" style="width:100%;font-size:15px;padding:14px;">
-                ✨ 让灵笔为你创作
-            </button>
-        </form>
+                            ✨ 让灵笔为你创作
+                        </button>
+                    </form>
+
+                    <!-- ===== Loading Overlay ===== -->
+                    <div id="loadingOverlay" style="display:none;">
+                        <div class="loading-backdrop"></div>
+                        <div class="loading-modal">
+                            <div class="loading-icon">✍️</div>
+                            <div class="loading-text">灵笔正在创作中</div>
+                            <div class="loading-dots">
+                                <span class="dot"></span>
+                                <span class="dot"></span>
+                                <span class="dot"></span>
+                            </div>
+                            <div class="loading-hint">为你精心打磨每一段文案...</div>
+                        </div>
+                    </div>
     </div>
 </div>
 </div>
@@ -267,9 +341,19 @@ document.getElementById('ctaBtn').addEventListener('click', function(e) {
 });
 var form = document.getElementById('generateForm');
 var button = document.getElementById('generateBtn');
+var loading = document.getElementById('loadingOverlay');
 form.addEventListener('submit', function() {
+    loading.style.display = 'block';
     button.innerText = '灵笔正在创作中...';
     button.disabled = true;
+});
+// 如果页面已有结果（后端渲染），隐藏loading
+window.addEventListener('DOMContentLoaded', function() {
+    {% if result %}
+    loading.style.display = 'none';
+    button.innerText = '✨ 让灵笔为你创作';
+    button.disabled = false;
+    {% endif %}
 });
 </script>
 {% endblock %}
