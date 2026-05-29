@@ -1,105 +1,68 @@
 {% extends "base.html" %}
-{% block title %}历史记录 - Inkflow{% endblock %}
+{% block title %}个人中心 - InkFlow{% endblock %}
 {% block content %}
 <div class="container">
     <div class="card">
-        <div class="flex-between mb-20">
-            <h1 style="margin-bottom: 0;">历史记录</h1>
-            <a href="{{ url_for('home') }}" style="color: #38bdf8; text-decoration: none; font-size: 14px;">← 返回生成</a>
-        </div>
+        <h1>👤 个人中心</h1>
 
-        <!-- 搜索 -->
-        <form method="GET" class="search-form">
-            <div class="search-box">
-                <input type="text" name="search" placeholder="🔍 搜索产品名称..." value="{{ search }}" style="margin-bottom:0;flex:1;">
-                <button type="submit" class="btn btn-primary" style="width:auto;padding:14px 20px;margin-left:8px;">搜索</button>
-                {% if search %}
-                <a href="{{ url_for('history') }}" class="btn btn-danger" style="width:auto;padding:14px 20px;margin-left:8px;text-decoration:none;text-align:center;">清除</a>
-                {% endif %}
+        <!-- 用户信息 -->
+        <div style="text-align:center;margin-bottom:28px;">
+            <div style="font-size:48px;margin-bottom:8px;width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#1d4ed8,#a78bfa);display:inline-flex;align-items:center;justify-content:center;color:white;font-weight:700;">
+                {{ current_user.username[:1] }}
             </div>
-        </form>
-
-        {% if pagination.items %}
-        {% for item in pagination.items %}
-        <div class="history-item">
-            <div class="flex-between">
-                <div>
-                    <span class="history-product">{{ style_icons.get(item.style, '📝') }} {{ item.product }}</span>
-                    <span class="history-style">{{ item.style }}</span>
-                </div>
-                <div class="history-actions">
-                    <a href="{{ url_for('regenerate', history_id=item.id) }}" class="btn-sm btn-outline" title="再次生成" onclick="return confirm('基于此记录重新生成？')">🔄 再来</a>
-                    <form method="POST" action="{{ url_for('delete_history', history_id=item.id) }}" style="display:inline;" onsubmit="return confirm('确定删除？')">
-                        <button type="submit" class="btn-sm btn-danger" title="删除">🗑️</button>
-                    </form>
-                </div>
-            </div>
-            <div class="history-meta">
-                {{ item.created_at.strftime('%Y-%m-%d %H:%M') }}
-                · <span class="history-tokens">{{ item.tokens_used }} tokens</span>
-            </div>
-            <div class="history-result">{{ item.result }}</div>
-            <details style="margin-top: 12px;">
-                <summary style="color: #64748b; font-size: 13px; cursor: pointer;">查看完整文案</summary>
-                <div class="result-box" style="margin-top: 10px;">{{ item.result }}</div>
-                <button onclick="copyText(this)" class="btn btn-success" style="margin-top: 10px; padding: 8px; font-size: 13px;">📋 复制此文案</button>
-            </details>
-        </div>
-        {% endfor %}
-
-        {% if pagination.pages > 1 %}
-        <div class="pagination">
-            {% if pagination.has_prev %}
-            <a href="{{ url_for('history', page=pagination.prev_num, search=search) }}">上一页</a>
-            {% endif %}
-            {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-                {% if page_num %}
-                    {% if page_num == pagination.page %}
-                    <span class="current">{{ page_num }}</span>
-                    {% else %}
-                    <a href="{{ url_for('history', page=page_num, search=search) }}">{{ page_num }}</a>
-                    {% endif %}
+            <div style="font-size:18px;font-weight:600;color:#f1f5f9;">{{ current_user.username }}</div>
+            <div style="font-size:13px;color:#475569;margin-top:4px;">{{ current_user.email }}</div>
+            <div style="margin-top:10px;">
+                {% if current_user.is_premium %}
+                <span class="premium-badge">⭐ 付费用户</span>
                 {% else %}
-                    <span>...</span>
+                <span class="free-badge">免费用户</span>
                 {% endif %}
-            {% endfor %}
-            {% if pagination.has_next %}
-            <a href="{{ url_for('history', page=pagination.next_num, search=search) }}">下一页</a>
-            {% endif %}
+            </div>
+            <div style="font-size:12px;color:#475569;margin-top:6px;">
+                {{ current_user.created_at.strftime('%Y-%m-%d') }} 加入
+            </div>
         </div>
-        {% endif %}
 
-        {% else %}
-        <div class="text-center" style="padding: 40px 0; color: #64748b;">
-            <p style="font-size: 40px; margin-bottom: 16px;">
-                {% if search %}🔍 没有找到 "{{ search }}" 的相关记录{% else %}📝 还没有生成记录{% endif %}
-            </p>
-            <a href="{{ url_for('home') }}" class="btn btn-primary" style="display: inline-block; width: auto; padding: 10px 30px; margin-top: 16px; text-decoration: none;">开始生成</a>
+        <!-- 统计卡片 -->
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ total_count }}</div>
+                <div class="stat-label">总生成数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ fav_count }}</div>
+                <div class="stat-label">⭐ 收藏数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ total_tokens_used }}</div>
+                <div class="stat-label">总消耗 Tokens</div>
+            </div>
         </div>
-        {% endif %}
+
+        <!-- Token 详情 -->
+        <div style="background:rgba(11,15,26,0.35);border:1px solid rgba(51,65,85,0.2);border-radius:12px;padding:20px;">
+            <div style="font-size:13px;color:#64748b;font-weight:500;margin-bottom:16px;">📊 用量详情</div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(51,65,85,0.1);">
+                <span style="color:#94a3b8;font-size:13px;">剩余可用 Tokens</span>
+                <span style="color:#f1f5f9;font-weight:600;">{% if current_user.is_premium %}无限制{% else %}{{ user_token_remaining }}{% endif %}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(51,65,85,0.1);">
+                <span style="color:#94a3b8;font-size:13px;">每日已用</span>
+                <span style="color:#f1f5f9;font-weight:600;">{{ daily_remaining }}/10</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;">
+                <span style="color:#94a3b8;font-size:13px;">总消耗</span>
+                <span style="color:#f1f5f9;font-weight:600;">{{ total_tokens_used }}</span>
+            </div>
+        </div>
+
+        <!-- 快捷入口 -->
+        <div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap;">
+            <a href="{{ url_for('home') }}" class="btn btn-primary" style="flex:1;text-decoration:none;justify-content:center;">✨ 生成文案</a>
+            <a href="{{ url_for('history') }}" class="btn btn-success" style="flex:1;text-decoration:none;justify-content:center;">📋 历史记录</a>
+            <a href="{{ url_for('favorites') }}" class="btn btn-outline" style="flex:1;text-decoration:none;justify-content:center;">⭐ 收藏</a>
+        </div>
     </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-    function copyText(btn) {
-        const details = btn.closest('details');
-        const text = details.querySelector('.result-box').innerText;
-        navigator.clipboard.writeText(text).then(function() {
-            showToast('复制成功！');
-        });
-    }
-
-    function showToast(msg) {
-        const old = document.querySelector('.toast');
-        if (old) old.remove();
-        const t = document.createElement('div');
-        t.className = 'toast';
-        t.textContent = msg;
-        document.body.appendChild(t);
-        setTimeout(() => t.classList.add('show'), 10);
-        setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 2000);
-    }
-</script>
 {% endblock %}
