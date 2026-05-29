@@ -21,14 +21,19 @@
             </div>
         </form>
 
-        <!-- 对比模式切换 -->
+                <!-- 对比模式切换 -->
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
             <div style="font-size:12px;color:#475569;" id="compareCount">已选 0 条</div>
             <div style="display:flex;gap:8px;">
-                <button type="button" class="btn-sm btn-outline" id="toggleCompareBtn">☑️ 选择对比</button>
+                <button type="button" class="btn-sm btn-outline" id="toggleCompareBtn">☑️ 选择</button>
                 <form method="POST" action="{{ url_for('compare') }}" id="compareForm" style="display:none;">
                     <div id="compareIdsContainer"></div>
-                    <button type="submit" class="btn-sm btn-success" id="doCompareBtn">📊 开始对比</button>
+                    <button type="submit" class="btn-sm btn-success" id="doCompareBtn">📊 对比</button>
+                </form>
+                <form method="POST" action="{{ url_for('export') }}" id="exportForm" style="display:none;">
+                    <div id="exportIdsContainer"></div>
+                    <button type="submit" name="format" value="txt" class="btn-sm btn-outline">📄 导出 TXT</button>
+                    <button type="submit" name="format" value="md" class="btn-sm btn-outline">📝 导出 MD</button>
                 </form>
             </div>
         </div>
@@ -147,41 +152,50 @@
         });
     });
 
-        // 对比模式
-    var compareMode = false;
-    var toggleBtn = document.getElementById('toggleCompareBtn');
-    var compareForm = document.getElementById('compareForm');
-    var compareCount = document.getElementById('compareCount');
+                // 对比模式
+        var compareMode = false;
+        var toggleBtn = document.getElementById('toggleCompareBtn');
+        var compareForm = document.getElementById('compareForm');
+        var exportForm = document.getElementById('exportForm');
+        var compareCount = document.getElementById('compareCount');
 
-    toggleBtn.addEventListener('click', function() {
-        compareMode = !compareMode;
-        var checkboxes = document.querySelectorAll('.compare-checkbox');
-        checkboxes.forEach(function(cb) {
-            cb.style.display = compareMode ? 'inline-block' : 'none';
-            if (!compareMode) cb.checked = false;
+        toggleBtn.addEventListener('click', function() {
+            compareMode = !compareMode;
+            var checkboxes = document.querySelectorAll('.compare-checkbox');
+            checkboxes.forEach(function(cb) {
+                cb.style.display = compareMode ? 'inline-block' : 'none';
+                if (!compareMode) cb.checked = false;
+            });
+            compareForm.style.display = compareMode ? 'inline-block' : 'none';
+            exportForm.style.display = compareMode ? 'inline-block' : 'none';
+            toggleBtn.textContent = compareMode ? '❌ 取消选择' : '☑️ 选择';
+            updateCompareCount();
         });
-        compareForm.style.display = compareMode ? 'inline-block' : 'none';
-        toggleBtn.textContent = compareMode ? '❌ 取消选择' : '☑️ 选择对比';
-        updateCompareCount();
-    });
 
-    document.querySelectorAll('.compare-checkbox').forEach(function(cb) {
-        cb.addEventListener('change', updateCompareCount);
-    });
-
-    function updateCompareCount() {
-        var checked = document.querySelectorAll('.compare-checkbox:checked');
-        compareCount.textContent = '已选 ' + checked.length + ' 条';
-        var container = document.getElementById('compareIdsContainer');
-        container.innerHTML = '';
-        checked.forEach(function(cb) {
-            var input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'history_ids';
-            input.value = cb.value;
-            container.appendChild(input);
+        document.querySelectorAll('.compare-checkbox').forEach(function(cb) {
+            cb.addEventListener('change', updateCompareCount);
         });
-    }
+
+        function updateCompareCount() {
+            var checked = document.querySelectorAll('.compare-checkbox:checked');
+            compareCount.textContent = '已选 ' + checked.length + ' 条';
+            var container = document.getElementById('compareIdsContainer');
+            container.innerHTML = '';
+            var exportContainer = document.getElementById('exportIdsContainer');
+            exportContainer.innerHTML = '';
+            checked.forEach(function(cb) {
+                var input1 = document.createElement('input');
+                input1.type = 'hidden';
+                input1.name = 'history_ids';
+                input1.value = cb.value;
+                container.appendChild(input1);
+                var input2 = document.createElement('input');
+                input2.type = 'hidden';
+                input2.name = 'history_ids';
+                input2.value = cb.value;
+                exportContainer.appendChild(input2);
+            });
+        }
 
     // 分享功能
     document.querySelectorAll('.share-btn').forEach(function(btn) {

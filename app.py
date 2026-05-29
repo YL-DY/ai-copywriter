@@ -1,9 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file
 from flask_login import LoginManager, login_required, current_user
 import requests
 import hashlib
 import os
 from datetime import date
+import zipfile
+import io
 
 from models import db, User, History
 from auth.routes import auth_bp
@@ -704,6 +706,66 @@ def view_share(token):
     return render_template("share.html", item=item, style_icon=style_icon,
                            parsed_title=title, parsed_emoji=emoji,
                            parsed_content=content, parsed_tags=tags)
+
+
+@app.route("/export", methods=["POST"])
+@login_required
+def export():
+    ids = request.form.getlist("history_ids")
+    fmt = request.form.get("format", "txt")
+    if not ids:
+        flash("请至少选择一条记录", "error")
+        return redirect(url_for("history"))
+
+    items = History.query.filter(
+        History.id.in_(ids),
+        History.user_id == current_user.id
+    ).order_by(History.created_at.desc()).all()
+
+    if not items:
+        flash("记录不存在", "error")
+        return redirect(url_for("history"))
+
+    # 构建内存 ZIP 文件
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as zf:
+        for item in items:
+            # 解析标题和内容
+            title, emoji, content, tags = parse_result(item.result)
+            if not title:
+                title = item.product
+            safe_name = "".join(c for c in title if c.isalnum() or c in " _-").strip() or "copy"
+            safe_name = safe_name[:30]
+
+            if fmt == "txt":
+                text = f"""产品：{item.product}
+风格：{item.style}
+时间：{item.created_at.strftime('%Y-%m-%d %H:%M')}
+标签：{', '.join(tags) if tags else '无'}
+---
+{content if content else item.result}
+"""
+                filename = f"{safe_name}.txt"
+            else:
+                text = f"""# {item.product}
+
+> 风格：{item.style} | 时间：{item.created_at.strftime('%Y-%m-%d %H:%M')}
+
+{'标签：' + ', '.join('#' + t for t in tags) if tags else ''}
+
+---
+
+{content if content else item.result}
+"""
+                filename = f"{safe_name}.md"
+
+            zf.writestr(filename, text.encode("utf-8"))
+
+    buf.seek(0)
+    ext = fmt
+    archive_name = f"inkflow_export_{date.today().isoformat()}.zip"
+    return send_file(buf, as_attachment=True, download_name=archive_name,
+                     mimetype="application/zip")
 
 
 @app.context_processor
