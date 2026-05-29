@@ -531,6 +531,95 @@ def rewrite():
         return {"ok": False, "error": f"改写失败：{str(e)}"}, 200
 
 
+@app.route("/analyze", methods=["POST"])
+@login_required
+def analyze():
+    try:
+        data = request.get_json()
+        if not data:
+            return {"ok": False, "error": "请求数据为空"}, 200
+
+        text = data.get("text", "")
+        style = data.get("style", "爆款风")
+
+        if not text:
+            return {"ok": False, "error": "文案内容为空"}, 200
+
+        system = """你是一位专业的营销文案分析师。请从以下维度分析用户提供的文案并给出优化建议：
+1. 标题吸引力：标题是否够吸睛、有悬念或情绪冲击
+2. 结构优化：段落节奏、信息密度、可读性
+3. 语言风格：是否符合目标风格，有没有可以优化的用词
+4. emoji使用：是否恰当、过量或不足
+5. 互动性：是否容易引发点赞、评论、收藏
+6. 整体评分：1-10分
+
+请按以下 JSON 格式返回，不要加额外文字：
+{"scores": {"title": 7, "structure": 7, "language": 7, "emoji": 7, "engagement": 7, "overall": 7}, "strengths": ["优点1", "优点2"], "weaknesses": ["不足1", "不足2"], "tips": ["建议1", "建议2", "建议3"]}"""
+
+        user_prompt = f"""请分析以下 {style} 风格的文案：
+
+{text}
+
+请严格按照 JSON 格式返回分析结果。"""
+
+        url = "https://api.deepseek.com/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        req_data = {
+            "model": "deepseek-chat",
+            "messages": [
+                {"role": "system", "content": system},
+                {"role": "user", "content": user_prompt}
+            ]
+        }
+
+        resp = requests.post(url, headers=headers, json=req_data, timeout=30)
+        resp_data = resp.json()
+
+        if "choices" not in resp_data:
+            return {"ok": False, "error": "API 返回异常"}, 200
+
+        raw = resp_data["choices"][0]["message"]["content"]
+
+        # 解析 JSON
+        import json as _json
+        parsed = None
+        try:
+            text_clean = raw.strip()
+            if text_clean.startswith("```"):
+                lines = text_clean.split("\n", 1)
+                if len(lines) > 1:
+                    text_clean = lines[1]
+                if text_clean.endswith("```"):
+                    text_clean = text_clean[:-3].rstrip()
+            start = text_clean.find("{")
+            end = text_clean.rfind("}")
+            if start != -1 and end != -1 and end > start:
+                text_clean = text_clean[start:end+1]
+            parsed = _json.loads(text_clean)
+        except Exception:
+            pass
+
+        if parsed and "scores" in parsed:
+            return {
+                "ok": True,
+                "scores": parsed.get("scores", {}),
+                "strengths": parsed.get("strengths", []),
+                "weaknesses": parsed.get("weaknesses", []),
+                "tips": parsed.get("tips", []),
+                "raw": raw
+            }
+        else:
+            return {"ok": False, "error": "分析结果格式异常"}, 200
+
+    except requests.exceptions.Timeout:
+        return {"ok": False, "error": "API 请求超时，请重试"}, 200
+    except Exception as e:
+        return {"ok": False, "error": f"分析失败：{str(e)}"}, 200
+
+
 @app.route("/profile")
 @login_required
 def profile():
