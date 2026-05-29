@@ -159,10 +159,11 @@
 <div id="generatePage">
 <div class="container">
     <div class="card">
-        <h1>生成文案<small>输入产品，Inkflow为您写作</small></h1>
+        <h1>生成文案<small>告诉我你的产品，剩下的交给 InkFlow</small></h1>
         <form method="POST" id="generateForm">
             <label>你想推广什么产品？</label>
-            <input type="text" name="product" placeholder="例如：咖啡、护肤品、一本书..." value="{{ reuse_product or request.form.get('product', '') }}" required>
+            <textarea name="product" rows="2" placeholder="例如：一杯手冲咖啡、一款小众香水、一本自我提升的书..." required style="font-family:inherit;">{{ reuse_product or request.form.get('product', '') }}</textarea>
+
             <div class="form-row">
                 <div class="form-col">
                     <label>文案风格</label>
@@ -176,20 +177,24 @@
                     <label>字数</label>
                     <select name="word_count">
                         <option value="">不限</option>
-                        <option value="100-200">100-200</option>
-                        <option value="200-300">200-300</option>
-                        <option value="300-500">300-500</option>
-                        <option value="500-800">500-800</option>
+                        <option value="100-200">100-200 字</option>
+                        <option value="200-300">200-300 字</option>
+                        <option value="300-500">300-500 字</option>
+                        <option value="500-800">500-800 字</option>
                     </select>
                 </div>
             </div>
+
             <details style="margin-bottom: 18px;">
-                <summary>自定义要求（选填）</summary>
+                <summary style="color:#64748b;font-size:13px;">📎 补充要求（选填，让文案更精准）</summary>
                 <div class="mt-12">
-                    <textarea name="custom_prompt" rows="3" placeholder="补充你的想法..."></textarea>
+                    <textarea name="custom_prompt" rows="3" placeholder="例如：面向大学生 / 突出性价比 / 语气活泼可爱 / 强调环保理念...">{{ custom_prompt or '' }}</textarea>
                 </div>
             </details>
-            <button type="submit" class="btn btn-primary" id="generateBtn" style="width:100%;">生成文案</button>
+
+            <button type="submit" class="btn btn-primary" id="generateBtn" style="width:100%;font-size:15px;padding:14px;">
+                ✨ 让灵笔为你创作
+            </button>
         </form>
     </div>
 </div>
