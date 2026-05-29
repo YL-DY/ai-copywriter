@@ -180,6 +180,59 @@
     40% { transform: scale(1); opacity: 1; }
 }
 .hero, #generatePage .container { position: relative; z-index: 1; }
+
+/* ===== Result Card ===== */
+.result-card {
+    background: rgba(11, 15, 26, 0.5);
+    border: 1px solid rgba(51, 65, 85, 0.25);
+    border-radius: 16px;
+    overflow: hidden;
+    animation: cardUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.result-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    background: rgba(20, 23, 42, 0.4);
+    border-bottom: 1px solid rgba(51, 65, 85, 0.15);
+}
+.result-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.result-style-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(56, 189, 248, 0.08);
+    color: #38bdf8;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+.result-tokens {
+    font-size: 11px;
+    color: #475569;
+}
+.result-card-body {
+    padding: 20px 24px;
+}
+.result-card-body .result-box {
+    white-space: pre-wrap;
+    line-height: 1.8;
+    font-size: 14px;
+    color: #e2e8f0;
+    border: none;
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+}
+@media (max-width: 600px) {
+    .result-card-header { flex-direction: column; gap: 10px; align-items: flex-start; }
+}
 @media (max-width: 600px) {
     .hero-title { font-size: 28px; }
     .hero-title .brand-highlight { font-size: 32px; }
@@ -256,16 +309,21 @@
 
         {% if result %}
         <div class="divider"></div>
-        <div class="result-area">
-            <div class="result-header">
-                <span style="font-size: 12px; color: #475569;">消耗 {{ result_tokens }} tokens</span>
+        <div class="result-card">
+            <div class="result-card-header">
+                <div class="result-card-meta">
+                    <span class="result-style-tag">{{ style_icons.get(request.form.get('style', reuse_style or ''), '📝') }} {{ request.form.get('style', reuse_style or '') }}</span>
+                    <span class="result-tokens">消耗 {{ result_tokens }} tokens</span>
+                </div>
                 <div class="result-actions">
-                    <button onclick="exportText('txt')" class="btn-sm btn-outline">TXT</button>
-                    <button onclick="exportText('md')" class="btn-sm btn-outline">MD</button>
-                    <button onclick="copyText()" class="btn-sm btn-success">复制</button>
+                    <button onclick="exportText('txt')" class="btn-sm btn-outline">📄 TXT</button>
+                    <button onclick="exportText('md')" class="btn-sm btn-outline">📝 MD</button>
+                    <button onclick="copyText()" class="btn-sm btn-success">📋 复制</button>
                 </div>
             </div>
-            <div class="result-box" id="resultBox">{{ result }}</div>
+            <div class="result-card-body">
+                <div class="result-box" id="resultBox">{{ result }}</div>
+            </div>
         </div>
         {% endif %}
     </div>
