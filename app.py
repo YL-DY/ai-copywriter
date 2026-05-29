@@ -447,7 +447,68 @@ def regenerate(history_id):
                            reuse_style=item.style)
 
 
-@app.route("/profile")
+REWRITE_INSTRUCTIONS = {
+    "shorter": "请把下面的文案改得更简洁、更短，保留核心信息和情绪，去掉多余描述。",
+    "premium": "请把下面的文案改得更有高级感，用词更精致优雅，去掉口语化表达，减少emoji数量。",
+    "xiaohongshu": "请把下面的文案改得更适合小红书平台发布，标题更吸睛，正文更口语化有共鸣，增加emoji，增加话题标签。",
+    "emotional": "请把下面的文案改得更有情绪感染力，用更细腻的语言表达情感，增加故事感和共鸣点。",
+}
+
+
+@app.route("/rewrite", methods=["POST"])
+@login_required
+def rewrite():
+    data = request.get_json()
+    if not data:
+        return {"error": "no data"}, 400
+
+    source_text = data.get("text", "")
+    action = data.get("action", "")
+    style = data.get("style", "爆款风")
+
+    if not source_text or action not in REWRITE_INSTRUCTIONS:
+        return {"error": "invalid params"}, 400
+
+    instruction = REWRITE_INSTRUCTIONS[action]
+    system = SYSTEM_PROMPTS.get(style, SYSTEM_PROMPTS["爆款风"])
+
+    prompt = f"""{instruction}
+
+原始文案：
+{source_text}
+
+请严格按照以下 JSON 格式返回改写后的结果，不要加任何额外的文字：
+{{"title": "改写后的标题", "emoji": "{STYLE_ICONS.get(style, '📝')}", "content": "改写后的正文（多段落，用\\n\\n分隔）", "tags": ["标签1", "标签2"]}}"""
+
+    url = "https://api.deepseek.com/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    req_data = {
+        "model": "deepseek-chat",
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": prompt}
+        ]
+    }
+
+    try:
+        resp = requests.post(url, headers=headers, json=req_data, timeout=30)
+        resp_data = resp.json()
+        if "choices" not in resp_data:
+            return {"error": "API failed"}, 500
+        raw = resp_data["choices"][0]["message"]["content"]
+        title, emoji, content, tags = parse_result(raw)
+        return {
+            "title": title,
+            "emoji": emoji,
+            "content": content,
+            "tags": tags,
+            "raw": raw
+        }
+    except Exception as e:
+        return {"error": str(e)}, 500
 @login_required
 def profile():
     total_count = History.query.filter_by(user_id=current_user.id).count()

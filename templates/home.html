@@ -295,6 +295,43 @@
 .result-card-body .result-box p {
     margin-bottom: 14px;
 }
+/* ---- Rewrite Section ---- */
+.result-card-rewrite {
+    padding: 14px 28px 20px;
+    border-top: 1px solid rgba(51, 65, 85, 0.1);
+    background: rgba(56, 189, 248, 0.01);
+}
+.rewrite-label {
+    font-size: 11px;
+    color: #475569;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+.rewrite-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.btn-rewrite {
+    background: rgba(51, 65, 85, 0.2);
+    border: 1px solid rgba(51, 65, 85, 0.2);
+    color: #94a3b8;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-rewrite:hover {
+    background: rgba(56, 189, 248, 0.08);
+    border-color: rgba(56, 189, 248, 0.2);
+    color: #38bdf8;
+}
+.btn-rewrite:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
 @media (max-width: 600px) {
     .result-card-header { flex-direction: column; gap: 10px; align-items: flex-start; }
     .result-card-cover { padding: 18px 16px 14px; }
@@ -303,6 +340,7 @@
     .result-card-headline { gap: 10px; padding-right: 0; }
     .result-card-headline-accent { height: 28px; }
     .result-card-tags-section { padding: 12px 16px; }
+    .result-card-rewrite { padding: 12px 16px 16px; }
 }
 @media (max-width: 600px) {
     .hero-title { font-size: 28px; }
@@ -410,6 +448,15 @@
             {% endif %}
             <div class="result-card-body">
                 <div class="result-box" id="resultBox">{{ result_content }}</div>
+            </div>
+            <div class="result-card-rewrite">
+                <div class="rewrite-label">✏️ 二次编辑</div>
+                <div class="rewrite-buttons">
+                    <button class="btn-sm btn-rewrite" data-action="shorter">📏 改短一点</button>
+                    <button class="btn-sm btn-rewrite" data-action="premium">👑 更高级</button>
+                    <button class="btn-sm btn-rewrite" data-action="xiaohongshu">📱 更适合小红书</button>
+                    <button class="btn-sm btn-rewrite" data-action="emotional">💫 更有情绪感</button>
+                </div>
             </div>
         </div>
         {% endif %}
@@ -563,5 +610,68 @@ function showToast(msg) {
         setTimeout(function() { t.remove(); }, 300);
     }, 2500);
 }
+
+// ===== AI 二次编辑 =====
+document.querySelectorAll('.btn-rewrite').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        var action = this.getAttribute('data-action');
+        var titleEl = document.querySelector('.result-card-title');
+        var bodyEl = document.getElementById('resultBox');
+        var tagEls = document.querySelectorAll('.result-tag');
+
+        var fullText = '';
+        if (titleEl) fullText += titleEl.textContent.trim() + '\n\n';
+        fullText += bodyEl.innerText;
+
+        var allBtns = document.querySelectorAll('.btn-rewrite');
+        allBtns.forEach(function(b) { b.disabled = true; b.textContent = '...'; });
+
+        var styleTag = document.querySelector('.result-style-tag');
+        var style = styleTag ? styleTag.textContent.trim().replace(/[^\u4e00-\u9fa5]/g, '') : '爆款风';
+        if (!style) style = '爆款风';
+
+        fetch('/rewrite', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: fullText, action: action, style: style })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.error) {
+                showToast('改写失败：' + data.error);
+                return;
+            }
+            if (data.title && titleEl) {
+                titleEl.textContent = data.emoji + ' ' + data.title;
+            }
+            if (data.content) {
+                bodyEl.textContent = data.content;
+            }
+            if (data.tags && data.tags.length > 0) {
+                var tagContainer = document.querySelector('.result-card-tags-section');
+                if (tagContainer) {
+                    tagContainer.innerHTML = '';
+                    data.tags.forEach(function(t) {
+                        var span = document.createElement('span');
+                        span.className = 'result-tag';
+                        span.textContent = '#' + t;
+                        tagContainer.appendChild(span);
+                    });
+                }
+            }
+            showToast('✅ 已按「' + this.textContent.trim() + '」优化');
+        }.bind(this))
+        .catch(function(err) {
+            showToast('改写失败，请重试');
+        })
+        .finally(function() {
+            allBtns.forEach(function(b) {
+                b.disabled = false;
+                var actions = { shorter: '📏 改短一点', premium: '👑 更高级', xiaohongshu: '📱 更适合小红书', emotional: '💫 更有情绪感' };
+                b.textContent = actions[b.getAttribute('data-action')] || '编辑';
+            });
+        });
+    });
+});
 </script>
 {% endblock %}
