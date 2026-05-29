@@ -458,57 +458,65 @@ REWRITE_INSTRUCTIONS = {
 @app.route("/rewrite", methods=["POST"])
 @login_required
 def rewrite():
-    data = request.get_json()
-    if not data:
-        return {"error": "no data"}, 400
+    try:
+        data = request.get_json()
+        if not data:
+            return {"ok": False, "error": "请求数据为空"}, 200
 
-    source_text = data.get("text", "")
-    action = data.get("action", "")
-    style = data.get("style", "爆款风")
+        source_text = data.get("text", "")
+        action = data.get("action", "")
+        style = data.get("style", "爆款风")
 
-    if not source_text or action not in REWRITE_INSTRUCTIONS:
-        return {"error": "invalid params"}, 400
+        if not source_text or action not in REWRITE_INSTRUCTIONS:
+            return {"ok": False, "error": "参数无效"}, 200
 
-    instruction = REWRITE_INSTRUCTIONS[action]
-    system = SYSTEM_PROMPTS.get(style, SYSTEM_PROMPTS["爆款风"])
+        instruction = REWRITE_INSTRUCTIONS[action]
+        system = SYSTEM_PROMPTS.get(style, SYSTEM_PROMPTS["爆款风"])
 
-    prompt = f"""{instruction}
+        url = "https://api.deepseek.com/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        prompt = f"""{instruction}
 
 原始文案：
 {source_text}
 
 请严格按照以下 JSON 格式返回改写后的结果，不要加任何额外的文字：
 {{"title": "改写后的标题", "emoji": "{STYLE_ICONS.get(style, '📝')}", "content": "改写后的正文（多段落，用\\n\\n分隔）", "tags": ["标签1", "标签2"]}}"""
+        req_data = {
+            "model": "deepseek-chat",
+            "messages": [
+                {"role": "system", "content": system},
+                {"role": "user", "content": prompt}
+            ]
+        }
 
-    url = "https://api.deepseek.com/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
-        "Content-Type": "application/json"
-    }
-    req_data = {
-        "model": "deepseek-chat",
-        "messages": [
-            {"role": "system", "content": system},
-            {"role": "user", "content": prompt}
-        ]
-    }
-
-    try:
         resp = requests.post(url, headers=headers, json=req_data, timeout=30)
         resp_data = resp.json()
+
         if "choices" not in resp_data:
-            return {"error": "API failed"}, 500
+            return {"ok": False, "error": "API 返回异常"}, 200
+
         raw = resp_data["choices"][0]["message"]["content"]
         title, emoji, content, tags = parse_result(raw)
+
         return {
+            "ok": True,
             "title": title,
             "emoji": emoji,
             "content": content,
             "tags": tags,
             "raw": raw
         }
+    except requests.exceptions.Timeout:
+        return {"ok": False, "error": "API 请求超时，请重试"}, 200
     except Exception as e:
-        return {"error": str(e)}, 500
+        return {"ok": False, "error": f"改写失败：{str(e)}"}, 200
+
+
+@app.route("/profile")
 @login_required
 def profile():
     total_count = History.query.filter_by(user_id=current_user.id).count()
