@@ -403,245 +403,16 @@
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
         details summary { cursor: pointer; font-size: 13px; color: var(--text-subtle); padding: 4px 0; }
-        details summary:hover { color: var(--text-muted); }
+                details summary:hover { color: var(--text-muted); }
+
+        .theme-toggle {
+            background: transparent; border: 1px solid var(--border-color); color: var(--text-muted);
+            padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 16px; transition: all 0.2s; line-height: 1;
+        }
+        .theme-toggle:hover { border-color: #38bdf8; color: #38bdf8; }
 
         /* ===== Divider ===== */
         .divider { height: 1px; background: var(--border-color); margin: 24px 0; transition: background 0.3s ease; }
-
-        /* ===== Responsive ===== */
-        @media (max-width: 600px) {
-            .navbar { padding: 0 16px; }
-            .navbar .nav-links { gap: 4px; }
-            .navbar .nav-links a { padding: 4px 10px; font-size: 12px; }
-            .card { padding: 24px 18px; border-radius: 14px; }
-            .form-row { flex-direction: column; gap: 0; }
-            .search-box { flex-wrap: wrap; }
-            .result-header { flex-direction: column; gap: 8px; align-items: flex-start; }
-            h1 { font-size: 20px; }
-            .stat-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-        }
-        </style>
-    {% block extra_head %}{% endblock %}
-</head>
-<body class="page-fade-in">
-    {% if current_user.is_authenticated %}
-    <nav class="navbar">
-        <a href="{{ url_for('home') }}" class="brand">Inkflow</a>
-        <div class="nav-links">
-            <span class="token-badge">⚡ {{ user_token_remaining }}{% if not current_user.is_premium %}/月 · 今日 {{ daily_remaining }}/10{% endif %}</span>
-            <a href="{{ url_for('home') }}">生成</a>
-            <a href="{{ url_for('history') }}">历史</a>
-            <a href="{{ url_for('favorites') }}">⭐ 收藏</a>
-            <a href="{{ url_for('profile') }}">个人</a>
-            <span class="user-info">{{ current_user.username }}</span>
-            <button class="theme-toggle" id="themeToggle" title="切换主题">🌙</button>
-            <a href="{{ url_for('auth.logout') }}" style="color:rgba(239,68,68,0.7);">退出</a>
-        </div>
-    </nav>
-    {% endif %}
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    <div class="flash-messages">
-        {% for category, message in messages %}
-        <div class="flash-msg {{ category }}">{{ message }}</div>
-        {% endfor %}
-    </div>
-    {% endif %}
-    {% endwith %}
-
-    {% block content %}{% endblock %}
-
-    <script>
-        // 主题切换
-        (function() {
-            var key = 'inkflow_theme';
-            var stored = localStorage.getItem(key);
-            var body = document.body;
-
-            function applyTheme(theme) {
-                if (theme === 'light') {
-                    body.classList.add('light');
-                    var btn = document.getElementById('themeToggle');
-                    if (btn) btn.textContent = '☀️';
-                } else {
-                    body.classList.remove('light');
-                    var btn = document.getElementById('themeToggle');
-                    if (btn) btn.textContent = '🌙';
-                }
-                localStorage.setItem(key, theme);
-            }
-
-            // 恢复主题
-            if (stored === 'light') {
-                applyTheme('light');
-            }
-
-            var toggleBtn = document.getElementById('themeToggle');
-            if (toggleBtn) {
-                toggleBtn.addEventListener('click', function() {
-                    var isLight = body.classList.contains('light');
-                    applyTheme(isLight ? 'dark' : 'light');
-                });
-            }
-        })();
-
-        // Flash 自动消失
-        document.querySelectorAll('.flash-msg').forEach(function(el) {
-            setTimeout(function() {
-                el.style.opacity = '0';
-                el.style.transform = 'translateY(-6px)';
-                setTimeout(function() { el.remove(); }, 250);
-            }, 4000);
-        });
-    </script>
-    {% block scripts %}{% endblock %}
-</body>
-</html>
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .btn-outline {
-            background: transparent;
-            border: 1px solid rgba(51, 65, 85, 0.4);
-            color: #64748b;
-        }
-        .btn-outline:hover { border-color: #38bdf8; color: #38bdf8; background: rgba(56,189,248,0.06); }
-
-        /* ===== Result ===== */
-        .result-area { margin-top: 28px; }
-        .result-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 16px;
-            background: rgba(11, 15, 26, 0.3);
-            border-radius: 10px 10px 0 0;
-            border: 1px solid rgba(51, 65, 85, 0.2);
-            border-bottom: none;
-        }
-        .result-actions { display: flex; gap: 6px; }
-        .result-box {
-            padding: 20px 24px;
-            border-radius: 0 0 10px 10px;
-            background: rgba(11, 15, 26, 0.4);
-            border: 1px solid rgba(51, 65, 85, 0.2);
-            border-top: none;
-            white-space: pre-wrap;
-            line-height: 1.8;
-            font-size: 14px;
-        }
-        .result-box.standalone { border-radius: 10px; border-top: 1px solid rgba(51, 65, 85, 0.2); }
-
-        /* ===== Utilities ===== */
-        .text-center { text-align: center; }
-        .flex-between { display: flex; justify-content: space-between; align-items: center; }
-        .mb-16 { margin-bottom: 16px; }
-        .mt-12 { margin-top: 12px; }
-
-        /* ===== History ===== */
-        .history-item {
-            background: rgba(11, 15, 26, 0.35);
-            border: 1px solid rgba(51, 65, 85, 0.2);
-            border-radius: 14px;
-            padding: 18px 20px;
-            margin-bottom: 14px;
-            transition: all 0.2s;
-        }
-        .history-item:hover { border-color: rgba(56, 189, 248, 0.15); }
-        .history-meta { font-size: 12px; color: #475569; margin-bottom: 6px; }
-        .history-product { color: #e2e8f0; font-weight: 600; font-size: 15px; }
-        .history-style {
-            display: inline-block;
-            background: rgba(51, 65, 85, 0.3);
-            padding: 2px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            color: #64748b;
-        }
-        .history-result {
-            margin-top: 8px;
-            font-size: 13px;
-            line-height: 1.6;
-            color: #64748b;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        .history-tokens { font-size: 11px; color: #475569; }
-        .history-actions { display: flex; gap: 6px; align-items: center; }
-
-        .search-form { margin-bottom: 20px; }
-        .search-box { display: flex; align-items: center; gap: 8px; }
-        .search-box input { margin-bottom: 0; flex: 1; }
-
-        /* ===== Pagination ===== */
-        .pagination { display: flex; justify-content: center; gap: 4px; margin-top: 24px; flex-wrap: wrap; }
-        .pagination a, .pagination span {
-            padding: 7px 14px;
-            background: rgba(30, 41, 59, 0.3);
-            border-radius: 8px;
-            color: #64748b;
-            text-decoration: none;
-            font-size: 13px;
-            transition: all 0.15s;
-        }
-        .pagination a:hover { background: rgba(56,189,248,0.08); color: #38bdf8; }
-        .pagination .current { background: rgba(37, 99, 235, 0.15); color: #60a5fa; font-weight: 600; }
-
-        /* ===== Stats ===== */
-        .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px; }
-        .stat-card {
-            background: rgba(11, 15, 26, 0.35);
-            border: 1px solid rgba(51, 65, 85, 0.2);
-            border-radius: 12px;
-            padding: 16px 12px;
-            text-align: center;
-        }
-        .stat-card .stat-value { font-size: 24px; font-weight: 700; color: #f1f5f9; }
-        .stat-card .stat-label { font-size: 11px; color: #475569; margin-top: 4px; letter-spacing: 0.5px; }
-
-        /* ===== Badges ===== */
-        .premium-badge { display: inline-block; background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.2); color: #fbbf24; padding: 3px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-        .free-badge { display: inline-block; background: rgba(51, 65, 85, 0.3); color: #475569; padding: 3px 12px; border-radius: 20px; font-size: 11px; }
-
-        /* ===== Auth ===== */
-        .auth-link { text-align: center; margin-top: 24px; font-size: 13px; color: #475569; }
-        .auth-link a { color: #60a5fa; text-decoration: none; }
-        .auth-link a:hover { text-decoration: underline; }
-
-        /* ===== Toast ===== */
-        .toast {
-            position: fixed;
-            bottom: 28px;
-            left: 50%;
-            transform: translateX(-50%) translateY(16px);
-            background: rgba(20, 23, 42, 0.95);
-            backdrop-filter: blur(10px);
-            color: #e2e8f0;
-            padding: 12px 24px;
-            border-radius: 12px;
-            border: 1px solid rgba(51, 65, 85, 0.3);
-            font-size: 13px;
-            opacity: 0;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            z-index: 9999;
-            pointer-events: none;
-            box-shadow: 0 6px 24px rgba(0,0,0,0.3);
-        }
-        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-        details summary { cursor: pointer; font-size: 13px; color: #475569; padding: 4px 0; }
-        details summary:hover { color: #64748b; }
-
-        /* ===== Divider ===== */
-        .divider { height: 1px; background: rgba(51, 65, 85, 0.2); margin: 24px 0; }
 
         /* ===== Responsive ===== */
         @media (max-width: 600px) {
@@ -669,6 +440,7 @@
             <a href="{{ url_for('favorites') }}">⭐ 收藏</a>
             <a href="{{ url_for('profile') }}">个人</a>
             <span class="user-info">{{ current_user.username }}</span>
+            <button class="theme-toggle" id="themeToggle" title="切换主题">&#127769;</button>
             <a href="{{ url_for('auth.logout') }}" style="color:rgba(239,68,68,0.7);">退出</a>
         </div>
     </nav>
@@ -686,14 +458,43 @@
 
     {% block content %}{% endblock %}
 
-    <script>
-        document.querySelectorAll('.flash-msg').forEach(el => {
-            setTimeout(() => {
-                el.style.opacity = '0';
-                el.style.transform = 'translateY(-6px)';
-                setTimeout(() => el.remove(), 250);
-            }, 4000);
-        });
+        <script>
+    // 主题切换
+    (function() {
+        var key = 'inkflow_theme';
+        var stored = localStorage.getItem(key);
+        var body = document.body;
+        function applyTheme(theme) {
+            if (theme === 'light') {
+                body.classList.add('light');
+            } else {
+                body.classList.remove('light');
+            }
+            var btn = document.getElementById('themeToggle');
+            if (btn) {
+                btn.textContent = (theme === 'light') ? '\u2600\ufe0f' : '\U0001f319';
+            }
+            localStorage.setItem(key, theme);
+        }
+        if (stored === 'light') {
+            applyTheme('light');
+        }
+        var toggleBtn = document.getElementById('themeToggle');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function() {
+                var isLight = body.classList.contains('light');
+                applyTheme(isLight ? 'dark' : 'light');
+            });
+        }
+    })();
+
+    document.querySelectorAll('.flash-msg').forEach(function(el) {
+        setTimeout(function() {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(-6px)';
+            setTimeout(function() { el.remove(); }, 250);
+        }, 4000);
+    });
     </script>
     {% block scripts %}{% endblock %}
 </body>
