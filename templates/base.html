@@ -154,9 +154,7 @@
         .card-delay-2 { animation-delay: 0.2s; }
         .card-delay-3 { animation-delay: 0.3s; }
 
-        /* ===== Entrance Animations ===== */
-        .page-fade-in { animation: bodyIn 0.4s ease both; }
-        @keyframes bodyIn { from { opacity: 0; } to { opacity: 1; } }
+                /* ===== Entrance Animations ===== */
         @keyframes cardUp {
             from { opacity: 0; transform: translateY(24px); }
             to { opacity: 1; transform: translateY(0); }
@@ -450,15 +448,6 @@
     {% block content %}{% endblock %}
 
         <script>
-        // 首次进入动画：只在新标签页/首次访问时播放
-        (function() {
-            var visited = sessionStorage.getItem('inkflow_entered');
-            if (!visited) {
-                document.body.classList.add('page-fade-in');
-                sessionStorage.setItem('inkflow_entered', '1');
-            }
-        })();
-
         // 主题切换
         (function() {
         var key = 'inkflow_theme';

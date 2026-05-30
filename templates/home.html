@@ -3,6 +3,7 @@
 {% block title %}InkFlow - AI 驱动的营销文案创作平台{% endblock %}
 {% block extra_head %}
 <style>
+/* ===== Hero 品牌首屏（仪式感动画） ===== */
 .hero {
     min-height: calc(100vh - 64px);
     display: flex;
@@ -50,6 +51,50 @@
     position: relative;
     z-index: 1;
 }
+
+/* ——— 品牌字 InkFlow —— 从下、模糊、缩小开始，上浮、清晰、放大，带光泽 + 呼吸 ——— */
+.hero-brand-word {
+    display: inline-block;
+    font-family: "Dancing Script", "Caveat", cursive;
+    font-size: 64px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    transform: rotate(-1.5deg);
+    background: linear-gradient(135deg, #38bdf8 0%, #a78bfa 40%, #f472b6 70%, #38bdf8 100%);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(30px) scale(0.85) rotate(-1.5deg);
+    animation: brandRise 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
+}
+@keyframes brandRise {
+    0% {
+        opacity: 0;
+        filter: blur(8px);
+        transform: translateY(30px) scale(0.85) rotate(-1.5deg);
+    }
+    60% {
+        opacity: 1;
+        filter: blur(0);
+        transform: translateY(-2px) scale(1.02) rotate(-1.5deg);
+    }
+    100% {
+        opacity: 1;
+        filter: blur(0);
+        transform: translateY(0) scale(1) rotate(-1.5deg);
+        /* 保持呼吸感：背景位置微移 */
+        animation: brandShimmer 4s ease-in-out 1.4s infinite;
+    }
+}
+@keyframes brandShimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+/* ——— 中文主标题：分层延迟，从下往上 + 轻微模糊 ——— */
 .hero-title {
     font-size: 42px;
     font-weight: 700;
@@ -57,24 +102,37 @@
     letter-spacing: -0.5px;
     margin-bottom: 20px;
 }
-.hero-title .brand-highlight {
-    background: linear-gradient(135deg, #38bdf8 0%, #a78bfa 50%, #f472b6 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    font-family: "Dancing Script", "Caveat", cursive;
-    font-size: 48px;
-    letter-spacing: 2px;
-    transform: rotate(-1deg);
-    display: inline-block;
+.hero-title-line {
+    display: block;
+    opacity: 0;
+    transform: translateY(18px);
+    animation: titleSlide 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+.hero-title-line:nth-child(1) { animation-delay: 0.5s; }
+.hero-title-line:nth-child(2) { animation-delay: 0.65s; }
+.hero-title-line:nth-child(3) { animation-delay: 0.8s; }
+@keyframes titleSlide {
+    0% { opacity: 0; transform: translateY(18px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ——— 副标题：延迟出现 ——— */
 .hero-subtitle {
     font-size: 17px;
     color: #64748b;
     line-height: 1.6;
     margin-bottom: 36px;
     font-weight: 400;
+    opacity: 0;
+    transform: translateY(12px);
+    animation: subtitleIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) 1.0s forwards;
 }
+@keyframes subtitleIn {
+    0% { opacity: 0; transform: translateY(12px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ——— CTA 按钮 ——— */
 .hero-cta {
     display: inline-flex;
     align-items: center;
@@ -90,11 +148,16 @@
     transition: all 0.3s;
     border: none;
     cursor: pointer;
+    opacity: 0;
+    transform: translateY(12px);
+    animation: subtitleIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) 1.15s forwards;
 }
 .hero-cta:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 32px rgba(37, 99, 235, 0.4);
 }
+
+/* ——— 特性标签：逐个弹入 ——— */
 .hero-features {
     display: flex;
     gap: 16px;
@@ -113,6 +176,16 @@
     align-items: center;
     gap: 8px;
     backdrop-filter: blur(8px);
+    opacity: 0;
+    transform: translateY(10px);
+    animation: featIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.hero-feature:nth-child(1) { animation-delay: 1.4s; }
+.hero-feature:nth-child(2) { animation-delay: 1.55s; }
+.hero-feature:nth-child(3) { animation-delay: 1.7s; }
+@keyframes featIn {
+    0% { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
 }
 #generatePage { display: none; }
 #generatePage .card { animation: cardUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
@@ -358,8 +431,9 @@
 <div id="heroPage" class="hero">
     <div class="hero-inner">
         <div class="hero-title">
-            <span class="brand-highlight">InkFlow</span> 灵笔<br>
-            AI 驱动的新一代<br>营销文案创作平台
+            <span class="hero-brand-word">InkFlow</span>
+            <span class="hero-title-line">AI 驱动的新一代</span>
+            <span class="hero-title-line">营销文案创作平台</span>
         </div>
         <div class="hero-subtitle">
             几秒钟生成高质量广告文案、品牌内容与社交媒体营销文案
