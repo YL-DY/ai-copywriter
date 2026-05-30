@@ -853,5 +853,20 @@ def inject_globals():
                 style_list=list(SYSTEM_PROMPTS.keys()))
 
 
+import re as _re
+
+@app.template_filter("highlight_keywords")
+def highlight_keywords(text, keyword):
+    if not keyword or not keyword.strip():
+        return text
+    escaped = _re.escape(keyword.strip())
+    return _re.sub(
+        f"({escaped})",
+        r'<mark style="background:#fbbf24;color:#0b0f1a;padding:0 3px;border-radius:3px;font-weight:600;">\1</mark>',
+        text,
+        flags=_re.IGNORECASE
+    )
+
+
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))

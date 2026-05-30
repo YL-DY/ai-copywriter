@@ -64,10 +64,10 @@
                 {{ item.created_at.strftime('%Y-%m-%d %H:%M') }}
                 · <span class="history-tokens">{{ item.tokens_used }} tokens</span>
             </div>
-            <div class="history-result">{{ item.result }}</div>
+                        <div class="history-result">{{ item.result|highlight_keywords(search) if search else item.result }}</div>
             <details style="margin-top: 12px;">
                 <summary style="color: #64748b; font-size: 13px; cursor: pointer;">查看完整文案</summary>
-                <div class="result-box" style="margin-top: 10px;">{{ item.result }}</div>
+                <div class="result-box" style="margin-top: 10px;">{{ item.result|highlight_keywords(search) if search else item.result }}</div>
                 <button onclick="copyText(this)" class="btn btn-success" style="margin-top: 10px; padding: 8px; font-size: 13px;">📋 复制此文案</button>
             </details>
         </div>
