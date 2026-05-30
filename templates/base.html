@@ -419,7 +419,7 @@
         </style>
     {% block extra_head %}{% endblock %}
 </head>
-<body class="page-fade-in">
+<body>
     {% if current_user.is_authenticated %}
     <nav class="navbar">
         <a href="{{ url_for('home') }}" class="brand">Inkflow</a>
@@ -450,8 +450,17 @@
     {% block content %}{% endblock %}
 
         <script>
-    // 主题切换
-    (function() {
+        // 首次进入动画：只在新标签页/首次访问时播放
+        (function() {
+            var visited = sessionStorage.getItem('inkflow_entered');
+            if (!visited) {
+                document.body.classList.add('page-fade-in');
+                sessionStorage.setItem('inkflow_entered', '1');
+            }
+        })();
+
+        // 主题切换
+        (function() {
         var key = 'inkflow_theme';
         var stored = localStorage.getItem(key);
         var body = document.body;
