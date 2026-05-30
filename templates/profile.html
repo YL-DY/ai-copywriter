@@ -57,6 +57,19 @@
             </div>
         </div>
 
+        <!-- 图表: 近7天趋势 -->
+        <div style="margin-top:24px;background:rgba(11,15,26,0.35);border:1px solid rgba(51,65,85,0.2);border-radius:12px;padding:20px;">
+            <div style="font-size:13px;color:#64748b;font-weight:500;margin-bottom:16px;">📈 近7天用量趋势</div>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;">
+                <div style="flex:1;min-width:260px;">
+                    <canvas id="tokenChart" height="180"></canvas>
+                </div>
+                <div style="flex:1;min-width:260px;">
+                    <canvas id="countChart" height="180"></canvas>
+                </div>
+            </div>
+        </div>
+
         <!-- 快捷入口 -->
         <div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap;">
             <a href="{{ url_for('home') }}" class="btn btn-primary" style="flex:1;text-decoration:none;justify-content:center;">✨ 生成文案</a>
@@ -65,4 +78,73 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+(function() {
+    fetch('/stats-data')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        var commonOpts = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: { color: '#64748b', font: { size: 11 } }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#475569', font: { size: 10 } },
+                    grid: { color: 'rgba(51,65,85,0.15)' }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: '#475569', font: { size: 10 } },
+                    grid: { color: 'rgba(51,65,85,0.15)' }
+                }
+            }
+        };
+
+        // Token 趋势
+        new Chart(document.getElementById('tokenChart'), {
+            type: 'line',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: 'Token 消耗',
+                    data: data.token_data,
+                    borderColor: '#38bdf8',
+                    backgroundColor: 'rgba(56,189,248,0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    pointBackgroundColor: '#38bdf8',
+                    pointRadius: 3
+                }]
+            },
+            options: commonOpts
+        });
+
+        // 生成次数趋势
+        new Chart(document.getElementById('countChart'), {
+            type: 'bar',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: '生成次数',
+                    data: data.count_data,
+                    backgroundColor: 'rgba(167,139,250,0.5)',
+                    borderColor: '#a78bfa',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: commonOpts
+        });
+    })
+    .catch(function() {});
+})();
+</script>
 {% endblock %}

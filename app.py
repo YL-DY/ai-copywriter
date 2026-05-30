@@ -1,9 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, send_file
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file, jsonify
 from flask_login import LoginManager, login_required, current_user
 import requests
 import hashlib
 import os
-from datetime import date
+from datetime import date, timedelta, datetime as _datetime
 import zipfile
 import io
 
@@ -795,6 +795,42 @@ def export():
     archive_name = f"inkflow_export_{date.today().isoformat()}.zip"
     return send_file(buf, as_attachment=True, download_name=archive_name,
                      mimetype="application/zip")
+
+
+@app.route("/stats-data")
+@login_required
+def stats_data():
+    """返回最近7天的每日 Token 用量和生成次数"""
+    today = date.today()
+    labels = []
+    token_data = []
+    count_data = []
+
+    for i in range(6, -1, -1):
+        day = today - timedelta(days=i)
+        day_str = day.isoformat()
+        labels.append(day.strftime("%m-%d"))
+
+        # 查询该日所有记录
+        start = _datetime(day.year, day.month, day.day)
+        end = start + timedelta(days=1)
+
+        records = History.query.filter(
+            History.user_id == current_user.id,
+            History.created_at >= start,
+            History.created_at < end
+        ).all()
+
+        day_tokens = sum(r.tokens_used for r in records)
+        day_count = len(records)
+        token_data.append(day_tokens)
+        count_data.append(day_count)
+
+    return jsonify({
+        "labels": labels,
+        "token_data": token_data,
+        "count_data": count_data
+    })
 
 
 @app.context_processor
