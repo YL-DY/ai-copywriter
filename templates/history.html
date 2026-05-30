@@ -10,15 +10,49 @@
             </div>
         </div>
 
-        <!-- 搜索 & 对比入口 -->
+        <!-- 搜索 & 筛选 -->
         <form method="GET" class="search-form" id="searchForm">
             <div class="search-box">
                 <input type="text" name="search" placeholder="🔍 搜索产品名称..." value="{{ search }}" style="margin-bottom:0;flex:1;">
                 <button type="submit" class="btn btn-primary" style="width:auto;padding:14px 20px;margin-left:8px;">搜索</button>
-                {% if search %}
+                {% if search or style_filter or date_from or date_to or tokens_min or tokens_max %}
                 <a href="{{ url_for('history') }}" class="btn btn-danger" style="width:auto;padding:14px 20px;margin-left:8px;text-decoration:none;text-align:center;">清除</a>
                 {% endif %}
             </div>
+            <!-- 高级筛选 -->
+            <details style="margin-top:12px;font-size:13px;">
+                <summary style="color:var(--text-muted);cursor:pointer;">🔎 高级筛选</summary>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;padding:14px;background:var(--bg-hover);border-radius:10px;border:1px solid var(--border-color);">
+                    <div style="min-width:120px;">
+                        <label style="font-size:11px;margin-bottom:3px;">风格</label>
+                        <select name="style" style="padding:8px 10px;margin-bottom:0;font-size:12px;">
+                            <option value="">全部</option>
+                            {% for s in style_list %}
+                            <option value="{{ s }}" {% if style_filter == s %}selected{% endif %}>{{ s }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div style="min-width:120px;">
+                        <label style="font-size:11px;margin-bottom:3px;">日期起</label>
+                        <input type="date" name="date_from" value="{{ date_from }}" style="padding:8px 10px;margin-bottom:0;font-size:12px;">
+                    </div>
+                    <div style="min-width:120px;">
+                        <label style="font-size:11px;margin-bottom:3px;">日期止</label>
+                        <input type="date" name="date_to" value="{{ date_to }}" style="padding:8px 10px;margin-bottom:0;font-size:12px;">
+                    </div>
+                    <div style="min-width:80px;">
+                        <label style="font-size:11px;margin-bottom:3px;">Tokens ≥</label>
+                        <input type="number" name="tokens_min" value="{{ tokens_min }}" placeholder="0" style="padding:8px 10px;margin-bottom:0;font-size:12px;">
+                    </div>
+                    <div style="min-width:80px;">
+                        <label style="font-size:11px;margin-bottom:3px;">Tokens ≤</label>
+                        <input type="number" name="tokens_max" value="{{ tokens_max }}" placeholder="9999" style="padding:8px 10px;margin-bottom:0;font-size:12px;">
+                    </div>
+                    <div style="display:flex;align-items:flex-end;">
+                        <button type="submit" class="btn-sm btn-outline" style="padding:8px 14px;">应用筛选</button>
+                    </div>
+                </div>
+            </details>
         </form>
 
                 <!-- 对比模式切换 -->

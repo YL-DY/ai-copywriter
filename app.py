@@ -455,15 +455,55 @@ def home():
 def history():
     page = request.args.get("page", 1, type=int)
     search = request.args.get("search", "").strip()
+    style_filter = request.args.get("style", "").strip()
+    date_from = request.args.get("date_from", "").strip()
+    date_to = request.args.get("date_to", "").strip()
+    tokens_min = request.args.get("tokens_min", "")
+    tokens_max = request.args.get("tokens_max", "")
 
     query = History.query.filter_by(user_id=current_user.id)
+
     if search:
         query = query.filter(History.product.contains(search))
+
+    if style_filter:
+        query = query.filter(History.style == style_filter)
+
+    if date_from:
+        try:
+            dt_from = _datetime.strptime(date_from, "%Y-%m-%d")
+            query = query.filter(History.created_at >= dt_from)
+        except Exception:
+            pass
+
+    if date_to:
+        try:
+            dt_to = _datetime.strptime(date_to, "%Y-%m-%d") + timedelta(days=1)
+            query = query.filter(History.created_at < dt_to)
+        except Exception:
+            pass
+
+    if tokens_min:
+        try:
+            tmin = int(tokens_min)
+            query = query.filter(History.tokens_used >= tmin)
+        except Exception:
+            pass
+
+    if tokens_max:
+        try:
+            tmax = int(tokens_max)
+            query = query.filter(History.tokens_used <= tmax)
+        except Exception:
+            pass
 
     pagination = query.order_by(History.created_at.desc())\
         .paginate(page=page, per_page=10, error_out=False)
 
-    return render_template("history.html", pagination=pagination, search=search)
+    return render_template("history.html", pagination=pagination, search=search,
+                           style_filter=style_filter, date_from=date_from,
+                           date_to=date_to, tokens_min=tokens_min, tokens_max=tokens_max,
+                           style_list=list(SYSTEM_PROMPTS.keys()))
 
 
 @app.route("/history/delete/<int:history_id>", methods=["POST"])
