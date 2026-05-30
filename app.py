@@ -81,9 +81,33 @@ def ensure_db():
             db.session.commit()
         except Exception:
             db.session.rollback()
+        try:
+            from sqlalchemy import inspect as _inspect3
+            ins3 = _inspect3(db.engine)
+            u_cols = [c["name"] for c in ins3.get_columns("users")]
+            if "api_key" not in u_cols:
+                db.session.execute(_text("ALTER TABLE users ADD COLUMN api_key VARCHAR(200) DEFAULT ''"))
+            if "backup_api_key" not in u_cols:
+                db.session.execute(_text("ALTER TABLE users ADD COLUMN backup_api_key VARCHAR(200) DEFAULT ''"))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
         _db_initialized = True
 
 DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "sk-929e447310024be5bec2a1587f2c414f")
+
+
+def get_active_api_key(user, attempt=0):
+    """返回用户自定义 API Key，如果用户未设置则返回全局默认 Key。
+    attempt 为偶数用主 Key，奇数用备用 Key，实现自动轮换。"""
+    if user and user.api_key:
+        if attempt % 2 == 0:
+            return user.api_key
+        elif user.backup_api_key:
+            return user.backup_api_key
+        else:
+            return user.api_key
+    return DEEPSEEK_API_KEY
 
 
 # ========== Prompt 工程系统 ==========
@@ -689,6 +713,20 @@ def analyze():
         return {"ok": False, "error": "API 请求超时，请重试"}, 200
     except Exception as e:
         return {"ok": False, "error": f"分析失败：{str(e)}"}, 200
+
+
+@app.route("/settings", methods=["GET", "POST"])
+@login_required
+def settings():
+    if request.method == "POST":
+        api_key = request.form.get("api_key", "").strip()
+        backup_api_key = request.form.get("backup_api_key", "").strip()
+        current_user.api_key = api_key
+        current_user.backup_api_key = backup_api_key
+        db.session.commit()
+        flash("API Key 已保存", "success")
+        return redirect(url_for("settings"))
+    return render_template("settings.html")
 
 
 @app.route("/profile")

@@ -23,6 +23,9 @@ class User(UserMixin, db.Model):
     daily_date = db.Column(db.String(10), default="")
     # 是否为付费用户
     is_premium = db.Column(db.Boolean, default=False)
+    # API Key 管理
+    api_key = db.Column(db.String(200), default="")
+    backup_api_key = db.Column(db.String(200), default="")
 
     histories = db.relationship("History", backref="user", lazy=True, order_by="History.created_at.desc()")
 
