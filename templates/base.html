@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Inkflow - 小红书文案助手{% endblock %}</title>
+    <title>{% block title %}Inkflow - 灏忕孩涔︽枃妗堝姪鎵媨% endblock %}</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Caveat:wght@700&display=swap');
 
-        /* ===== 主题变量 ===== */
+        /* ===== 涓婚�樺彉閲� ===== */
         :root {
             --bg-gradient: linear-gradient(160deg, #0b0f1a 0%, #14172a 40%, #0f172a 70%, #0a0f1f 100%);
             --bg-soft: rgba(11, 15, 26, 0.7);
@@ -145,7 +145,7 @@
             color: #38bdf8;
         }
 
-        /* ===== Splash 品牌开场动�?===== */
+        /* ===== Splash 鍝佺墝寮�鍦哄姩鐢?===== */
         #splashScreen {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -195,7 +195,7 @@
             50% { opacity: 1; filter: blur(0); transform: translateY(-2px) scale(1.03) rotate(-1.5deg); }
             100% { opacity: 1; filter: blur(0); transform: translateY(0) scale(1) rotate(-1.5deg); }
         }
-        /* 流光扫光 */
+        /* 娴佸厜鎵�鍏� */
         .splash-brand::after {
             content: '';
             position: absolute;
@@ -222,7 +222,7 @@
             0% { opacity: 0; transform: translateY(12px); }
             100% { opacity: 1; transform: translateY(0); }
         }
-        /* 发光细线 */
+        /* 鍙戝厜缁嗙嚎 */
         .splash-line {
             width: 0;
             height: 1px;
@@ -234,7 +234,7 @@
             0% { width: 0; }
             100% { width: 120px; }
         }
-        /* 星点 */
+        /* 鏄熺偣 */
         .splash-stars {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -253,7 +253,7 @@
             0%, 100% { opacity: 0; transform: scale(0.3); }
             50% { opacity: 0.6; transform: scale(1); }
         }
-        /* body �?splash 隐藏前不显示内容 */
+        /* body 鍦?splash 闅愯棌鍓嶄笉鏄剧ず鍐呭�� */
         body.splash-active #heroPage,
         body.splash-active .navbar,
         body.splash-active .flash-messages,
@@ -539,28 +539,28 @@
         .divider { height: 1px; background: var(--border-color); margin: 24px 0; transition: background 0.3s ease; }
 
                 /* ===== Responsive ===== */
-        /* 底部导航（仅移动端可见） */
+        /* 搴曢儴瀵艰埅锛堜粎绉诲姩绔�鍙�瑙侊級 */
         .bottom-nav { display: none; }
 
                 @media (max-width: 600px) {
-            /* 顶部导航精简：只�?Logo + 主题 */
+            /* 椤堕儴瀵艰埅绮剧畝锛氬彧鐣?Logo + 涓婚�� */
             .navbar { padding: 0 14px; height: 52px; gap: 8px; }
             .navbar .nav-links { gap: 4px; flex-wrap: nowrap; }
             .navbar .token-badge { font-size: 9px; padding: 2px 7px; letter-spacing: 0; white-space: nowrap; max-width: 100px; overflow: hidden; text-overflow: ellipsis; }
             .navbar .user-info { font-size: 11px; }
             .navbar .nav-links a { display: none; }
 
-            /* 品牌 Logo 紧凑、不歪斜 */
+            /* 鍝佺墝 Logo 绱у噾銆佷笉姝�鏂� */
             .navbar .brand {
                 font-size: 22px;
                 letter-spacing: 0;
                 transform: rotate(0deg);
             }
 
-            /* 内容区留出底部导航空�?*/
+            /* 鍐呭�瑰尯鐣欏嚭搴曢儴瀵艰埅绌洪�?*/
             body { padding-bottom: 64px; }
 
-            /* 底部导航 */
+            /* 搴曢儴瀵艰埅 */
             .bottom-nav {
                 display: flex;
                 position: fixed;
@@ -626,13 +626,13 @@
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <!-- Splash 品牌开�?-->
+    <!-- Splash 鍝佺墝寮�鍦?-->
     <div id="splashScreen">
         <div class="splash-glow"></div>
         <div class="splash-stars" id="splashStars"></div>
         <div class="splash-content">
             <div class="splash-brand">InkFlow</div>
-            <span class="splash-sub">�?�?/span>
+            <span class="splash-sub">鐏?绗?/span>
             <div class="splash-line"></div>
         </div>
     </div>
@@ -641,28 +641,28 @@
         <nav class="navbar">
             <a href="{{ url_for('home') }}" class="brand">Inkflow</a>
             <div class="nav-links">
-                <span class="token-badge">�?{{ user_token_remaining }}{% if not current_user.is_premium %}/�?· 今日 {{ daily_remaining }}/10{% endif %}</span>
+                <span class="token-badge">鈿?{{ user_token_remaining }}{% if not current_user.is_premium %}/鏈?路 浠婃棩 {{ daily_remaining }}/10{% endif %}</span>
                                 <span class="user-info{% if request.endpoint == 'profile' %} user-visible{% endif %}">{{ current_user.username }}</span>
-                <button class="theme-toggle" id="themeToggle" title="切换主题">&#127769;</button>
+                <button class="theme-toggle" id="themeToggle" title="鍒囨崲涓婚��">&#127769;</button>
             </div>
         </nav>
-    <!-- 底部导航（移动端�?-->
+    <!-- 搴曢儴瀵艰埅锛堢Щ鍔ㄧ��锛?-->
     <nav class="bottom-nav">
         <a href="javascript:void(0)" class="bottom-nav-item {% if request.endpoint == 'home' %}active{% endif %}" data-tab="home" id="bottomTabHome">
             <span class="bottom-nav-icon">&#9998;</span>
-            <span class="bottom-nav-label">生成</span>
+            <span class="bottom-nav-label">鐢熸垚</span>
         </a>
         <a href="{{ url_for('history') }}" class="bottom-nav-item {% if request.endpoint == 'history' %}active{% endif %}" data-tab="history">
             <span class="bottom-nav-icon">&#128196;</span>
-            <span class="bottom-nav-label">历史</span>
+            <span class="bottom-nav-label">鍘嗗彶</span>
         </a>
         <a href="{{ url_for('favorites') }}" class="bottom-nav-item {% if request.endpoint == 'favorites' %}active{% endif %}" data-tab="favorites">
             <span class="bottom-nav-icon">&#11088;</span>
-            <span class="bottom-nav-label">收藏</span>
+            <span class="bottom-nav-label">鏀惰棌</span>
         </a>
         <a href="{{ url_for('profile') }}" class="bottom-nav-item {% if request.endpoint == 'profile' %}active{% endif %}" data-tab="profile">
             <span class="bottom-nav-icon">&#128100;</span>
-            <span class="bottom-nav-label">个人</span>
+            <span class="bottom-nav-label">涓�浜�</span>
         </a>
     </nav>
     {% endif %}
@@ -680,7 +680,7 @@
     {% block content %}{% endblock %}
 
                 <script>
-    // 品牌开场动画（仅首次进入，标记立即写入�?
+    // 鍝佺墝寮�鍦哄姩鐢伙紙浠呴�栨�¤繘鍏ワ紝鏍囪�扮珛鍗冲啓鍏ワ�?
     (function() {
                 var KEY = 'inkflow_splash_played';
                 var done = sessionStorage.getItem(KEY);
@@ -690,11 +690,11 @@
                     document.body.classList.add('splash-done');
                     return;
                 }
-                // 立即写入标记
+                // 绔嬪嵆鍐欏叆鏍囪��
                 sessionStorage.setItem(KEY, '1');
                 document.body.classList.add('splash-active');
 
-                // 生成星点
+                // 鐢熸垚鏄熺偣
                 var container = document.getElementById('splashStars');
                 for (var i = 0; i < 20; i++) {
                     var dot = document.createElement('div');
@@ -707,7 +707,7 @@
                     container.appendChild(dot);
                 }
 
-                // 2.4s 后淡�?splash，显示内�?
+                // 2.4s 鍚庢贰鍑?splash锛屾樉绀哄唴瀹?
                 setTimeout(function() {
                     splash.classList.add('hide');
                     document.body.classList.remove('splash-active');
@@ -718,13 +718,13 @@
                 }, 2400);
     })();
 
-    // 移动端：键盘弹出时隐藏底部导�?
+    // 绉诲姩绔�锛氶敭鐩樺脊鍑烘椂闅愯棌搴曢儴瀵艰�?
     (function() {
                 if (window.visualViewport) {
                     var bottomNav = document.querySelector('.bottom-nav');
                     if (!bottomNav) return;
                     window.visualViewport.addEventListener('resize', function() {
-                        // 键盘弹出�?visualViewport 高度会缩小，且底部被键盘撑起
+                        // 閿�鐩樺脊鍑烘�?visualViewport 楂樺害浼氱缉灏忥紝涓斿簳閮ㄨ��閿�鐩樻拺璧�
                         var diff = window.innerHeight - window.visualViewport.height;
                         if (diff > 100) {
                             bottomNav.style.display = 'none';
@@ -735,7 +735,7 @@
                 }
     })();
 
-    // 主题切换
+    // 涓婚�樺垏鎹�
         (function() {
         var key = 'inkflow_theme';
         var stored = localStorage.getItem(key);
@@ -772,7 +772,7 @@
         }, 4000);
     });
 
-        // 底部「生成」tab：同页切换，不触发页面重�?
+        // 搴曢儴銆岀敓鎴愩�峵ab锛氬悓椤靛垏鎹�锛屼笉瑙﹀彂椤甸潰閲嶈�?
     (function() {
         var tab = document.getElementById('bottomTabHome');
         if (!tab) return;
@@ -780,22 +780,22 @@
             e.preventDefault();
             var heroPage = document.getElementById('heroPage');
             var genPage = document.getElementById('generatePage');
-            // 如果 hero 可见 -> 切换到生成页
+            // 濡傛灉 hero 鍙�瑙� -> 鍒囨崲鍒扮敓鎴愰〉
             if (heroPage && heroPage.style.display !== 'none' && heroPage.style.display !== '') {
                 heroPage.style.display = 'none';
                 if (genPage) genPage.style.display = 'block';
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
-            // 更新底部导航 active 状�?
+            // 鏇存柊搴曢儴瀵艰埅 active 鐘舵�?
             var items = document.querySelectorAll('.bottom-nav-item');
             items.forEach(function(item) { item.classList.remove('active'); });
             tab.classList.add('active');
         });
-        // 页面加载时：如果是从其他页面路由回首页，底部导航�?active 状态由服务端渲�?
-        // 但如果是通过 JS 切换的，active 可能不对，这里初始化一�?
+        // 椤甸潰鍔犺浇鏃讹細濡傛灉鏄�浠庡叾浠栭〉闈㈣矾鐢卞洖棣栭〉锛屽簳閮ㄥ�艰埅鐨?active 鐘舵�佺敱鏈嶅姟绔�娓叉�?
+        // 浣嗗�傛灉鏄�閫氳繃 JS 鍒囨崲鐨勶紝active 鍙�鑳戒笉瀵癸紝杩欓噷鍒濆�嬪寲涓�涓?
         var heroPage = document.getElementById('heroPage');
         if (heroPage && heroPage.style.display === 'none') {
-            // 生成页可见，确保 active
+            // 鐢熸垚椤靛彲瑙侊紝纭�淇� active
             var items = document.querySelectorAll('.bottom-nav-item');
             items.forEach(function(item) { item.classList.remove('active'); });
             tab.classList.add('active');
