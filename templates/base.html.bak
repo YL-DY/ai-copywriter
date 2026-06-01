@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Inkflow - 小红书文案助手{% endblock %}</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Caveat:wght@700&display=swap');
-
         /* ===== 主题变量 ===== */
         :root {
             --bg-gradient: linear-gradient(160deg, #0b0f1a 0%, #14172a 40%, #0f172a 70%, #0a0f1f 100%);
@@ -67,11 +65,9 @@
         .navbar {
             padding: 0 40px;
             height: 64px;
-            width: 100%;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 16px;
             border-bottom: 1px solid var(--border-color);
             background: var(--bg-soft);
             backdrop-filter: blur(16px);
@@ -79,13 +75,14 @@
             position: sticky;
             top: 0;
             z-index: 100;
-                        transition: background 0.4s ease, border-color 0.4s ease;
+            transition: background 0.4s ease, border-color 0.4s ease;
         }
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Caveat:wght@700&display=swap');
         .navbar .brand {
-            font-size: 26px;
+            font-size: 30px;
             font-weight: 700;
             text-decoration: none;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
             background: linear-gradient(135deg, #38bdf8 0%, #a78bfa 50%, #f472b6 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -93,21 +90,13 @@
             font-family: "Dancing Script", "Caveat", cursive;
             text-shadow: 0 0 30px rgba(56, 189, 248, 0.15);
             transition: all 0.4s;
-            transform: rotate(-0.5deg);
+            transform: rotate(-1deg);
         }
         .navbar .brand:hover {
-            transform: rotate(0deg) scale(1.02);
+            transform: rotate(0deg) scale(1.03);
             text-shadow: 0 0 50px rgba(56, 189, 248, 0.25);
         }
-        .navbar .nav-links {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            justify-content: flex-end;
-            margin-left: auto;
-            min-width: 0;
-            flex-wrap: nowrap;
-        }
+        .navbar .nav-links { display: flex; gap: 6px; align-items: center; }
         .navbar .nav-links a {
             color: var(--text-muted);
             text-decoration: none;
@@ -119,18 +108,17 @@
         }
         .navbar .nav-links a:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
         .navbar .token-badge {
-            font-size: 11px;
+            font-size: 12px;
             color: var(--text-subtle);
-            padding: 3px 10px;
+            padding: 4px 12px;
             border-radius: 6px;
             background: rgba(255,255,255,0.03);
             border: 1px solid var(--border-color);
-            white-space: nowrap;
         }
-        .navbar .user-info { color: var(--text-subtle); font-size: 13px; display: none; }
-        .navbar .user-info.user-visible { display: inline-block; }
+        .navbar .user-info { color: var(--text-subtle); font-size: 13px; margin-left: 4px; }
 
-                .theme-toggle {
+        /* 主题切换按钮 */
+        .theme-toggle {
             background: transparent;
             border: 1px solid var(--border-color);
             color: var(--text-muted);
@@ -146,128 +134,7 @@
             color: #38bdf8;
         }
 
-        /* ===== Splash 品牌开场动画 ===== */
-        #splashScreen {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            z-index: 99999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #0b0f1a;
-            pointer-events: none;
-            transition: opacity 1.0s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        #splashScreen.hide { opacity: 0; }
-        #splashScreen .splash-glow {
-            position: absolute;
-            width: 500px; height: 500px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(56,189,248,0.08) 0%, transparent 70%);
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            animation: splashGlowIn 1.0s cubic-bezier(0.16, 1, 0.3, 1) 0.05s forwards;
-        }
-        @keyframes splashGlowIn {
-            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-        }
-        .splash-content { position: relative; z-index: 1; text-align: center; }
-        .splash-brand {
-            display: inline-block;
-            font-family: "Dancing Script", "Caveat", cursive;
-            font-size: 72px;
-            font-weight: 700;
-            letter-spacing: 4px;
-            transform: rotate(-1.5deg);
-            background: linear-gradient(135deg, #38bdf8 0%, #a78bfa 40%, #f472b6 70%, #38bdf8 100%);
-            background-size: 200% 200%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            opacity: 0;
-            filter: blur(10px);
-            transform: translateY(20px) scale(0.8) rotate(-1.5deg);
-            animation: splashBrand 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
-            position: relative;
-        }
-        @keyframes splashBrand {
-            0% { opacity: 0; filter: blur(10px); transform: translateY(20px) scale(0.8) rotate(-1.5deg); }
-            50% { opacity: 1; filter: blur(0); transform: translateY(-2px) scale(1.03) rotate(-1.5deg); }
-            100% { opacity: 1; filter: blur(0); transform: translateY(0) scale(1) rotate(-1.5deg); }
-        }
-        /* 流光扫光 */
-        .splash-brand::after {
-            content: '';
-            position: absolute;
-            top: 0; left: -100%; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%);
-            animation: splashShine 1.6s ease-in-out 0.8s forwards;
-        }
-        @keyframes splashShine {
-            0% { left: -100%; }
-            100% { left: 200%; }
-        }
-        .splash-sub {
-            display: block;
-            font-size: 28px;
-            font-weight: 300;
-            color: rgba(148, 163, 184, 0.6);
-            letter-spacing: 12px;
-            margin-top: 12px;
-            opacity: 0;
-            transform: translateY(12px);
-            animation: splashSub 0.6s cubic-bezier(0.16, 1, 0.3, 1) 1.0s forwards;
-        }
-        @keyframes splashSub {
-            0% { opacity: 0; transform: translateY(12px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-        /* 发光细线 */
-        .splash-line {
-            width: 0;
-            height: 1px;
-            margin: 18px auto 0;
-            background: linear-gradient(90deg, transparent, rgba(56,189,248,0.3), rgba(167,139,250,0.3), transparent);
-            animation: splashLine 0.8s cubic-bezier(0.16, 1, 0.3, 1) 1.1s forwards;
-        }
-        @keyframes splashLine {
-            0% { width: 0; }
-            100% { width: 120px; }
-        }
-        /* 星点 */
-        .splash-stars {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            pointer-events: none;
-            overflow: hidden;
-        }
-        .splash-star {
-            position: absolute;
-            width: 2px; height: 2px;
-            background: #38bdf8;
-            border-radius: 50%;
-            opacity: 0;
-            animation: starTwinkle 2s ease-in-out infinite;
-        }
-        @keyframes starTwinkle {
-            0%, 100% { opacity: 0; transform: scale(0.3); }
-            50% { opacity: 0.6; transform: scale(1); }
-        }
-        /* body 在 splash 隐藏前不显示内容 */
-        body.splash-active #heroPage,
-        body.splash-active .navbar,
-        body.splash-active .flash-messages,
-        body.splash-active #generatePage {
-            opacity: 0;
-        }
-        body.splash-done #heroPage,
-        body.splash-done .navbar,
-        body.splash-done .flash-messages,
-        body.splash-done #generatePage {
-            opacity: 1;
-            transition: opacity 0.6s ease;
-        }
+        /* ===== Flash ===== */
         .flash-messages { max-width: 640px; margin: 16px auto 0; padding: 0 20px; animation: cardUp 0.5s 0.15s cubic-bezier(0.16, 1, 0.3, 1) both; }
         .flash-msg {
             padding: 12px 18px;
@@ -297,7 +164,9 @@
         .card-delay-2 { animation-delay: 0.2s; }
         .card-delay-3 { animation-delay: 0.3s; }
 
-                /* ===== Entrance Animations ===== */
+        /* ===== Entrance Animations ===== */
+        .page-fade-in { animation: bodyIn 0.4s ease both; }
+        @keyframes bodyIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes cardUp {
             from { opacity: 0; transform: translateY(24px); }
             to { opacity: 1; transform: translateY(0); }
@@ -534,78 +403,16 @@
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
         details summary { cursor: pointer; font-size: 13px; color: var(--text-subtle); padding: 4px 0; }
-                details summary:hover { color: var(--text-muted); }
+        details summary:hover { color: var(--text-muted); }
 
         /* ===== Divider ===== */
         .divider { height: 1px; background: var(--border-color); margin: 24px 0; transition: background 0.3s ease; }
 
-                /* ===== Responsive ===== */
-        /* 底部导航（仅移动端可见） */
-        .bottom-nav { display: none; }
-
+        /* ===== Responsive ===== */
         @media (max-width: 600px) {
-            /* 顶部导航精简：只留 Logo + 主题 */
-            .navbar { padding: 0 14px; height: 52px; }
-            .navbar .nav-links { gap: 4px; margin-left: auto; }
-            .navbar .token-badge { font-size: 9px; padding: 2px 7px; letter-spacing: 0; white-space: nowrap; max-width: 100px; overflow: hidden; text-overflow: ellipsis; }
-            .navbar .user-info { font-size: 11px; }
-            .navbar .nav-links a { display: none; }
-
-            /* 品牌 Logo 紧凑、不歪斜 */
-            .navbar .brand {
-                font-size: 22px;
-                letter-spacing: 0;
-                transform: rotate(0deg);
-            }
-
-            /* 内容区留出底部导航空间 */
-            body { padding-bottom: 64px; }
-
-            /* 底部导航 */
-            .bottom-nav {
-                display: flex;
-                position: fixed;
-                bottom: 0; left: 0; right: 0;
-                height: 56px;
-                background: rgba(11, 15, 26, 0.92);
-                backdrop-filter: blur(16px);
-                -webkit-backdrop-filter: blur(16px);
-                border-top: 1px solid rgba(51, 65, 85, 0.2);
-                z-index: 200;
-                justify-content: space-around;
-                align-items: center;
-                padding: 0 8px;
-            }
-            .bottom-nav-item {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                gap: 2px;
-                text-decoration: none;
-                color: var(--text-muted);
-                padding: 4px 12px;
-                border-radius: 10px;
-                transition: all 0.15s;
-                min-width: 56px;
-            }
-            .bottom-nav-item.active {
-                color: #38bdf8;
-            }
-            .bottom-nav-item.active .bottom-nav-icon {
-                transform: scale(1.05);
-            }
-            .bottom-nav-icon {
-                font-size: 20px;
-                line-height: 1;
-                transition: transform 0.15s;
-            }
-            .bottom-nav-label {
-                font-size: 10px;
-                font-weight: 500;
-                letter-spacing: 0.3px;
-            }
-
+            .navbar { padding: 0 16px; }
+            .navbar .nav-links { gap: 4px; }
+            .navbar .nav-links a { padding: 4px 10px; font-size: 12px; }
             .card { padding: 24px 18px; border-radius: 14px; }
             .form-row { flex-direction: column; gap: 0; }
             .search-box { flex-wrap: wrap; }
@@ -616,45 +423,20 @@
         </style>
     {% block extra_head %}{% endblock %}
 </head>
-<body>
-    <!-- Splash 品牌开场 -->
-    <div id="splashScreen">
-        <div class="splash-glow"></div>
-        <div class="splash-stars" id="splashStars"></div>
-        <div class="splash-content">
-            <div class="splash-brand">InkFlow</div>
-            <span class="splash-sub">灵 笔</span>
-            <div class="splash-line"></div>
-        </div>
-    </div>
-
+<body class="page-fade-in">
     {% if current_user.is_authenticated %}
-        <nav class="navbar">
-            <a href="{{ url_for('home') }}" class="brand">Inkflow</a>
-            <div class="nav-links">
-                <span class="token-badge">⚡ {{ user_token_remaining }}{% if not current_user.is_premium %}/月 · 今日 {{ daily_remaining }}/10{% endif %}</span>
-                                <span class="user-info{% if request.endpoint == 'profile' %} user-visible{% endif %}">{{ current_user.username }}</span>
-                <button class="theme-toggle" id="themeToggle" title="切换主题">&#127769;</button>
-            </div>
-        </nav>
-    <!-- 底部导航（移动端） -->
-    <nav class="bottom-nav">
-        <a href="javascript:void(0)" class="bottom-nav-item {% if request.endpoint == 'home' %}active{% endif %}" data-tab="home" id="bottomTabHome">
-            <span class="bottom-nav-icon">&#9998;</span>
-            <span class="bottom-nav-label">生成</span>
-        </a>
-        <a href="{{ url_for('history') }}" class="bottom-nav-item {% if request.endpoint == 'history' %}active{% endif %}" data-tab="history">
-            <span class="bottom-nav-icon">&#128196;</span>
-            <span class="bottom-nav-label">历史</span>
-        </a>
-        <a href="{{ url_for('favorites') }}" class="bottom-nav-item {% if request.endpoint == 'favorites' %}active{% endif %}" data-tab="favorites">
-            <span class="bottom-nav-icon">&#11088;</span>
-            <span class="bottom-nav-label">收藏</span>
-        </a>
-        <a href="{{ url_for('profile') }}" class="bottom-nav-item {% if request.endpoint == 'profile' %}active{% endif %}" data-tab="profile">
-            <span class="bottom-nav-icon">&#128100;</span>
-            <span class="bottom-nav-label">个人</span>
-        </a>
+    <nav class="navbar">
+        <a href="{{ url_for('home') }}" class="brand">Inkflow</a>
+        <div class="nav-links">
+            <span class="token-badge">⚡ {{ user_token_remaining }}{% if not current_user.is_premium %}/月 · 今日 {{ daily_remaining }}/10{% endif %}</span>
+            <a href="{{ url_for('home') }}">生成</a>
+            <a href="{{ url_for('history') }}">历史</a>
+            <a href="{{ url_for('favorites') }}">⭐ 收藏</a>
+            <a href="{{ url_for('profile') }}">个人</a>
+            <span class="user-info">{{ current_user.username }}</span>
+            <button class="theme-toggle" id="themeToggle" title="切换主题">🌙</button>
+            <a href="{{ url_for('auth.logout') }}" style="color:rgba(239,68,68,0.7);">退出</a>
+        </div>
     </nav>
     {% endif %}
 
@@ -670,132 +452,249 @@
 
     {% block content %}{% endblock %}
 
-                <script>
-    // 品牌开场动画（仅首次进入，标记立即写入）
-    (function() {
-                var KEY = 'inkflow_splash_played';
-                var done = sessionStorage.getItem(KEY);
-                var splash = document.getElementById('splashScreen');
-                if (done) {
-                    splash.style.display = 'none';
-                    document.body.classList.add('splash-done');
-                    return;
-                }
-                // 立即写入标记
-                sessionStorage.setItem(KEY, '1');
-                document.body.classList.add('splash-active');
-
-                // 生成星点
-                var container = document.getElementById('splashStars');
-                for (var i = 0; i < 20; i++) {
-                    var dot = document.createElement('div');
-                    dot.className = 'splash-star';
-                    dot.style.left = Math.random() * 100 + '%';
-                    dot.style.top = Math.random() * 100 + '%';
-                    dot.style.width = dot.style.height = (Math.random() * 2 + 1) + 'px';
-                    dot.style.animationDelay = (Math.random() * 3) + 's';
-                    dot.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
-                    container.appendChild(dot);
-                }
-
-                // 2.4s 后淡出 splash，显示内容
-                setTimeout(function() {
-                    splash.classList.add('hide');
-                    document.body.classList.remove('splash-active');
-                    document.body.classList.add('splash-done');
-                    setTimeout(function() {
-                        splash.style.display = 'none';
-                    }, 1000);
-                }, 2400);
-    })();
-
-    // 移动端：键盘弹出时隐藏底部导航
-    (function() {
-                if (window.visualViewport) {
-                    var bottomNav = document.querySelector('.bottom-nav');
-                    if (!bottomNav) return;
-                    window.visualViewport.addEventListener('resize', function() {
-                        // 键盘弹出时 visualViewport 高度会缩小，且底部被键盘撑起
-                        var diff = window.innerHeight - window.visualViewport.height;
-                        if (diff > 100) {
-                            bottomNav.style.display = 'none';
-                        } else {
-                            bottomNav.style.display = 'flex';
-                        }
-                    });
-                }
-    })();
-
-    // 主题切换
+    <script>
+        // 主题切换
         (function() {
-        var key = 'inkflow_theme';
-        var stored = localStorage.getItem(key);
-        var body = document.body;
-        function applyTheme(theme) {
-            if (theme === 'light') {
-                body.classList.add('light');
-            } else {
-                body.classList.remove('light');
-            }
-            var btn = document.getElementById('themeToggle');
-            if (btn) {
-                btn.textContent = (theme === 'light') ? '\u2600\ufe0f' : '\ud83c\udf19';
-            }
-            localStorage.setItem(key, theme);
-        }
-        if (stored === 'light') {
-            applyTheme('light');
-        }
-        var toggleBtn = document.getElementById('themeToggle');
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', function() {
-                var isLight = body.classList.contains('light');
-                applyTheme(isLight ? 'dark' : 'light');
-            });
-        }
-    })();
+            var key = 'inkflow_theme';
+            var stored = localStorage.getItem(key);
+            var body = document.body;
 
+            function applyTheme(theme) {
+                if (theme === 'light') {
+                    body.classList.add('light');
+                    var btn = document.getElementById('themeToggle');
+                    if (btn) btn.textContent = '☀️';
+                } else {
+                    body.classList.remove('light');
+                    var btn = document.getElementById('themeToggle');
+                    if (btn) btn.textContent = '🌙';
+                }
+                localStorage.setItem(key, theme);
+            }
+
+            // 恢复主题
+            if (stored === 'light') {
+                applyTheme('light');
+            }
+
+            var toggleBtn = document.getElementById('themeToggle');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function() {
+                    var isLight = body.classList.contains('light');
+                    applyTheme(isLight ? 'dark' : 'light');
+                });
+            }
+        })();
+
+        // Flash 自动消失
         document.querySelectorAll('.flash-msg').forEach(function(el) {
-        setTimeout(function() {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(-6px)';
-            setTimeout(function() { el.remove(); }, 250);
-        }, 4000);
-    });
-
-            (function() {
-        var tab = document.getElementById('bottomTabHome');
-        if (!tab) return;
-        tab.addEventListener('click', function(e) {
-            e.preventDefault();
-            var isHomePage = window.location.pathname === '/' || window.location.pathname === '';
-            if (!isHomePage) {
-                window.location.href = '/';
-                return;
-            }
-            if (window.setPageView) {
-                window.setPageView('generate');
-            } else {
-                var heroPage = document.getElementById('heroPage');
-                var genPage = document.getElementById('generatePage');
-                if (heroPage) heroPage.style.display = 'none';
-                if (genPage) genPage.style.display = 'block';
-            }
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            var items = document.querySelectorAll('.bottom-nav-item');
-            items.forEach(function(item) { item.classList.remove('active'); });
-            tab.classList.add('active');
+            setTimeout(function() {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(-6px)';
+                setTimeout(function() { el.remove(); }, 250);
+            }, 4000);
         });
-        var isHomePage = window.location.pathname === '/' || window.location.pathname === '';
-        if (isHomePage) {
-            var heroPage = document.getElementById('heroPage');
-            if (heroPage && heroPage.style.display === 'none') {
-                var items = document.querySelectorAll('.bottom-nav-item');
-                items.forEach(function(item) { item.classList.remove('active'); });
-                tab.classList.add('active');
-            }
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
-    })();</script>
+        .btn-outline {
+            background: transparent;
+            border: 1px solid rgba(51, 65, 85, 0.4);
+            color: #64748b;
+        }
+        .btn-outline:hover { border-color: #38bdf8; color: #38bdf8; background: rgba(56,189,248,0.06); }
+
+        /* ===== Result ===== */
+        .result-area { margin-top: 28px; }
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+            background: rgba(11, 15, 26, 0.3);
+            border-radius: 10px 10px 0 0;
+            border: 1px solid rgba(51, 65, 85, 0.2);
+            border-bottom: none;
+        }
+        .result-actions { display: flex; gap: 6px; }
+        .result-box {
+            padding: 20px 24px;
+            border-radius: 0 0 10px 10px;
+            background: rgba(11, 15, 26, 0.4);
+            border: 1px solid rgba(51, 65, 85, 0.2);
+            border-top: none;
+            white-space: pre-wrap;
+            line-height: 1.8;
+            font-size: 14px;
+        }
+        .result-box.standalone { border-radius: 10px; border-top: 1px solid rgba(51, 65, 85, 0.2); }
+
+        /* ===== Utilities ===== */
+        .text-center { text-align: center; }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .mb-16 { margin-bottom: 16px; }
+        .mt-12 { margin-top: 12px; }
+
+        /* ===== History ===== */
+        .history-item {
+            background: rgba(11, 15, 26, 0.35);
+            border: 1px solid rgba(51, 65, 85, 0.2);
+            border-radius: 14px;
+            padding: 18px 20px;
+            margin-bottom: 14px;
+            transition: all 0.2s;
+        }
+        .history-item:hover { border-color: rgba(56, 189, 248, 0.15); }
+        .history-meta { font-size: 12px; color: #475569; margin-bottom: 6px; }
+        .history-product { color: #e2e8f0; font-weight: 600; font-size: 15px; }
+        .history-style {
+            display: inline-block;
+            background: rgba(51, 65, 85, 0.3);
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            color: #64748b;
+        }
+        .history-result {
+            margin-top: 8px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #64748b;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .history-tokens { font-size: 11px; color: #475569; }
+        .history-actions { display: flex; gap: 6px; align-items: center; }
+
+        .search-form { margin-bottom: 20px; }
+        .search-box { display: flex; align-items: center; gap: 8px; }
+        .search-box input { margin-bottom: 0; flex: 1; }
+
+        /* ===== Pagination ===== */
+        .pagination { display: flex; justify-content: center; gap: 4px; margin-top: 24px; flex-wrap: wrap; }
+        .pagination a, .pagination span {
+            padding: 7px 14px;
+            background: rgba(30, 41, 59, 0.3);
+            border-radius: 8px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 13px;
+            transition: all 0.15s;
+        }
+        .pagination a:hover { background: rgba(56,189,248,0.08); color: #38bdf8; }
+        .pagination .current { background: rgba(37, 99, 235, 0.15); color: #60a5fa; font-weight: 600; }
+
+        /* ===== Stats ===== */
+        .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px; }
+        .stat-card {
+            background: rgba(11, 15, 26, 0.35);
+            border: 1px solid rgba(51, 65, 85, 0.2);
+            border-radius: 12px;
+            padding: 16px 12px;
+            text-align: center;
+        }
+        .stat-card .stat-value { font-size: 24px; font-weight: 700; color: #f1f5f9; }
+        .stat-card .stat-label { font-size: 11px; color: #475569; margin-top: 4px; letter-spacing: 0.5px; }
+
+        /* ===== Badges ===== */
+        .premium-badge { display: inline-block; background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.2); color: #fbbf24; padding: 3px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .free-badge { display: inline-block; background: rgba(51, 65, 85, 0.3); color: #475569; padding: 3px 12px; border-radius: 20px; font-size: 11px; }
+
+        /* ===== Auth ===== */
+        .auth-link { text-align: center; margin-top: 24px; font-size: 13px; color: #475569; }
+        .auth-link a { color: #60a5fa; text-decoration: none; }
+        .auth-link a:hover { text-decoration: underline; }
+
+        /* ===== Toast ===== */
+        .toast {
+            position: fixed;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%) translateY(16px);
+            background: rgba(20, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            color: #e2e8f0;
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: 1px solid rgba(51, 65, 85, 0.3);
+            font-size: 13px;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 9999;
+            pointer-events: none;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        details summary { cursor: pointer; font-size: 13px; color: #475569; padding: 4px 0; }
+        details summary:hover { color: #64748b; }
+
+        /* ===== Divider ===== */
+        .divider { height: 1px; background: rgba(51, 65, 85, 0.2); margin: 24px 0; }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 600px) {
+            .navbar { padding: 0 16px; }
+            .navbar .nav-links { gap: 4px; }
+            .navbar .nav-links a { padding: 4px 10px; font-size: 12px; }
+            .card { padding: 24px 18px; border-radius: 14px; }
+            .form-row { flex-direction: column; gap: 0; }
+            .search-box { flex-wrap: wrap; }
+            .result-header { flex-direction: column; gap: 8px; align-items: flex-start; }
+            h1 { font-size: 20px; }
+            .stat-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        }
+        </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="page-fade-in">
+    {% if current_user.is_authenticated %}
+    <nav class="navbar">
+        <a href="{{ url_for('home') }}" class="brand">Inkflow</a>
+        <div class="nav-links">
+            <span class="token-badge">⚡ {{ user_token_remaining }}{% if not current_user.is_premium %}/月 · 今日 {{ daily_remaining }}/10{% endif %}</span>
+                        <a href="{{ url_for('home') }}">生成</a>
+            <a href="{{ url_for('history') }}">历史</a>
+            <a href="{{ url_for('favorites') }}">⭐ 收藏</a>
+            <a href="{{ url_for('profile') }}">个人</a>
+            <span class="user-info">{{ current_user.username }}</span>
+            <a href="{{ url_for('auth.logout') }}" style="color:rgba(239,68,68,0.7);">退出</a>
+        </div>
+    </nav>
+    {% endif %}
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-messages">
+        {% for category, message in messages %}
+        <div class="flash-msg {{ category }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+
+    <script>
+        document.querySelectorAll('.flash-msg').forEach(el => {
+            setTimeout(() => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(-6px)';
+                setTimeout(() => el.remove(), 250);
+            }, 4000);
+        });
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>
