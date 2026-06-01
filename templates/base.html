@@ -528,12 +528,13 @@
         /* 底部导航（仅移动端可见） */
         .bottom-nav { display: none; }
 
-        @media (max-width: 600px) {
-            /* 顶部导航精简 */
+                @media (max-width: 600px) {
+            /* 顶部导航精简：只留 Logo + 主题 */
+            .navbar { padding: 0 14px; height: 52px; }
             .navbar .nav-links { gap: 4px; }
-            .navbar .nav-links a { padding: 4px 10px; font-size: 12px; }
-            .navbar .token-badge { font-size: 10px; padding: 2px 8px; }
-            .navbar .user-info { display: inline; font-size: 12px; }
+            .navbar .token-badge { font-size: 9px; padding: 2px 7px; letter-spacing: 0; white-space: nowrap; max-width: 100px; overflow: hidden; text-overflow: ellipsis; }
+            .navbar .user-info { font-size: 11px; }
+            .navbar .nav-links a { display: none; }
 
             /* 品牌 Logo 紧凑、不歪斜 */
             .navbar .brand {
@@ -614,13 +615,13 @@
 
     {% if current_user.is_authenticated %}
         <nav class="navbar">
-        <a href="{{ url_for('home') }}" class="brand">Inkflow</a>
-        <div class="nav-links">
-            <span class="token-badge">⚡ {{ user_token_remaining }}{% if not current_user.is_premium %}/月 · 今日 {{ daily_remaining }}/10{% endif %}</span>
-            <span class="user-info">{{ current_user.username }}</span>
-            <button class="theme-toggle" id="themeToggle" title="切换主题">&#127769;</button>
-        </div>
-    </nav>
+            <a href="{{ url_for('home') }}" class="brand">Inkflow</a>
+            <div class="nav-links">
+                <span class="token-badge">⚡ {{ user_token_remaining }}{% if not current_user.is_premium %}/月 · 今日 {{ daily_remaining }}/10{% endif %}</span>
+                <span class="user-info" style="{% if request.endpoint != 'profile' %}display:none{% endif %}">{{ current_user.username }}</span>
+                <button class="theme-toggle" id="themeToggle" title="切换主题">&#127769;</button>
+            </div>
+        </nav>
     <!-- 底部导航（移动端） -->
     <nav class="bottom-nav">
         <a href="{{ url_for('home') }}" class="bottom-nav-item {% if request.endpoint == 'home' %}active{% endif %}" data-tab="home">
@@ -655,40 +656,42 @@
     {% block content %}{% endblock %}
 
                 <script>
-    // 品牌开场动画（仅首次进入）
+    // 品牌开场动画（仅首次进入，标记立即写入）
     (function() {
-        var done = sessionStorage.getItem('inkflow_splash_done');
-        if (done) {
-            document.getElementById('splashScreen').style.display = 'none';
-            document.body.classList.add('splash-done');
-            return;
-        }
-        document.body.classList.add('splash-active');
+                var KEY = 'inkflow_splash_played';
+                var done = sessionStorage.getItem(KEY);
+                var splash = document.getElementById('splashScreen');
+                if (done) {
+                    splash.style.display = 'none';
+                    document.body.classList.add('splash-done');
+                    return;
+                }
+                // ★ 首次进入：立即写入标记，防止用户快速切换页面导致重复播放
+                sessionStorage.setItem(KEY, '1');
+                document.body.classList.add('splash-active');
 
-        // 生成星点
-        var container = document.getElementById('splashStars');
-        for (var i = 0; i < 20; i++) {
-            var dot = document.createElement('div');
-            dot.className = 'splash-star';
-            dot.style.left = Math.random() * 100 + '%';
-            dot.style.top = Math.random() * 100 + '%';
-            dot.style.width = dot.style.height = (Math.random() * 2 + 1) + 'px';
-            dot.style.animationDelay = (Math.random() * 3) + 's';
-            dot.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
-            container.appendChild(dot);
-        }
+                // 生成星点
+                var container = document.getElementById('splashStars');
+                for (var i = 0; i < 20; i++) {
+                    var dot = document.createElement('div');
+                    dot.className = 'splash-star';
+                    dot.style.left = Math.random() * 100 + '%';
+                    dot.style.top = Math.random() * 100 + '%';
+                    dot.style.width = dot.style.height = (Math.random() * 2 + 1) + 'px';
+                    dot.style.animationDelay = (Math.random() * 3) + 's';
+                    dot.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+                    container.appendChild(dot);
+                }
 
-        // 2.4s 后淡出 splash，显示内容
-        setTimeout(function() {
-            var splash = document.getElementById('splashScreen');
-            splash.classList.add('hide');
-            document.body.classList.remove('splash-active');
-            document.body.classList.add('splash-done');
-            setTimeout(function() {
-                splash.style.display = 'none';
-                sessionStorage.setItem('inkflow_splash_done', '1');
-            }, 1000);
-        }, 2400);
+                // 2.4s 后淡出 splash，显示内容
+                setTimeout(function() {
+                    splash.classList.add('hide');
+                    document.body.classList.remove('splash-active');
+                    document.body.classList.add('splash-done');
+                    setTimeout(function() {
+                        splash.style.display = 'none';
+                    }, 1000);
+                }, 2400);
     })();
 
     // 主题切换
