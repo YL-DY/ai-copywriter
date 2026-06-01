@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Inkflow - 小红书文案助手{% endblock %}</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Caveat:wght@700&display=swap');
+
         /* ===== 主题变量 ===== */
         :root {
             --bg-gradient: linear-gradient(160deg, #0b0f1a 0%, #14172a 40%, #0f172a 70%, #0a0f1f 100%);
@@ -75,9 +77,8 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            transition: background 0.4s ease, border-color 0.4s ease;
+                        transition: background 0.4s ease, border-color 0.4s ease;
         }
-                @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Caveat:wght@700&display=swap');
         .navbar .brand {
             font-size: 26px;
             font-weight: 700;
@@ -117,9 +118,19 @@
             white-space: nowrap;
         }
         .navbar .user-info { color: var(--text-subtle); font-size: 13px; display: none; }
+        .navbar .user-info.user-visible { display: inline-block; }
 
-        /* 主题切换按钮 */
-        
+                .theme-toggle {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 6px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+            line-height: 1;
+        }
         .theme-toggle:hover {
             border-color: #38bdf8;
             color: #38bdf8;
@@ -515,12 +526,6 @@
         details summary { cursor: pointer; font-size: 13px; color: var(--text-subtle); padding: 4px 0; }
                 details summary:hover { color: var(--text-muted); }
 
-        .theme-toggle {
-            background: transparent; border: 1px solid var(--border-color); color: var(--text-muted);
-            padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 16px; transition: all 0.2s; line-height: 1;
-        }
-        .theme-toggle:hover { border-color: #38bdf8; color: #38bdf8; }
-
         /* ===== Divider ===== */
         .divider { height: 1px; background: var(--border-color); margin: 24px 0; transition: background 0.3s ease; }
 
@@ -618,13 +623,13 @@
             <a href="{{ url_for('home') }}" class="brand">Inkflow</a>
             <div class="nav-links">
                 <span class="token-badge">⚡ {{ user_token_remaining }}{% if not current_user.is_premium %}/月 · 今日 {{ daily_remaining }}/10{% endif %}</span>
-                <span class="user-info" style="{% if request.endpoint != 'profile' %}display:none{% endif %}">{{ current_user.username }}</span>
+                                <span class="user-info{% if request.endpoint == 'profile' %} user-visible{% endif %}">{{ current_user.username }}</span>
                 <button class="theme-toggle" id="themeToggle" title="切换主题">&#127769;</button>
             </div>
         </nav>
     <!-- 底部导航（移动端） -->
     <nav class="bottom-nav">
-        <a href="{{ url_for('home') }}" class="bottom-nav-item {% if request.endpoint == 'home' %}active{% endif %}" data-tab="home">
+        <a href="javascript:void(0)" class="bottom-nav-item {% if request.endpoint == 'home' %}active{% endif %}" data-tab="home" id="bottomTabHome">
             <span class="bottom-nav-icon">&#9998;</span>
             <span class="bottom-nav-label">生成</span>
         </a>
@@ -724,7 +729,7 @@
             }
             var btn = document.getElementById('themeToggle');
             if (btn) {
-                btn.textContent = (theme === 'light') ? '\u2600\ufe0f' : '\U0001f319';
+                btn.textContent = (theme === 'light') ? '\u2600\ufe0f' : '\ud83c\udf19';
             }
             localStorage.setItem(key, theme);
         }
@@ -740,13 +745,43 @@
         }
     })();
 
-    document.querySelectorAll('.flash-msg').forEach(function(el) {
+        document.querySelectorAll('.flash-msg').forEach(function(el) {
         setTimeout(function() {
             el.style.opacity = '0';
             el.style.transform = 'translateY(-6px)';
             setTimeout(function() { el.remove(); }, 250);
         }, 4000);
     });
+
+        // 底部「生成」tab：同页切换，不触发页面重载
+    (function() {
+        var tab = document.getElementById('bottomTabHome');
+        if (!tab) return;
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            var heroPage = document.getElementById('heroPage');
+            var genPage = document.getElementById('generatePage');
+            // 如果 hero 可见 -> 切换到生成页
+            if (heroPage && heroPage.style.display !== 'none' && heroPage.style.display !== '') {
+                heroPage.style.display = 'none';
+                if (genPage) genPage.style.display = 'block';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            // 更新底部导航 active 状态
+            var items = document.querySelectorAll('.bottom-nav-item');
+            items.forEach(function(item) { item.classList.remove('active'); });
+            tab.classList.add('active');
+        });
+        // 页面加载时：如果是从其他页面路由回首页，底部导航的 active 状态由服务端渲染
+        // 但如果是通过 JS 切换的，active 可能不对，这里初始化一下
+        var heroPage = document.getElementById('heroPage');
+        if (heroPage && heroPage.style.display === 'none') {
+            // 生成页可见，确保 active
+            var items = document.querySelectorAll('.bottom-nav-item');
+            items.forEach(function(item) { item.classList.remove('active'); });
+            tab.classList.add('active');
+        }
+    })();
     </script>
     {% block scripts %}{% endblock %}
 </body>
