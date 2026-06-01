@@ -761,12 +761,14 @@
             e.preventDefault();
             var heroPage = document.getElementById('heroPage');
             var genPage = document.getElementById('generatePage');
-            // 如果 hero 可见 -> 切换到生成页
-            if (heroPage && heroPage.style.display !== 'none' && heroPage.style.display !== '') {
+            // 直接切换到生成页，避免 hero 的 inline style 为空时判断失效
+            if (heroPage) {
                 heroPage.style.display = 'none';
-                if (genPage) genPage.style.display = 'block';
-                window.scrollTo({ top: 0, behavior: 'smooth' });
             }
+            if (genPage) {
+                genPage.style.display = 'block';
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             // 更新底部导航 active 状态
             var items = document.querySelectorAll('.bottom-nav-item');
             items.forEach(function(item) { item.classList.remove('active'); });
