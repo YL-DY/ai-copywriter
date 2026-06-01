@@ -77,12 +77,12 @@
             z-index: 100;
             transition: background 0.4s ease, border-color 0.4s ease;
         }
-        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Caveat:wght@700&display=swap');
+                @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Caveat:wght@700&display=swap');
         .navbar .brand {
-            font-size: 30px;
+            font-size: 26px;
             font-weight: 700;
             text-decoration: none;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             background: linear-gradient(135deg, #38bdf8 0%, #a78bfa 50%, #f472b6 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -90,13 +90,13 @@
             font-family: "Dancing Script", "Caveat", cursive;
             text-shadow: 0 0 30px rgba(56, 189, 248, 0.15);
             transition: all 0.4s;
-            transform: rotate(-1deg);
+            transform: rotate(-0.5deg);
         }
         .navbar .brand:hover {
-            transform: rotate(0deg) scale(1.03);
+            transform: rotate(0deg) scale(1.02);
             text-shadow: 0 0 50px rgba(56, 189, 248, 0.25);
         }
-        .navbar .nav-links { display: flex; gap: 6px; align-items: center; }
+        .navbar .nav-links { display: flex; gap: 8px; align-items: center; }
         .navbar .nav-links a {
             color: var(--text-muted);
             text-decoration: none;
@@ -108,14 +108,15 @@
         }
         .navbar .nav-links a:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
         .navbar .token-badge {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-subtle);
-            padding: 4px 12px;
+            padding: 3px 10px;
             border-radius: 6px;
             background: rgba(255,255,255,0.03);
             border: 1px solid var(--border-color);
+            white-space: nowrap;
         }
-        .navbar .user-info { color: var(--text-subtle); font-size: 13px; margin-left: 4px; }
+        .navbar .user-info { color: var(--text-subtle); font-size: 13px; display: none; }
 
         /* 主题切换按钮 */
         
@@ -523,11 +524,72 @@
         /* ===== Divider ===== */
         .divider { height: 1px; background: var(--border-color); margin: 24px 0; transition: background 0.3s ease; }
 
-        /* ===== Responsive ===== */
+                /* ===== Responsive ===== */
+        /* 底部导航（仅移动端可见） */
+        .bottom-nav { display: none; }
+
         @media (max-width: 600px) {
-            .navbar { padding: 0 16px; }
+            /* 顶部导航精简 */
             .navbar .nav-links { gap: 4px; }
             .navbar .nav-links a { padding: 4px 10px; font-size: 12px; }
+            .navbar .token-badge { font-size: 10px; padding: 2px 8px; }
+            .navbar .user-info { display: inline; font-size: 12px; }
+
+            /* 品牌 Logo 紧凑、不歪斜 */
+            .navbar .brand {
+                font-size: 22px;
+                letter-spacing: 0;
+                transform: rotate(0deg);
+            }
+
+            /* 内容区留出底部导航空间 */
+            body { padding-bottom: 64px; }
+
+            /* 底部导航 */
+            .bottom-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0; left: 0; right: 0;
+                height: 56px;
+                background: rgba(11, 15, 26, 0.92);
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
+                border-top: 1px solid rgba(51, 65, 85, 0.2);
+                z-index: 200;
+                justify-content: space-around;
+                align-items: center;
+                padding: 0 8px;
+            }
+            .bottom-nav-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 2px;
+                text-decoration: none;
+                color: var(--text-muted);
+                padding: 4px 12px;
+                border-radius: 10px;
+                transition: all 0.15s;
+                min-width: 56px;
+            }
+            .bottom-nav-item.active {
+                color: #38bdf8;
+            }
+            .bottom-nav-item.active .bottom-nav-icon {
+                transform: scale(1.05);
+            }
+            .bottom-nav-icon {
+                font-size: 20px;
+                line-height: 1;
+                transition: transform 0.15s;
+            }
+            .bottom-nav-label {
+                font-size: 10px;
+                font-weight: 500;
+                letter-spacing: 0.3px;
+            }
+
             .card { padding: 24px 18px; border-radius: 14px; }
             .form-row { flex-direction: column; gap: 0; }
             .search-box { flex-wrap: wrap; }
@@ -551,19 +613,32 @@
     </div>
 
     {% if current_user.is_authenticated %}
-    <nav class="navbar">
+        <nav class="navbar">
         <a href="{{ url_for('home') }}" class="brand">Inkflow</a>
         <div class="nav-links">
             <span class="token-badge">⚡ {{ user_token_remaining }}{% if not current_user.is_premium %}/月 · 今日 {{ daily_remaining }}/10{% endif %}</span>
-                        <a href="{{ url_for('home') }}">生成</a>
-                        <a href="{{ url_for('history') }}">历史</a>
-                        <a href="{{ url_for('favorites') }}">⭐ 收藏</a>
-                        <a href="{{ url_for('settings') }}">⚙️ 设置</a>
-                        <a href="{{ url_for('profile') }}">个人</a>
             <span class="user-info">{{ current_user.username }}</span>
             <button class="theme-toggle" id="themeToggle" title="切换主题">&#127769;</button>
-            <a href="{{ url_for('auth.logout') }}" style="color:rgba(239,68,68,0.7);">退出</a>
         </div>
+    </nav>
+    <!-- 底部导航（移动端） -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('home') }}" class="bottom-nav-item {% if request.endpoint == 'home' %}active{% endif %}" data-tab="home">
+            <span class="bottom-nav-icon">&#9998;</span>
+            <span class="bottom-nav-label">生成</span>
+        </a>
+        <a href="{{ url_for('history') }}" class="bottom-nav-item {% if request.endpoint == 'history' %}active{% endif %}" data-tab="history">
+            <span class="bottom-nav-icon">&#128196;</span>
+            <span class="bottom-nav-label">历史</span>
+        </a>
+        <a href="{{ url_for('favorites') }}" class="bottom-nav-item {% if request.endpoint == 'favorites' %}active{% endif %}" data-tab="favorites">
+            <span class="bottom-nav-icon">&#11088;</span>
+            <span class="bottom-nav-label">收藏</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="bottom-nav-item {% if request.endpoint == 'profile' %}active{% endif %}" data-tab="profile">
+            <span class="bottom-nav-icon">&#128100;</span>
+            <span class="bottom-nav-label">个人</span>
+        </a>
     </nav>
     {% endif %}
 

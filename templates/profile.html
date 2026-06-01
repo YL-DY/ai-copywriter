@@ -70,12 +70,18 @@
             </div>
         </div>
 
-        <!-- 快捷入口 -->
+                <!-- 快捷入口 -->
         <div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap;">
-                        <a href="{{ url_for('home') }}" class="btn btn-primary" style="flex:1;text-decoration:none;justify-content:center;">✨ 生成文案</a>
+            <a href="{{ url_for('home') }}" class="btn btn-primary" style="flex:1;text-decoration:none;justify-content:center;">✏️ 生成文案</a>
             <a href="{{ url_for('history') }}" class="btn btn-success" style="flex:1;text-decoration:none;justify-content:center;">📋 历史记录</a>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
             <a href="{{ url_for('favorites') }}" class="btn btn-outline" style="flex:1;text-decoration:none;justify-content:center;">⭐ 收藏</a>
             <a href="{{ url_for('settings') }}" class="btn btn-outline" style="flex:1;text-decoration:none;justify-content:center;">⚙️ 设置</a>
+        </div>
+        <div class="divider"></div>
+        <div style="text-align:center;">
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-danger" style="display:inline-flex;align-items:center;gap:6px;padding:10px 28px;text-decoration:none;">🚪 退出登录</a>
         </div>
     </div>
 </div>
