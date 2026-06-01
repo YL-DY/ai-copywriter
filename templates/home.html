@@ -826,10 +826,28 @@ var form = document.getElementById('generateForm');
 var button = document.getElementById('generateBtn');
 var loading = document.getElementById('loadingOverlay');
 
-form.addEventListener('submit', function() {
+form.addEventListener('submit', function(e) {
+    e.preventDefault();
     loading.style.display = 'block';
     button.innerText = '灵笔正在创作�?..';
     button.disabled = true;
+
+    var formData = new FormData(form);
+    fetch(window.location.pathname, {
+        method: 'POST',
+        body: formData,
+        credentials: 'same-origin'
+    })
+    .then(function(response) { return response.text(); })
+    .then(function(html) {
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(html, 'text/html');
+        document.body.innerHTML = doc.body.innerHTML;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    })
+    .catch(function() {
+        form.submit();
+    });
 });
 
 function copyText() {
@@ -1119,5 +1137,7 @@ function showToast(msg) {
 })();
 </script>
 {% endblock %}
+
+
 
 

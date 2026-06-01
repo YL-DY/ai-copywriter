@@ -70,6 +70,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 16px;
             border-bottom: 1px solid var(--border-color);
             background: var(--bg-soft);
             backdrop-filter: blur(16px);
@@ -97,7 +98,14 @@
             transform: rotate(0deg) scale(1.02);
             text-shadow: 0 0 50px rgba(56, 189, 248, 0.25);
         }
-        .navbar .nav-links { display: flex; gap: 8px; align-items: center; }
+        .navbar .nav-links {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            justify-content: flex-end;
+            margin-left: auto;
+            flex-wrap: wrap;
+        }
         .navbar .nav-links a {
             color: var(--text-muted);
             text-decoration: none;
@@ -116,8 +124,9 @@
             background: rgba(255,255,255,0.03);
             border: 1px solid var(--border-color);
             white-space: nowrap;
+            max-width: 100%;
         }
-        .navbar .user-info { color: var(--text-subtle); font-size: 13px; display: none; }
+        .navbar .user-info { color: var(--text-subtle); font-size: 13px; display: inline-block; }
         .navbar .user-info.user-visible { display: inline-block; }
 
                 .theme-toggle {
@@ -136,7 +145,7 @@
             color: #38bdf8;
         }
 
-        /* ===== Splash 品牌开场动画 ===== */
+        /* ===== Splash 品牌开场动�?===== */
         #splashScreen {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -244,7 +253,7 @@
             0%, 100% { opacity: 0; transform: scale(0.3); }
             50% { opacity: 0.6; transform: scale(1); }
         }
-        /* body 在 splash 隐藏前不显示内容 */
+        /* body �?splash 隐藏前不显示内容 */
         body.splash-active #heroPage,
         body.splash-active .navbar,
         body.splash-active .flash-messages,
@@ -534,9 +543,9 @@
         .bottom-nav { display: none; }
 
                 @media (max-width: 600px) {
-            /* 顶部导航精简：只留 Logo + 主题 */
-            .navbar { padding: 0 14px; height: 52px; }
-            .navbar .nav-links { gap: 4px; }
+            /* 顶部导航精简：只�?Logo + 主题 */
+            .navbar { padding: 0 14px; height: 52px; gap: 8px; }
+            .navbar .nav-links { gap: 4px; flex-wrap: nowrap; }
             .navbar .token-badge { font-size: 9px; padding: 2px 7px; letter-spacing: 0; white-space: nowrap; max-width: 100px; overflow: hidden; text-overflow: ellipsis; }
             .navbar .user-info { font-size: 11px; }
             .navbar .nav-links a { display: none; }
@@ -548,7 +557,7 @@
                 transform: rotate(0deg);
             }
 
-            /* 内容区留出底部导航空间 */
+            /* 内容区留出底部导航空�?*/
             body { padding-bottom: 64px; }
 
             /* 底部导航 */
@@ -603,17 +612,27 @@
             h1 { font-size: 20px; }
             .stat-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
         }
-        </style>
+
+        @media (min-width: 601px) and (max-width: 980px) {
+            .navbar { padding: 0 18px; gap: 10px; }
+            .navbar .nav-links { gap: 6px; flex-wrap: nowrap; min-width: 0; }
+            .navbar .token-badge {
+                max-width: 160px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .navbar .user-info { display: none; }
+        }        </style>
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <!-- Splash 品牌开场 -->
+    <!-- Splash 品牌开�?-->
     <div id="splashScreen">
         <div class="splash-glow"></div>
         <div class="splash-stars" id="splashStars"></div>
         <div class="splash-content">
             <div class="splash-brand">InkFlow</div>
-            <span class="splash-sub">灵 笔</span>
+            <span class="splash-sub">�?�?/span>
             <div class="splash-line"></div>
         </div>
     </div>
@@ -622,12 +641,12 @@
         <nav class="navbar">
             <a href="{{ url_for('home') }}" class="brand">Inkflow</a>
             <div class="nav-links">
-                <span class="token-badge">⚡ {{ user_token_remaining }}{% if not current_user.is_premium %}/月 · 今日 {{ daily_remaining }}/10{% endif %}</span>
+                <span class="token-badge">�?{{ user_token_remaining }}{% if not current_user.is_premium %}/�?· 今日 {{ daily_remaining }}/10{% endif %}</span>
                                 <span class="user-info{% if request.endpoint == 'profile' %} user-visible{% endif %}">{{ current_user.username }}</span>
                 <button class="theme-toggle" id="themeToggle" title="切换主题">&#127769;</button>
             </div>
         </nav>
-    <!-- 底部导航（移动端） -->
+    <!-- 底部导航（移动端�?-->
     <nav class="bottom-nav">
         <a href="javascript:void(0)" class="bottom-nav-item {% if request.endpoint == 'home' %}active{% endif %}" data-tab="home" id="bottomTabHome">
             <span class="bottom-nav-icon">&#9998;</span>
@@ -661,7 +680,7 @@
     {% block content %}{% endblock %}
 
                 <script>
-    // 品牌开场动画（仅首次进入，标记立即写入）
+    // 品牌开场动画（仅首次进入，标记立即写入�?
     (function() {
                 var KEY = 'inkflow_splash_played';
                 var done = sessionStorage.getItem(KEY);
@@ -688,7 +707,7 @@
                     container.appendChild(dot);
                 }
 
-                // 2.4s 后淡出 splash，显示内容
+                // 2.4s 后淡�?splash，显示内�?
                 setTimeout(function() {
                     splash.classList.add('hide');
                     document.body.classList.remove('splash-active');
@@ -699,13 +718,13 @@
                 }, 2400);
     })();
 
-    // 移动端：键盘弹出时隐藏底部导航
+    // 移动端：键盘弹出时隐藏底部导�?
     (function() {
                 if (window.visualViewport) {
                     var bottomNav = document.querySelector('.bottom-nav');
                     if (!bottomNav) return;
                     window.visualViewport.addEventListener('resize', function() {
-                        // 键盘弹出时 visualViewport 高度会缩小，且底部被键盘撑起
+                        // 键盘弹出�?visualViewport 高度会缩小，且底部被键盘撑起
                         var diff = window.innerHeight - window.visualViewport.height;
                         if (diff > 100) {
                             bottomNav.style.display = 'none';
@@ -753,7 +772,7 @@
         }, 4000);
     });
 
-        // 底部「生成」tab：同页切换，不触发页面重载
+        // 底部「生成」tab：同页切换，不触发页面重�?
     (function() {
         var tab = document.getElementById('bottomTabHome');
         if (!tab) return;
@@ -767,13 +786,13 @@
                 if (genPage) genPage.style.display = 'block';
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
-            // 更新底部导航 active 状态
+            // 更新底部导航 active 状�?
             var items = document.querySelectorAll('.bottom-nav-item');
             items.forEach(function(item) { item.classList.remove('active'); });
             tab.classList.add('active');
         });
-        // 页面加载时：如果是从其他页面路由回首页，底部导航的 active 状态由服务端渲染
-        // 但如果是通过 JS 切换的，active 可能不对，这里初始化一下
+        // 页面加载时：如果是从其他页面路由回首页，底部导航�?active 状态由服务端渲�?
+        // 但如果是通过 JS 切换的，active 可能不对，这里初始化一�?
         var heroPage = document.getElementById('heroPage');
         if (heroPage && heroPage.style.display === 'none') {
             // 生成页可见，确保 active
@@ -786,3 +805,4 @@
     {% block scripts %}{% endblock %}
 </body>
 </html>
+
