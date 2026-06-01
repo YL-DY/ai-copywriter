@@ -43,53 +43,40 @@ _db_initialized = False
 def ensure_db():
     global _db_initialized
     if not _db_initialized:
-        import sqlite3
-        db_path = "instance/xiaohongshu.db"
         os.makedirs("instance", exist_ok=True)
         db.create_all()
-        # 检查表是否存在
-        try:
-            conn = sqlite3.connect(db_path)
-            cursor = conn.cursor()
-            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='users'")
-            table_exists = cursor.fetchone() is not None
-            conn.close()
-            if not table_exists:
-                # 表不存在，完全重建
-                db.create_all()
-        except Exception:
-            db.create_all()
+        # 检查并补充缺失列（仅首次）
         try:
             from sqlalchemy import inspect, text as _text
             ins = inspect(db.engine)
             columns = [c["name"] for c in ins.get_columns("users")]
-            if "daily_count" not in columns:
-                db.session.execute(_text("ALTER TABLE users ADD COLUMN daily_count INTEGER DEFAULT 0"))
-            if "daily_date" not in columns:
-                db.session.execute(_text("ALTER TABLE users ADD COLUMN daily_date VARCHAR(10) DEFAULT ''"))
-            db.session.commit()
+            with db.session.begin():
+                if "daily_count" not in columns:
+                    db.session.execute(_text("ALTER TABLE users ADD COLUMN daily_count INTEGER DEFAULT 0"))
+                if "daily_date" not in columns:
+                    db.session.execute(_text("ALTER TABLE users ADD COLUMN daily_date VARCHAR(10) DEFAULT ''"))
         except Exception:
             db.session.rollback()
         try:
             from sqlalchemy import inspect as _inspect2
             ins2 = _inspect2(db.engine)
             h_cols = [c["name"] for c in ins2.get_columns("histories")]
-            if "is_favorited" not in h_cols:
-                db.session.execute(_text("ALTER TABLE histories ADD COLUMN is_favorited BOOLEAN DEFAULT 0"))
-            if "share_token" not in h_cols:
-                db.session.execute(_text("ALTER TABLE histories ADD COLUMN share_token VARCHAR(64) DEFAULT ''"))
-            db.session.commit()
+            with db.session.begin():
+                if "is_favorited" not in h_cols:
+                    db.session.execute(_text("ALTER TABLE histories ADD COLUMN is_favorited BOOLEAN DEFAULT 0"))
+                if "share_token" not in h_cols:
+                    db.session.execute(_text("ALTER TABLE histories ADD COLUMN share_token VARCHAR(64) DEFAULT ''"))
         except Exception:
             db.session.rollback()
         try:
             from sqlalchemy import inspect as _inspect3
             ins3 = _inspect3(db.engine)
             u_cols = [c["name"] for c in ins3.get_columns("users")]
-            if "api_key" not in u_cols:
-                db.session.execute(_text("ALTER TABLE users ADD COLUMN api_key VARCHAR(200) DEFAULT ''"))
-            if "backup_api_key" not in u_cols:
-                db.session.execute(_text("ALTER TABLE users ADD COLUMN backup_api_key VARCHAR(200) DEFAULT ''"))
-            db.session.commit()
+            with db.session.begin():
+                if "api_key" not in u_cols:
+                    db.session.execute(_text("ALTER TABLE users ADD COLUMN api_key VARCHAR(200) DEFAULT ''"))
+                if "backup_api_key" not in u_cols:
+                    db.session.execute(_text("ALTER TABLE users ADD COLUMN backup_api_key VARCHAR(200) DEFAULT ''"))
         except Exception:
             db.session.rollback()
         _db_initialized = True

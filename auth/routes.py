@@ -1,12 +1,17 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
 from models import db, User
+import re
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
+    # 已登录用户直接跳转到首页
+    if current_user.is_authenticated:
+        return redirect(url_for("home"))
+
     if request.method == "POST":
         username = request.form["username"].strip()
         email = request.form["email"].strip()
@@ -14,6 +19,12 @@ def register():
 
         if not username or not email or not password:
             flash("请填写所有字段", "error")
+            return render_template("auth/register.html")
+
+        # 后端邮箱格式校验
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, email):
+            flash("邮箱格式不正确", "error")
             return render_template("auth/register.html")
 
         if User.query.filter_by(username=username).first():
@@ -41,6 +52,10 @@ def register():
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
+    # 已登录用户直接跳转到首页
+    if current_user.is_authenticated:
+        return redirect(url_for("home"))
+
     if request.method == "POST":
         username = request.form["username"].strip()
         password = request.form["password"]

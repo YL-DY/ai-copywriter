@@ -724,6 +724,74 @@ function animateParticles() {
 }
 animateParticles();
 
+// 自定义选择器（函数声明会被 hoist，但放在前面更清晰）
+function initCustomSelects() {
+    var containers = document.querySelectorAll('.custom-select');
+    if (containers.length === 0) return;
+    containers.forEach(function(container) {
+        var trigger = container.querySelector('.custom-select-trigger');
+        var panel = container.querySelector('.custom-select-panel');
+        var backdrop = container.querySelector('.custom-select-backdrop');
+        var hiddenSelect = container.querySelector('select');
+        var options = container.querySelectorAll('.custom-select-option');
+
+        if (!trigger || !panel || !hiddenSelect) return;
+
+        // 设置 trigger 初始文本
+        var selectedOpt = container.querySelector('.custom-select-option.selected');
+        if (selectedOpt) {
+            trigger.textContent = selectedOpt.textContent.trim();
+        } else {
+            for (var oi = 0; oi < options.length; oi++) {
+                if (options[oi].getAttribute('data-value') === hiddenSelect.value) {
+                    trigger.textContent = options[oi].textContent.trim();
+                    break;
+                }
+            }
+        }
+
+        trigger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (container.classList.contains('open')) {
+                container.classList.remove('open');
+            } else {
+                containers.forEach(function(c) { c.classList.remove('open'); });
+                container.classList.add('open');
+            }
+        });
+
+        options.forEach(function(opt) {
+            opt.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var value = opt.getAttribute('data-value');
+                var label = opt.textContent.trim();
+                options.forEach(function(o) { o.classList.remove('selected'); });
+                opt.classList.add('selected');
+                trigger.textContent = label;
+                if (hiddenSelect) {
+                    hiddenSelect.value = value;
+                    var evt = new Event('change', { bubbles: true });
+                    hiddenSelect.dispatchEvent(evt);
+                }
+                container.classList.remove('open');
+            });
+        });
+
+        if (backdrop) {
+            backdrop.addEventListener('click', function() {
+                container.classList.remove('open');
+            });
+        }
+    });
+    document.addEventListener('click', function(e) {
+        containers.forEach(function(c) {
+            if (!c.contains(e.target)) {
+                c.classList.remove('open');
+            }
+        });
+    });
+}
+
 // 页面加载时：如果有结果，直接显示生成页
 window.addEventListener('DOMContentLoaded', function() {
     var hasResult = document.querySelector('.result-box');
@@ -823,16 +891,13 @@ function showToast(msg) {
             var titleEl = document.querySelector('.result-card-title');
             var bodyEl = document.getElementById('resultBox');
 
-            // 收集完整文本
             var fullText = '';
             if (titleEl) fullText += titleEl.textContent.trim() + '\n\n';
             fullText += bodyEl.innerText;
 
-            // 从 select 读取风格，而非从 DOM 文本解析
             var styleSelect = document.getElementById('styleSelect');
             var style = styleSelect ? styleSelect.value : '爆款风';
 
-            // 禁用所有按钮
             rewriteBtns.forEach(function(b) {
                 b.disabled = true;
                 b.textContent = '...';
@@ -849,15 +914,12 @@ function showToast(msg) {
                     showToast('❌ ' + (data.error || '改写失败'));
                     return;
                 }
-                // 更新标题
                 if (data.title && titleEl) {
                     titleEl.textContent = (data.emoji || '') + ' ' + data.title;
                 }
-                // 更新正文
                 if (data.content) {
                     bodyEl.textContent = data.content;
                 }
-                // 更新标签
                 if (data.tags && data.tags.length > 0) {
                     var tagContainer = document.querySelector('.result-card-tags-section');
                     if (tagContainer) {
@@ -882,7 +944,6 @@ function showToast(msg) {
         });
     });
 
-    // 首页收藏按钮异步切换
     document.querySelectorAll('.fav-form').forEach(function(form) {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -907,7 +968,6 @@ function showToast(msg) {
         });
     });
 
-    // ===== AI 分析建议 =====
     var analyzeBtn = document.getElementById('analyzeBtn');
     var analyzeResult = document.getElementById('analyzeResult');
     var analyzing = false;
@@ -916,7 +976,6 @@ function showToast(msg) {
         analyzeBtn.addEventListener('click', function() {
             if (analyzing) return;
 
-            // 收集文案
             var titleEl = document.querySelector('.result-card-title');
             var bodyEl = document.getElementById('resultBox');
             var fullText = '';
@@ -945,7 +1004,6 @@ function showToast(msg) {
                     showToast('❌ ' + (data.error || '分析失败'));
                     return;
                 }
-                // 渲染评分条
                 var scoreContainer = document.getElementById('scoreBars');
                 scoreContainer.innerHTML = '';
                 var labels = { title: '标题', structure: '结构', language: '语言', emoji: 'emoji', engagement: '互动', overall: '总分' };
@@ -961,7 +1019,6 @@ function showToast(msg) {
                     scoreContainer.appendChild(bar);
                 });
 
-                // 渲染文本
                 document.getElementById('strengthsList').innerHTML = (data.strengths || []).map(function(s) {
                     return '<div style="margin-bottom:2px;">✅ ' + s + '</div>';
                 }).join('');
@@ -999,13 +1056,10 @@ function showToast(msg) {
             custom_prompt: form.querySelector('[name="custom_prompt"]')
         };
 
-        // 恢复草稿（仅当无预填数据时恢复）
         function restoreDraft() {
-            // 如果服务端有预填数据（reuse_product等），不恢复草稿
             var hasPrefill = false;
             if (fields.product && fields.product.value.trim()) hasPrefill = true;
             if (hasPrefill) return;
-
             try {
                 var saved = localStorage.getItem(STORAGE_KEY);
                 if (!saved) return;
@@ -1014,7 +1068,8 @@ function showToast(msg) {
                 if (fields.style && data.style) fields.style.value = data.style;
                 if (fields.word_count && data.word_count) fields.word_count.value = data.word_count;
                 if (fields.custom_prompt && data.custom_prompt) fields.custom_prompt.value = data.custom_prompt;
-                // 如果恢复了内容，自动展开生成页面
+                // 恢复后同步自定义选择器的显示文本
+                initCustomSelects();
                 if (data.product && data.product.trim()) {
                     var heroPage = document.getElementById('heroPage');
                     var genPage = document.getElementById('generatePage');
@@ -1026,26 +1081,19 @@ function showToast(msg) {
             } catch(e) {}
         }
 
-        // 保存草稿
         function saveDraft() {
             var data = {};
             if (fields.product) data.product = fields.product.value;
             if (fields.style) data.style = fields.style.value;
             if (fields.word_count) data.word_count = fields.word_count.value;
             if (fields.custom_prompt) data.custom_prompt = fields.custom_prompt.value;
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-            } catch(e) {}
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
         }
 
-        // 清空草稿（提交成功后）
         function clearDraft() {
-            try {
-                localStorage.removeItem(STORAGE_KEY);
-            } catch(e) {}
+            try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
         }
 
-        // 自动保存：输入变化时保存
         var saveTimer = null;
         Object.values(fields).forEach(function(el) {
             if (!el) return;
@@ -1059,86 +1107,12 @@ function showToast(msg) {
             });
         });
 
-        // 提交成功后清空草稿
-        // 检测页面是否有结果（说明刚生成成功）
         var hasResult = document.querySelector('.result-card');
         if (hasResult) {
             clearDraft();
         }
-
-        // 恢复草稿
         restoreDraft();
     })();
-// ===== 自定义选择器 =====
-function initCustomSelects() {
-    var containers = document.querySelectorAll('.custom-select');
-    containers.forEach(function(container) {
-        var trigger = container.querySelector('.custom-select-trigger');
-        var panel = container.querySelector('.custom-select-panel');
-        var backdrop = container.querySelector('.custom-select-backdrop');
-        var hiddenSelect = container.querySelector('select');
-        var options = container.querySelectorAll('.custom-select-option');
-
-        // 设置 trigger 初始文本
-        var selectedOpt = container.querySelector('.custom-select-option.selected');
-        if (selectedOpt) {
-            trigger.textContent = selectedOpt.textContent.trim();
-        }
-
-        function openPanel() {
-            container.classList.add('open');
-        }
-        function closePanel() {
-            container.classList.remove('open');
-        }
-
-        trigger.addEventListener('click', function(e) {
-            e.stopPropagation();
-            if (container.classList.contains('open')) {
-                closePanel();
-            } else {
-                // 关闭其他面板
-                containers.forEach(function(c) {
-                    if (c !== container) c.classList.remove('open');
-                });
-                openPanel();
-            }
-        });
-
-        options.forEach(function(opt) {
-            opt.addEventListener('click', function(e) {
-                e.stopPropagation();
-                var value = opt.getAttribute('data-value');
-                var label = opt.textContent.trim();
-                // 更新界面
-                options.forEach(function(o) { o.classList.remove('selected'); });
-                opt.classList.add('selected');
-                trigger.textContent = label;
-                // 更新隐藏 select
-                if (hiddenSelect) {
-                    hiddenSelect.value = value;
-                    // 触发 change 事件供其他逻辑监听
-                    var evt = document.createEvent('HTMLEvents');
-                    evt.initEvent('change', true, false);
-                    hiddenSelect.dispatchEvent(evt);
-                }
-                closePanel();
-            });
-        });
-
-        // 点击外部关闭
-        if (backdrop) {
-            backdrop.addEventListener('click', function() {
-                closePanel();
-            });
-        }
-        document.addEventListener('click', function(e) {
-            if (!container.contains(e.target)) {
-                closePanel();
-            }
-        });
-    });
-}
 })();
 </script>
 {% endblock %}

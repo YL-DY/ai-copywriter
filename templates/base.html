@@ -666,7 +666,7 @@
                     document.body.classList.add('splash-done');
                     return;
                 }
-                // ★ 首次进入：立即写入标记，防止用户快速切换页面导致重复播放
+                // 立即写入标记
                 sessionStorage.setItem(KEY, '1');
                 document.body.classList.add('splash-active');
 
@@ -692,6 +692,23 @@
                         splash.style.display = 'none';
                     }, 1000);
                 }, 2400);
+    })();
+
+    // 移动端：键盘弹出时隐藏底部导航
+    (function() {
+                if (window.visualViewport) {
+                    var bottomNav = document.querySelector('.bottom-nav');
+                    if (!bottomNav) return;
+                    window.visualViewport.addEventListener('resize', function() {
+                        // 键盘弹出时 visualViewport 高度会缩小，且底部被键盘撑起
+                        var diff = window.innerHeight - window.visualViewport.height;
+                        if (diff > 100) {
+                            bottomNav.style.display = 'none';
+                        } else {
+                            bottomNav.style.display = 'flex';
+                        }
+                    });
+                }
     })();
 
     // 主题切换
