@@ -3,7 +3,7 @@
 {% block title %}InkFlow - AI 驱动的营销文案创作平台{% endblock %}
 {% block extra_head %}
 <style>
-/* ===== Hero 品牌首屏（仪式感动画） ===== */
+/* ===== Hero 品牌首屏（仪式感动画�?===== */
 .hero {
     min-height: calc(100vh - 64px);
     display: flex;
@@ -52,7 +52,7 @@
     z-index: 1;
 }
 
-/* ——— 品牌字 InkFlow —— 持续呼吸光泽 ——— */
+/* ——�?品牌�?InkFlow —�?持续呼吸光泽 ——�?*/
 .hero-brand-word {
     display: inline-block;
     font-family: "Dancing Script", "Caveat", cursive;
@@ -72,7 +72,7 @@
     50% { background-position: 100% 50%; }
 }
 
-/* ——— 中文主标题 ——— */
+/* ——�?中文主标�?——�?*/
 .hero-title {
     font-size: 42px;
     font-weight: 700;
@@ -82,7 +82,7 @@
 }
 .hero-title-line { display: block; }
 
-/* ——— 副标题 ——— */
+/* ——�?副标�?——�?*/
 .hero-subtitle {
     font-size: 17px;
     color: #64748b;
@@ -91,7 +91,7 @@
     font-weight: 400;
 }
 
-/* ——— CTA 按钮 ——— */
+/* ——�?CTA 按钮 ——�?*/
 .hero-cta {
     display: inline-flex;
     align-items: center;
@@ -113,7 +113,7 @@
     box-shadow: 0 8px 32px rgba(37, 99, 235, 0.4);
 }
 
-/* ——— 特性标签：逐个弹入 ——— */
+/* ——�?特性标签：逐个弹入 ——�?*/
 .hero-features {
     display: flex;
     gap: 16px;
@@ -230,7 +230,7 @@
     box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.08);
 }
 .custom-select-trigger::after {
-    content: '▾';
+    content: '�?;
     position: absolute;
     right: 14px;
     top: 50%;
@@ -243,7 +243,7 @@
 .custom-select.open .custom-select-trigger::after {
     transform: translateY(-50%) rotate(180deg);
 }
-/* 下拉面板 - 桌面端向下弹出，移动端底部卡片 */
+/* 下拉面板 - 桌面端向下弹出，移动端底部卡�?*/
 .custom-select-panel {
     position: absolute;
     top: calc(100% + 6px);
@@ -289,10 +289,10 @@
     font-weight: 600;
 }
 .custom-select-option.selected::before {
-    content: '✓ ';
+    content: '�?';
     color: #38bdf8;
 }
-/* 移动端：底部卡片式弹层 */
+/* 移动端：底部卡片式弹�?*/
 @media (max-width: 600px) {
     .custom-select-panel {
         position: fixed;
@@ -441,7 +441,7 @@
     padding: 0;
     border-radius: 0;
 }
-/* 正文段落之间加间距 */
+/* 正文段落之间加间�?*/
 .result-card-body .result-box p {
     margin-bottom: 14px;
 }
@@ -509,18 +509,17 @@
     <div class="hero-inner">
         <div class="hero-title">
             <span class="hero-brand-word">InkFlow</span>
-            <span class="hero-title-line">AI 驱动的新一代</span>
+            <span class="hero-title-line">AI 驱动的新一�?/span>
             <span class="hero-title-line">营销文案创作平台</span>
         </div>
         <div class="hero-subtitle">
             几秒钟生成高质量广告文案、品牌内容与社交媒体营销文案
         </div>
         <a href="#" class="hero-cta" id="ctaBtn">
-            立即体验 →
-        </a>
+            立即体验 �?        </a>
         <div class="hero-features">
-            <div class="hero-feature">✨ 7 种文案风格</div>
-            <div class="hero-feature">⚡ 秒级生成</div>
+            <div class="hero-feature">�?7 种文案风�?/div>
+            <div class="hero-feature">�?秒级生成</div>
             <div class="hero-feature">🎯 精准营销</div>
         </div>
     </div>
@@ -529,16 +528,16 @@
 <div id="generatePage">
 <div class="container">
     <div class="card">
-        <h1>生成文案<small>告诉我你的产品，剩下的交给 InkFlow</small></h1>
+        <h1>生成文案<small>告诉我你的产品，剩下的交�?InkFlow</small></h1>
         <form method="POST" id="generateForm">
             <label>你想推广什么产品？</label>
-            <textarea name="product" rows="2" placeholder="例如：一杯手冲咖啡、一款小众香水、一本自我提升的书..." required style="font-family:inherit;">{{ reuse_product or request.form.get('product', '') }}</textarea>
+            <textarea name="product" rows="2" placeholder="例如：一杯手冲咖啡、一款小众香水、一本自我提升的�?.." required style="font-family:inherit;">{{ reuse_product or request.form.get('product', '') }}</textarea>
 
             <div class="form-row">
                 <div class="form-col">
                     <label>文案风格</label>
                     <div class="custom-select" id="styleSelectContainer">
-                        <div class="custom-select-trigger" tabindex="0" role="button">📝 爆款风</div>
+                        <div class="custom-select-trigger" tabindex="0" role="button">📝 爆款�?/div>
                         <div class="custom-select-backdrop"></div>
                         <div class="custom-select-panel">
                             {% for s in style_list %}
@@ -559,17 +558,17 @@
                         <div class="custom-select-backdrop"></div>
                         <div class="custom-select-panel">
                             <div class="custom-select-option {% if (reuse_word_count or request.form.get('word_count', '')) == '' %}selected{% endif %}" data-value="">不限</div>
-                            <div class="custom-select-option {% if (reuse_word_count or request.form.get('word_count', '')) == '100-200' %}selected{% endif %}" data-value="100-200">100-200 字</div>
-                            <div class="custom-select-option {% if (reuse_word_count or request.form.get('word_count', '')) == '200-300' %}selected{% endif %}" data-value="200-300">200-300 字</div>
-                            <div class="custom-select-option {% if (reuse_word_count or request.form.get('word_count', '')) == '300-500' %}selected{% endif %}" data-value="300-500">300-500 字</div>
-                            <div class="custom-select-option {% if (reuse_word_count or request.form.get('word_count', '')) == '500-800' %}selected{% endif %}" data-value="500-800">500-800 字</div>
+                            <div class="custom-select-option {% if (reuse_word_count or request.form.get('word_count', '')) == '100-200' %}selected{% endif %}" data-value="100-200">100-200 �?/div>
+                            <div class="custom-select-option {% if (reuse_word_count or request.form.get('word_count', '')) == '200-300' %}selected{% endif %}" data-value="200-300">200-300 �?/div>
+                            <div class="custom-select-option {% if (reuse_word_count or request.form.get('word_count', '')) == '300-500' %}selected{% endif %}" data-value="300-500">300-500 �?/div>
+                            <div class="custom-select-option {% if (reuse_word_count or request.form.get('word_count', '')) == '500-800' %}selected{% endif %}" data-value="500-800">500-800 �?/div>
                         </div>
                         <select name="word_count" style="display:none;">
                             <option value="">不限</option>
-                            <option value="100-200" {% if (reuse_word_count or request.form.get('word_count', '')) == '100-200' %}selected{% endif %}>100-200 字</option>
-                            <option value="200-300" {% if (reuse_word_count or request.form.get('word_count', '')) == '200-300' %}selected{% endif %}>200-300 字</option>
-                            <option value="300-500" {% if (reuse_word_count or request.form.get('word_count', '')) == '300-500' %}selected{% endif %}>300-500 字</option>
-                            <option value="500-800" {% if (reuse_word_count or request.form.get('word_count', '')) == '500-800' %}selected{% endif %}>500-800 字</option>
+                            <option value="100-200" {% if (reuse_word_count or request.form.get('word_count', '')) == '100-200' %}selected{% endif %}>100-200 �?/option>
+                            <option value="200-300" {% if (reuse_word_count or request.form.get('word_count', '')) == '200-300' %}selected{% endif %}>200-300 �?/option>
+                            <option value="300-500" {% if (reuse_word_count or request.form.get('word_count', '')) == '300-500' %}selected{% endif %}>300-500 �?/option>
+                            <option value="500-800" {% if (reuse_word_count or request.form.get('word_count', '')) == '500-800' %}selected{% endif %}>500-800 �?/option>
                         </select>
                     </div>
                 </div>
@@ -578,13 +577,12 @@
             <details style="margin-bottom: 18px;">
                 <summary style="color:#64748b;font-size:13px;">📎 补充要求（选填，让文案更精准）</summary>
                 <div class="mt-12">
-                    <textarea name="custom_prompt" rows="3" placeholder="例如：面向大学生 / 突出性价比 / 语气活泼可爱 / 强调环保理念...">{{ reuse_custom_prompt or request.form.get('custom_prompt', '') }}</textarea>
+                    <textarea name="custom_prompt" rows="3" placeholder="例如：面向大学生 / 突出性价�?/ 语气活泼可爱 / 强调环保理念...">{{ reuse_custom_prompt or request.form.get('custom_prompt', '') }}</textarea>
                 </div>
             </details>
 
             <button type="submit" class="btn btn-primary" id="generateBtn" style="width:100%;font-size:15px;padding:14px;">
-                ✨ 让灵笔为你创作
-            </button>
+                �?让灵笔为你创�?            </button>
         </form>
 
         {% if result_content %}
@@ -595,12 +593,12 @@
                 <div class="result-card-header">
                     <div class="result-card-meta">
                         <span class="result-style-tag">{{ style_icons.get(reuse_style, '📝') }} {{ reuse_style or '' }}</span>
-                        <span class="result-tokens">⚡ {{ result_tokens }} tokens</span>
+                        <span class="result-tokens">�?{{ result_tokens }} tokens</span>
                     </div>
                     <div class="result-actions">
                         {% if last_history_id and last_history_id > 0 %}
                         <form method="POST" action="{{ url_for('toggle_favorite', history_id=last_history_id) }}" style="display:inline;" class="fav-form">
-                            <button type="submit" class="btn-sm btn-outline" title="收藏">☆</button>
+                            <button type="submit" class="btn-sm btn-outline" title="收藏">�?/button>
                         </form>
                         {% endif %}
                         <button onclick="exportText('txt')" class="btn-sm btn-outline">📄 TXT</button>
@@ -628,19 +626,19 @@
             <div class="result-card-rewrite">
                 <div class="rewrite-label">✏️ 二次编辑</div>
                 <div class="rewrite-buttons">
-                    <button class="btn-sm btn-rewrite" data-action="shorter">📏 改短一点</button>
-                    <button class="btn-sm btn-rewrite" data-action="premium">👑 更高级</button>
-                    <button class="btn-sm btn-rewrite" data-action="xiaohongshu">📱 更适合小红书</button>
-                    <button class="btn-sm btn-rewrite" data-action="emotional">💫 更有情绪感</button>
-                    <button class="btn-sm btn-rewrite" data-action="story">📖 故事化</button>
+                    <button class="btn-sm btn-rewrite" data-action="shorter">📏 改短一�?/button>
+                    <button class="btn-sm btn-rewrite" data-action="premium">👑 更高�?/button>
+                    <button class="btn-sm btn-rewrite" data-action="xiaohongshu">📱 更适合小红�?/button>
+                    <button class="btn-sm btn-rewrite" data-action="emotional">💫 更有情绪�?/button>
+                    <button class="btn-sm btn-rewrite" data-action="story">📖 故事�?/button>
                 </div>
                 <div style="margin-top:10px;">
                     <button class="btn-sm btn-outline" id="analyzeBtn" style="font-size:12px;">🔍 AI 分析建议</button>
                 </div>
                 <div id="analyzeResult" style="display:none;margin-top:14px;padding:16px;background:rgba(11,15,26,0.4);border-radius:12px;border:1px solid rgba(51,65,85,0.15);">
                     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;" id="scoreBars"></div>
-                    <div style="margin-bottom:12px;"><span style="font-size:12px;color:#38bdf8;font-weight:600;">✅ 优点</span><div id="strengthsList" style="font-size:13px;color:#94a3b8;margin-top:4px;"></div></div>
-                    <div style="margin-bottom:12px;"><span style="font-size:12px;color:#f87171;font-weight:600;">⚠️ 可改进</span><div id="weaknessesList" style="font-size:13px;color:#94a3b8;margin-top:4px;"></div></div>
+                    <div style="margin-bottom:12px;"><span style="font-size:12px;color:#38bdf8;font-weight:600;">�?优点</span><div id="strengthsList" style="font-size:13px;color:#94a3b8;margin-top:4px;"></div></div>
+                    <div style="margin-bottom:12px;"><span style="font-size:12px;color:#f87171;font-weight:600;">⚠️ 可改�?/span><div id="weaknessesList" style="font-size:13px;color:#94a3b8;margin-top:4px;"></div></div>
                     <div><span style="font-size:12px;color:#a78bfa;font-weight:600;">💡 优化建议</span><div id="tipsList" style="font-size:13px;color:#94a3b8;margin-top:4px;"></div></div>
                 </div>
             </div>
@@ -654,13 +652,13 @@
     <div class="loading-backdrop"></div>
     <div class="loading-modal">
         <div class="loading-icon">✍️</div>
-        <div class="loading-text">灵笔正在创作中</div>
+        <div class="loading-text">灵笔正在创作�?/div>
         <div class="loading-dots">
             <span class="dot"></span>
             <span class="dot"></span>
             <span class="dot"></span>
         </div>
-        <div class="loading-hint">为你精心打磨每一段文案...</div>
+        <div class="loading-hint">为你精心打磨每一段文�?..</div>
     </div>
 </div>
 {% endblock %}
@@ -792,23 +790,35 @@ function initCustomSelects() {
     });
 }
 
-// 页面加载时：如果有结果，直接显示生成页
+function setPageView(view) {
+    var heroPage = document.getElementById('heroPage');
+    var genPage = document.getElementById('generatePage');
+    if (!heroPage || !genPage) return;
+
+    if (view === 'generate') {
+        heroPage.style.display = 'none';
+        genPage.style.display = 'block';
+        return;
+    }
+
+    heroPage.style.display = 'flex';
+    genPage.style.display = 'none';
+}
+
+// 页面加载时：如果有结果，直接显示生成�?
 window.addEventListener('DOMContentLoaded', function() {
     var hasResult = document.querySelector('.result-box');
     if (hasResult) {
-        document.getElementById('heroPage').classList.add('hide-hero');
-        document.getElementById('heroPage').style.display = 'none';
-        document.getElementById('generatePage').style.display = 'block';
+        setPageView('generate');
         document.getElementById('loadingOverlay').style.display = 'none';
     }
-    // 初始化自定义选择器
+    // 初始化自定义选择�?
     initCustomSelects();
 });
 
 document.getElementById('ctaBtn').addEventListener('click', function(e) {
     e.preventDefault();
-    document.getElementById('heroPage').style.display = 'none';
-    document.getElementById('generatePage').style.display = 'block';
+    setPageView('generate');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
@@ -818,7 +828,7 @@ var loading = document.getElementById('loadingOverlay');
 
 form.addEventListener('submit', function() {
     loading.style.display = 'block';
-    button.innerText = '灵笔正在创作中...';
+    button.innerText = '灵笔正在创作�?..';
     button.disabled = true;
 });
 
@@ -829,7 +839,7 @@ function copyText() {
     if (title) text += title.innerText + '\n\n';
     if (body) text += body.innerText;
     navigator.clipboard.writeText(text).then(function() {
-        showToast('已复制到剪贴板');
+        showToast('已复制到剪贴�?);
     }).catch(function() {
         var ta = document.createElement('textarea');
         ta.value = text;
@@ -837,7 +847,7 @@ function copyText() {
         ta.select();
         document.execCommand('copy');
         document.body.removeChild(ta);
-        showToast('已复制到剪贴板');
+        showToast('已复制到剪贴�?);
     });
 }
 
@@ -850,7 +860,7 @@ function exportText(format) {
     a.download = filename;
     a.click();
     URL.revokeObjectURL(a.href);
-    showToast('已导出 ' + filename);
+    showToast('已导�?' + filename);
 }
 
 function showToast(msg) {
@@ -871,11 +881,11 @@ function showToast(msg) {
 (function() {
     var rewriteBtns = document.querySelectorAll('.btn-rewrite');
     var actionLabels = {
-        shorter: '📏 改短一点',
-        premium: '👑 更高级',
-        xiaohongshu: '📱 更适合小红书',
-        emotional: '💫 更有情绪感',
-        story: '📖 故事化'
+        shorter: '📏 改短一�?,
+        premium: '👑 更高�?,
+        xiaohongshu: '📱 更适合小红�?,
+        emotional: '💫 更有情绪�?,
+        story: '📖 故事�?
     };
 
     function resetButtons() {
@@ -896,7 +906,7 @@ function showToast(msg) {
             fullText += bodyEl.innerText;
 
             var styleSelect = document.getElementById('styleSelect');
-            var style = styleSelect ? styleSelect.value : '爆款风';
+            var style = styleSelect ? styleSelect.value : '爆款�?;
 
             rewriteBtns.forEach(function(b) {
                 b.disabled = true;
@@ -911,7 +921,7 @@ function showToast(msg) {
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 if (!data.ok) {
-                    showToast('❌ ' + (data.error || '改写失败'));
+                    showToast('�?' + (data.error || '改写失败'));
                     return;
                 }
                 if (data.title && titleEl) {
@@ -933,10 +943,10 @@ function showToast(msg) {
                     }
                 }
                 var label = actionLabels[action] || '编辑';
-                showToast('✅ 已按「' + label + '」优化');
+                showToast('�?已按�? + label + '」优�?);
             })
             .catch(function() {
-                showToast('❌ 网络错误，请重试');
+                showToast('�?网络错误，请重试');
             })
             .finally(function() {
                 resetButtons();
@@ -955,12 +965,12 @@ function showToast(msg) {
                 if (data.ok) {
                     if (data.is_favorited) {
                         btn.className = 'btn-sm btn-success';
-                        btn.textContent = '⭐';
-                        showToast('已收藏 ⭐');
+                        btn.textContent = '�?;
+                        showToast('已收�?�?);
                     } else {
                         btn.className = 'btn-sm btn-outline';
-                        btn.textContent = '☆';
-                        showToast('已取消收藏');
+                        btn.textContent = '�?;
+                        showToast('已取消收�?);
                     }
                 }
             })
@@ -982,15 +992,15 @@ function showToast(msg) {
             if (titleEl) fullText += titleEl.textContent.trim() + '\n\n';
             if (bodyEl) fullText += bodyEl.innerText;
             if (!fullText.trim()) {
-                showToast('❌ 没有文案可分析');
+                showToast('�?没有文案可分�?);
                 return;
             }
 
             var styleSelect = document.getElementById('styleSelect');
-            var style = styleSelect ? styleSelect.value : '爆款风';
+            var style = styleSelect ? styleSelect.value : '爆款�?;
 
             analyzing = true;
-            analyzeBtn.textContent = '⏳ 分析中...';
+            analyzeBtn.textContent = '�?分析�?..';
             analyzeBtn.disabled = true;
 
             fetch('/analyze', {
@@ -1001,7 +1011,7 @@ function showToast(msg) {
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 if (!data.ok) {
-                    showToast('❌ ' + (data.error || '分析失败'));
+                    showToast('�?' + (data.error || '分析失败'));
                     return;
                 }
                 var scoreContainer = document.getElementById('scoreBars');
@@ -1020,7 +1030,7 @@ function showToast(msg) {
                 });
 
                 document.getElementById('strengthsList').innerHTML = (data.strengths || []).map(function(s) {
-                    return '<div style="margin-bottom:2px;">✅ ' + s + '</div>';
+                    return '<div style="margin-bottom:2px;">�?' + s + '</div>';
                 }).join('');
                 document.getElementById('weaknessesList').innerHTML = (data.weaknesses || []).map(function(w) {
                     return '<div style="margin-bottom:2px;">⚠️ ' + w + '</div>';
@@ -1030,10 +1040,10 @@ function showToast(msg) {
                 }).join('');
 
                 analyzeResult.style.display = 'block';
-                showToast('✅ 分析完成');
+                showToast('�?分析完成');
             })
             .catch(function() {
-                showToast('❌ 网络错误，请重试');
+                showToast('�?网络错误，请重试');
             })
             .finally(function() {
                 analyzing = false;
@@ -1070,14 +1080,7 @@ function showToast(msg) {
                 if (fields.custom_prompt && data.custom_prompt) fields.custom_prompt.value = data.custom_prompt;
                 // 恢复后同步自定义选择器的显示文本
                 initCustomSelects();
-                if (data.product && data.product.trim()) {
-                    var heroPage = document.getElementById('heroPage');
-                    var genPage = document.getElementById('generatePage');
-                    if (heroPage && genPage && heroPage.style.display !== 'none') {
-                        heroPage.style.display = 'none';
-                        genPage.style.display = 'block';
-                    }
-                }
+
             } catch(e) {}
         }
 
@@ -1116,3 +1119,5 @@ function showToast(msg) {
 })();
 </script>
 {% endblock %}
+
+
