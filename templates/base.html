@@ -67,9 +67,11 @@
         .navbar {
             padding: 0 40px;
             height: 64px;
+            width: 100%;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 16px;
             border-bottom: 1px solid var(--border-color);
             background: var(--bg-soft);
             backdrop-filter: blur(16px);
@@ -97,7 +99,15 @@
             transform: rotate(0deg) scale(1.02);
             text-shadow: 0 0 50px rgba(56, 189, 248, 0.25);
         }
-        .navbar .nav-links { display: flex; gap: 8px; align-items: center; }
+        .navbar .nav-links {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            justify-content: flex-end;
+            margin-left: auto;
+            min-width: 0;
+            flex-wrap: nowrap;
+        }
         .navbar .nav-links a {
             color: var(--text-muted);
             text-decoration: none;
@@ -533,10 +543,10 @@
         /* 底部导航（仅移动端可见） */
         .bottom-nav { display: none; }
 
-                @media (max-width: 600px) {
+        @media (max-width: 600px) {
             /* 顶部导航精简：只留 Logo + 主题 */
             .navbar { padding: 0 14px; height: 52px; }
-            .navbar .nav-links { gap: 4px; }
+            .navbar .nav-links { gap: 4px; margin-left: auto; }
             .navbar .token-badge { font-size: 9px; padding: 2px 7px; letter-spacing: 0; white-space: nowrap; max-width: 100px; overflow: hidden; text-overflow: ellipsis; }
             .navbar .user-info { font-size: 11px; }
             .navbar .nav-links a { display: none; }
@@ -759,14 +769,13 @@
         if (!tab) return;
         tab.addEventListener('click', function(e) {
             e.preventDefault();
-            var heroPage = document.getElementById('heroPage');
-            var genPage = document.getElementById('generatePage');
-            // 直接切换到生成页，避免 hero 的 inline style 为空时判断失效
-            if (heroPage) {
-                heroPage.style.display = 'none';
-            }
-            if (genPage) {
-                genPage.style.display = 'block';
+            if (window.setPageView) {
+                window.setPageView('generate');
+            } else {
+                var heroPage = document.getElementById('heroPage');
+                var genPage = document.getElementById('generatePage');
+                if (heroPage) heroPage.style.display = 'none';
+                if (genPage) genPage.style.display = 'block';
             }
             window.scrollTo({ top: 0, behavior: 'smooth' });
             // 更新底部导航 active 状态

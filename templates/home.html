@@ -792,24 +792,40 @@ function initCustomSelects() {
     });
 }
 
+function setPageView(view) {
+    var heroPage = document.getElementById('heroPage');
+    var generatePage = document.getElementById('generatePage');
+    if (!heroPage || !generatePage) return;
+
+    if (view === 'generate') {
+        heroPage.style.display = 'none';
+        generatePage.style.display = 'block';
+    } else {
+        heroPage.style.display = 'flex';
+        generatePage.style.display = 'none';
+    }
+}
+
+window.setPageView = setPageView;
+
 // 页面加载时：如果有结果，直接显示生成页
 window.addEventListener('DOMContentLoaded', function() {
     var hasResult = document.querySelector('.result-box');
     if (hasResult) {
-        document.getElementById('heroPage').classList.add('hide-hero');
-        document.getElementById('heroPage').style.display = 'none';
-        document.getElementById('generatePage').style.display = 'block';
+        setPageView('generate');
         document.getElementById('loadingOverlay').style.display = 'none';
     }
     // 初始化自定义选择器
     initCustomSelects();
-});
 
-document.getElementById('ctaBtn').addEventListener('click', function(e) {
-    e.preventDefault();
-    document.getElementById('heroPage').style.display = 'none';
-    document.getElementById('generatePage').style.display = 'block';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    var ctaBtn = document.getElementById('ctaBtn');
+    if (ctaBtn) {
+        ctaBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            setPageView('generate');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
 });
 
 var form = document.getElementById('generateForm');
