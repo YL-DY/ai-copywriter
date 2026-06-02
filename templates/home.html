@@ -817,6 +817,11 @@ window.addEventListener('DOMContentLoaded', function() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
     }
+
+    // splash 结束后重新初始化自定义选择器（解决 palette 渲染问题）
+    setTimeout(function() {
+        initCustomSelects();
+    }, 3000);
 });
 
 var form = document.getElementById('generateForm');
