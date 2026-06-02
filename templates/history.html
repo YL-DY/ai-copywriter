@@ -1,168 +1,298 @@
 {% extends "base.html" %}
-{% block title %}历史记录 - Inkflow{% endblock %}
+{% block title %}阅读记录 - Inkflow{% endblock %}
 {% block content %}
 <div class="container">
-    <div class="card">
-        <div class="flex-between mb-20">
-            <h1 style="margin-bottom: 0;">历史记录</h1>
-            <div style="display:flex;gap:8px;align-items:center;">
-                <a href="{{ url_for('home') }}" style="color: #38bdf8; text-decoration: none; font-size: 14px;">← 返回生成</a>
-            </div>
-        </div>
-
-        <!-- 搜索 & 筛选 -->
-        <form method="GET" class="search-form" id="searchForm">
-            <div class="search-box">
-                <input type="text" name="search" placeholder="🔍 搜索产品名称..." value="{{ search }}" style="margin-bottom:0;flex:1;">
-                <button type="submit" class="btn btn-primary" style="width:auto;padding:14px 20px;margin-left:8px;">搜索</button>
-                {% if search or style_filter or date_from or date_to or tokens_min or tokens_max %}
-                <a href="{{ url_for('history') }}" class="btn btn-danger" style="width:auto;padding:14px 20px;margin-left:8px;text-decoration:none;text-align:center;">清除</a>
-                {% endif %}
-            </div>
-            <!-- 高级筛选 -->
-            <details style="margin-top:12px;font-size:13px;">
-                <summary style="color:var(--text-muted);cursor:pointer;">🔎 高级筛选</summary>
-                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;padding:14px;background:var(--bg-hover);border-radius:10px;border:1px solid var(--border-color);">
-                    <div style="min-width:120px;">
-                        <label style="font-size:11px;margin-bottom:3px;">风格</label>
-                        <select name="style" style="padding:8px 10px;margin-bottom:0;font-size:12px;">
-                            <option value="">全部</option>
-                            {% for c in emotion_cards %}
-                            <option value="{{ c.id }}" {% if style_filter == c.id %}selected{% endif %}>{{ c.label }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div style="min-width:120px;">
-                        <label style="font-size:11px;margin-bottom:3px;">日期起</label>
-                        <input type="date" name="date_from" value="{{ date_from }}" style="padding:8px 10px;margin-bottom:0;font-size:12px;">
-                    </div>
-                    <div style="min-width:120px;">
-                        <label style="font-size:11px;margin-bottom:3px;">日期止</label>
-                        <input type="date" name="date_to" value="{{ date_to }}" style="padding:8px 10px;margin-bottom:0;font-size:12px;">
-                    </div>
-                    <div style="min-width:80px;">
-                        <label style="font-size:11px;margin-bottom:3px;">Tokens ≥</label>
-                        <input type="number" name="tokens_min" value="{{ tokens_min }}" placeholder="0" style="padding:8px 10px;margin-bottom:0;font-size:12px;">
-                    </div>
-                    <div style="min-width:80px;">
-                        <label style="font-size:11px;margin-bottom:3px;">Tokens ≤</label>
-                        <input type="number" name="tokens_max" value="{{ tokens_max }}" placeholder="9999" style="padding:8px 10px;margin-bottom:0;font-size:12px;">
-                    </div>
-                    <div style="display:flex;align-items:flex-end;">
-                        <button type="submit" class="btn-sm btn-outline" style="padding:8px 14px;">应用筛选</button>
-                    </div>
-                </div>
-            </details>
-        </form>
-
-                <!-- 对比模式切换 -->
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-            <div style="font-size:12px;color:#475569;" id="compareCount">已选 0 条</div>
-            <div style="display:flex;gap:8px;">
-                <button type="button" class="btn-sm btn-outline" id="toggleCompareBtn">☑️ 选择</button>
-                <form method="POST" action="{{ url_for('compare') }}" id="compareForm" style="display:none;">
-                    <div id="compareIdsContainer"></div>
-                    <button type="submit" class="btn-sm btn-success" id="doCompareBtn">📊 对比</button>
-                </form>
-                <form method="POST" action="{{ url_for('export') }}" id="exportForm" style="display:none;">
-                    <div id="exportIdsContainer"></div>
-                    <button type="submit" name="format" value="txt" class="btn-sm btn-outline">📄 导出 TXT</button>
-                    <button type="submit" name="format" value="md" class="btn-sm btn-outline">📝 导出 MD</button>
-                </form>
-            </div>
-        </div>
-
-        {% if pagination.items %}
-        {% for item in pagination.items %}
-        <div class="history-item" data-history-id="{{ item.id }}">
-            <div class="flex-between">
-                <div style="display:flex;align-items:center;gap:10px;">
-                    <input type="checkbox" class="compare-checkbox" value="{{ item.id }}" style="width:16px;height:16px;display:none;">
-                    <div>
-                        <span class="history-product"> {{ item.product }}</span>
-                        <span class="history-style">{{ item.style }}</span>
-                    </div>
-                </div>
-                                <div class="history-actions">
-                    <form method="POST" action="{{ url_for('toggle_favorite', history_id=item.id) }}" style="display:inline;" class="fav-form">
-                        <button type="submit" class="btn-sm {{ 'btn-success' if item.is_favorited else 'btn-outline' }}" title="收藏">{% if item.is_favorited %}⭐{% else %}☆{% endif %}</button>
-                    </form>
-                    <button class="btn-sm btn-outline share-btn" data-history-id="{{ item.id }}" title="分享">🔗</button>
-                    <a href="{{ url_for('regenerate', history_id=item.id) }}" class="btn-sm btn-outline" title="再次生成" onclick="return confirm('基于此记录重新生成？')">🔄 再来</a>
-                    <form method="POST" action="{{ url_for('delete_history', history_id=item.id) }}" style="display:inline;" onsubmit="return confirm('确定删除？')">
-                        <button type="submit" class="btn-sm btn-danger" title="删除">🗑️</button>
-                    </form>
-                </div>
-            </div>
-            <div class="history-meta">
-                {{ item.created_at.strftime('%Y-%m-%d %H:%M') }}
-                · <span class="history-tokens">{{ item.tokens_used }} tokens</span>
-            </div>
-                        <div class="history-result">{{ item.result|highlight_keywords(search) if search else item.result }}</div>
-            <details style="margin-top: 12px;">
-                <summary style="color: #64748b; font-size: 13px; cursor: pointer;">查看完整文案</summary>
-                <div class="result-box" style="margin-top: 10px;">{{ item.result|highlight_keywords(search) if search else item.result }}</div>
-                <button onclick="copyText(this)" class="btn btn-success" style="margin-top: 10px; padding: 8px; font-size: 13px;">📋 复制此文案</button>
-            </details>
-        </div>
-        {% endfor %}
-
-        {% if pagination.pages > 1 %}
-        <div class="pagination">
-            {% if pagination.has_prev %}
-            <a href="{{ url_for('history', page=pagination.prev_num, search=search) }}">上一页</a>
-            {% endif %}
-            {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-                {% if page_num %}
-                    {% if page_num == pagination.page %}
-                    <span class="current">{{ page_num }}</span>
-                    {% else %}
-                    <a href="{{ url_for('history', page=page_num, search=search) }}">{{ page_num }}</a>
-                    {% endif %}
-                {% else %}
-                    <span>...</span>
-                {% endif %}
-            {% endfor %}
-            {% if pagination.has_next %}
-            <a href="{{ url_for('history', page=pagination.next_num, search=search) }}">下一页</a>
-            {% endif %}
-        </div>
-        {% endif %}
-
-        {% else %}
-        <div class="text-center" style="padding: 40px 0; color: #64748b;">
-            <p style="font-size: 40px; margin-bottom: 16px;">
-                {% if search %}🔍 没有找到 "{{ search }}" 的相关记录{% else %}📝 还没有生成记录{% endif %}
-            </p>
-            <a href="{{ url_for('home') }}" class="btn btn-primary" style="display: inline-block; width: auto; padding: 10px 30px; margin-top: 16px; text-decoration: none;">开始生成</a>
-        </div>
-        {% endif %}
+    {% if parsed_items %}
+    <div class="collection-header">
+        <h1 class="collection-title">私人文字集</h1>
+        <p class="collection-subtitle">{{ pagination.total }} 篇文字</p>
     </div>
+
+    <div class="collection-list">
+        {% for item in parsed_items %}
+        <article class="entry-card">
+            <div class="entry-header">
+                <h2 class="entry-title">{{ item.title }}</h2>
+                <div class="entry-actions">
+                    <form method="POST" action="{{ url_for('toggle_favorite', history_id=item.id) }}" style="display:inline;" class="fav-form">
+                        <button type="submit" class="entry-action-btn" title="收藏">{% if item.is_favorited %}⭐{% else %}☆{% endif %}</button>
+                    </form>
+                    <button class="entry-action-btn share-btn" data-history-id="{{ item.id }}" title="分享">🔗</button>
+                    <form method="POST" action="{{ url_for('delete_history', history_id=item.id) }}" style="display:inline;" onsubmit="return confirm('确定删除？')">
+                        <button type="submit" class="entry-action-btn" title="删除">🗑️</button>
+                    </form>
+                </div>
+            </div>
+            <div class="entry-meta">
+                <time>{{ item.created_at.strftime('%Y年%m月%d日 · %H:%M') }}</time>
+            </div>
+            <div class="entry-preview">{{ item.preview }}</div>
+            <details class="entry-full">
+                <summary>继续阅读</summary>
+                <div class="entry-full-content">{{ item.raw_result }}</div>
+                <div class="entry-full-actions">
+                    <button onclick="copyText(this)" class="entry-copy-btn">📋 复制全文</button>
+                    <a href="{{ url_for('regenerate', history_id=item.id) }}" class="entry-copy-btn" onclick="return confirm('基于此记录重新生成？')">🔄 基于此再写一篇</a>
+                </div>
+            </details>
+        </article>
+        {% endfor %}
+    </div>
+
+    {% if pagination.pages > 1 %}
+    <nav class="pagination-nav">
+        {% if pagination.has_prev %}
+        <a href="{{ url_for('history', page=pagination.prev_num, search=search) }}" class="page-link">← 更早</a>
+        {% endif %}
+        <span class="page-info">{{ pagination.page }} / {{ pagination.pages }}</span>
+        {% if pagination.has_next %}
+        <a href="{{ url_for('history', page=pagination.next_num, search=search) }}" class="page-link">更晚 →</a>
+        {% endif %}
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📖</div>
+        <h2>还没有写下任何文字</h2>
+        <p>你此刻想表达什么？把它们写下来吧。</p>
+        <a href="{{ url_for('home') }}" class="btn btn-primary" style="display:inline-block;width:auto;padding:10px 30px;margin-top:16px;text-decoration:none;">开始写作</a>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
 
 {% block scripts %}
+<style>
+    .collection-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    .collection-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-primary);
+        letter-spacing: 2px;
+        margin-bottom: 6px;
+    }
+    .collection-subtitle {
+        font-size: 13px;
+        color: var(--text-subtle);
+        letter-spacing: 1px;
+    }
+
+    .collection-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .entry-card {
+        background: var(--bg-card);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 28px 32px;
+        transition: all 0.25s;
+        animation: cardUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .entry-card:hover {
+        border-color: rgba(212, 163, 115, 0.12);
+    }
+
+    .entry-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 8px;
+    }
+    .entry-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-primary);
+        line-height: 1.4;
+        letter-spacing: 0.5px;
+        margin: 0;
+    }
+    .entry-actions {
+        display: flex;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+    .entry-action-btn {
+        background: transparent;
+        border: 1px solid var(--border-color);
+        color: var(--text-muted);
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s;
+        line-height: 1;
+    }
+    .entry-action-btn:hover {
+        border-color: rgba(212, 163, 115, 0.2);
+        color: #D4A373;
+        background: rgba(212, 163, 115, 0.04);
+    }
+
+    .entry-meta {
+        font-size: 12px;
+        color: var(--text-subtle);
+        margin-bottom: 16px;
+        letter-spacing: 0.5px;
+    }
+
+    .entry-preview {
+        font-size: 14px;
+        line-height: 1.8;
+        color: var(--text-muted);
+        white-space: pre-wrap;
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .entry-full {
+        margin-top: 16px;
+        border-top: 1px solid var(--border-color);
+        padding-top: 12px;
+    }
+    .entry-full summary {
+        color: #D4A373;
+        font-size: 13px;
+        cursor: pointer;
+        padding: 4px 0;
+        letter-spacing: 0.5px;
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+    .entry-full summary:hover {
+        color: #E9C46A;
+    }
+    .entry-full-content {
+        margin-top: 14px;
+        padding: 18px 20px;
+        background: var(--bg-hover);
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        white-space: pre-wrap;
+        line-height: 1.9;
+        font-size: 14px;
+        color: var(--text-secondary);
+    }
+    .entry-full-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 14px;
+    }
+    .entry-copy-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 8px 16px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: transparent;
+        color: var(--text-muted);
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        font-family: inherit;
+    }
+    .entry-copy-btn:hover {
+        border-color: rgba(212, 163, 115, 0.2);
+        color: #D4A373;
+        background: rgba(212, 163, 115, 0.04);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+    }
+    .empty-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+    }
+    .empty-state h2 {
+        font-size: 20px;
+        color: var(--text-secondary);
+        margin-bottom: 8px;
+    }
+    .empty-state p {
+        font-size: 14px;
+        color: var(--text-subtle);
+    }
+
+    .pagination-nav {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 16px;
+        margin-top: 32px;
+    }
+    .page-link {
+        color: #D4A373;
+        text-decoration: none;
+        font-size: 14px;
+        padding: 8px 16px;
+        border: 1px solid rgba(212, 163, 115, 0.12);
+        border-radius: 8px;
+        transition: all 0.2s;
+        font-weight: 500;
+    }
+    .page-link:hover {
+        background: rgba(212, 163, 115, 0.06);
+        border-color: rgba(212, 163, 115, 0.2);
+    }
+    .page-info {
+        font-size: 13px;
+        color: var(--text-subtle);
+        letter-spacing: 1px;
+    }
+
+    @media (max-width: 600px) {
+        .entry-card { padding: 20px 18px; }
+        .entry-title { font-size: 17px; }
+        .collection-title { font-size: 22px; }
+        .entry-header { flex-direction: column; }
+        .entry-actions { align-self: flex-end; }
+    }
+</style>
+
 <script>
     function copyText(btn) {
-        const details = btn.closest('details');
-        const text = details.querySelector('.result-box').innerText;
+        var details = btn.closest('details');
+        var text = details.querySelector('.entry-full-content').innerText;
         navigator.clipboard.writeText(text).then(function() {
-            showToast('复制成功！');
+            showToast('复制成功');
+        }).catch(function() {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            showToast('复制成功');
         });
     }
 
     function showToast(msg) {
-        const old = document.querySelector('.toast');
+        var old = document.querySelector('.toast');
         if (old) old.remove();
-        const t = document.createElement('div');
+        var t = document.createElement('div');
         t.className = 'toast';
         t.textContent = msg;
         document.body.appendChild(t);
-        setTimeout(() => t.classList.add('show'), 10);
-        setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 2000);
+        setTimeout(function() { t.classList.add('show'); }, 10);
+        setTimeout(function() { t.classList.remove('show'); setTimeout(function() { t.remove(); }, 300); }, 2000);
     }
 
-    // 收藏按钮异步
     document.querySelectorAll('.fav-form').forEach(function(form) {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -172,11 +302,9 @@
             .then(function(data) {
                 if (data.ok) {
                     if (data.is_favorited) {
-                        btn.className = 'btn-sm btn-success';
                         btn.textContent = '⭐';
                         showToast('已收藏 ⭐');
                     } else {
-                        btn.className = 'btn-sm btn-outline';
                         btn.textContent = '☆';
                         showToast('已取消收藏');
                     }
@@ -186,52 +314,6 @@
         });
     });
 
-                // 对比模式
-        var compareMode = false;
-        var toggleBtn = document.getElementById('toggleCompareBtn');
-        var compareForm = document.getElementById('compareForm');
-        var exportForm = document.getElementById('exportForm');
-        var compareCount = document.getElementById('compareCount');
-
-        toggleBtn.addEventListener('click', function() {
-            compareMode = !compareMode;
-            var checkboxes = document.querySelectorAll('.compare-checkbox');
-            checkboxes.forEach(function(cb) {
-                cb.style.display = compareMode ? 'inline-block' : 'none';
-                if (!compareMode) cb.checked = false;
-            });
-            compareForm.style.display = compareMode ? 'inline-block' : 'none';
-            exportForm.style.display = compareMode ? 'inline-block' : 'none';
-            toggleBtn.textContent = compareMode ? '❌ 取消选择' : '☑️ 选择';
-            updateCompareCount();
-        });
-
-        document.querySelectorAll('.compare-checkbox').forEach(function(cb) {
-            cb.addEventListener('change', updateCompareCount);
-        });
-
-        function updateCompareCount() {
-            var checked = document.querySelectorAll('.compare-checkbox:checked');
-            compareCount.textContent = '已选 ' + checked.length + ' 条';
-            var container = document.getElementById('compareIdsContainer');
-            container.innerHTML = '';
-            var exportContainer = document.getElementById('exportIdsContainer');
-            exportContainer.innerHTML = '';
-            checked.forEach(function(cb) {
-                var input1 = document.createElement('input');
-                input1.type = 'hidden';
-                input1.name = 'history_ids';
-                input1.value = cb.value;
-                container.appendChild(input1);
-                var input2 = document.createElement('input');
-                input2.type = 'hidden';
-                input2.name = 'history_ids';
-                input2.value = cb.value;
-                exportContainer.appendChild(input2);
-            });
-        }
-
-    // 分享功能
     document.querySelectorAll('.share-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
             var historyId = this.getAttribute('data-history-id');
@@ -244,9 +326,8 @@
                 if (data.ok) {
                     var url = window.location.origin + '/share/' + data.share_token;
                     navigator.clipboard.writeText(url).then(function() {
-                        showToast('🔗 分享链接已复制到剪贴板');
+                        showToast('🔗 分享链接已复制');
                     }).catch(function() {
-                        // fallback
                         var ta = document.createElement('textarea');
                         ta.value = url;
                         document.body.appendChild(ta);
@@ -259,9 +340,7 @@
                     showToast('❌ ' + (data.error || '创建分享失败'));
                 }
             })
-            .catch(function() {
-                showToast('❌ 网络错误');
-            })
+            .catch(function() { showToast('❌ 网络错误'); })
             .finally(function() {
                 btn.textContent = '🔗';
                 btn.disabled = false;

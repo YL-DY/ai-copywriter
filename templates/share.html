@@ -3,293 +3,221 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ parsed_title or item.product }} - InkFlow 灵感分享</title>
+    <title>{{ parsed_title or item.product }} - InkFlow 灵笔</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            font-family: "Noto Serif SC", "Cormorant Garamond", Georgia, "Times New Roman", serif;
             min-height: 100vh;
-            background: linear-gradient(160deg, #0b0f1a 0%, #14172a 40%, #0f172a 70%, #0a0f1f 100%);
+            background: #121212;
             color: #e2e8f0;
             display: flex;
             justify-content: center;
-            padding: 40px 20px 60px;
+            padding: 60px 20px 80px;
+            background-image:
+                radial-gradient(ellipse at 20% 30%, rgba(212, 163, 115, 0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, rgba(233, 196, 106, 0.02) 0%, transparent 50%);
+            background-attachment: fixed;
         }
-        .container { max-width: 680px; width: 100%; }
-
-        /* ===== 顶部导航条 ===== */
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
+        .reader {
+            max-width: 600px;
+            width: 100%;
+            animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
-        .brand {
-            font-size: 26px;
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(32px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .brand-section {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        .brand-name {
+            font-family: "Cormorant Garamond", "Playfair Display", serif;
+            font-size: 28px;
             font-weight: 700;
-            background: linear-gradient(135deg, #38bdf8 0%, #a78bfa 50%, #f472b6 100%);
+            letter-spacing: 6px;
+            background: linear-gradient(90deg, #D4A373, #E9C46A);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            font-family: "Dancing Script", "Caveat", cursive;
-            text-decoration: none;
-            transform: rotate(-1deg);
+            transform: rotate(-0.5deg);
             display: inline-block;
         }
-        .top-actions { display: flex; gap: 8px; }
-
-        /* ===== 主卡片 ===== */
-        .card {
-            background: rgba(20, 23, 42, 0.5);
-            backdrop-filter: blur(12px);
-            border-radius: 24px;
-            border: 1px solid rgba(51, 65, 85, 0.2);
-            box-shadow: 0 8px 40px rgba(0,0,0,0.25);
-            overflow: hidden;
-            animation: cardUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-        }
-        @keyframes cardUp {
-            from { opacity: 0; transform: translateY(24px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* ---- 封面区 ---- */
-        .cover {
-            position: relative;
-            padding: 28px 32px 20px;
-            background: linear-gradient(135deg, rgba(56,189,248,0.05) 0%, rgba(167,139,250,0.05) 100%);
-            border-bottom: 1px solid rgba(51, 65, 85, 0.1);
-        }
-        .cover-ornament {
-            position: absolute; top: 0; right: 0;
-            width: 180px; height: 180px;
-            background: radial-gradient(circle at top right, rgba(56,189,248,0.07) 0%, transparent 70%);
-            pointer-events: none;
-        }
-        .cover-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-        .cover-meta {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .style-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: rgba(56, 189, 248, 0.08);
-            color: #38bdf8;
-            padding: 4px 14px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-        .product-name {
+        .brand-sub {
+            display: block;
             font-size: 13px;
-            color: #475569;
-        }
-        .cover-headline {
-            display: flex;
-            gap: 14px;
-            align-items: flex-start;
-            padding-right: 40px;
-        }
-        .accent-bar {
-            flex-shrink: 0;
-            width: 4px;
-            height: 38px;
-            background: linear-gradient(180deg, #38bdf8, #a78bfa);
-            border-radius: 4px;
+            color: rgba(148, 163, 184, 0.4);
+            letter-spacing: 4px;
             margin-top: 6px;
+            font-weight: 300;
         }
-        .title {
-            font-size: 26px;
+        .ornament-line {
+            width: 60px;
+            height: 1px;
+            margin: 0 auto 48px;
+            background: linear-gradient(90deg, transparent, rgba(212, 163, 115, 0.15), transparent);
+        }
+        .main-title {
+            font-size: 32px;
             font-weight: 700;
+            line-height: 1.4;
+            letter-spacing: 1px;
             color: #f1f5f9;
-            line-height: 1.35;
-            letter-spacing: -0.3px;
+            margin-bottom: 40px;
+            text-align: center;
         }
-
-        /* ---- 标签区 ---- */
-        .tags-section {
-            padding: 14px 32px;
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            background: rgba(56, 189, 248, 0.02);
-            border-bottom: 1px solid rgba(51, 65, 85, 0.08);
-        }
-        .tag {
-            display: inline-block;
-            background: rgba(56, 189, 248, 0.06);
-            color: #94a3b8;
-            padding: 3px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            border: 1px solid rgba(51, 65, 85, 0.15);
-        }
-
-        /* ---- 正文区 ---- */
-        .body {
-            padding: 24px 32px 32px;
-        }
-        .body .content {
-            white-space: pre-wrap;
-            line-height: 1.9;
-            font-size: 15px;
+        .main-content {
+            font-size: 16px;
+            line-height: 2.2;
             color: #cbd5e1;
+            white-space: pre-wrap;
+            word-break: break-word;
+            letter-spacing: 0.3px;
         }
-
-        /* ---- 底部 ---- */
-        .footer {
-            padding: 16px 32px 20px;
-            border-top: 1px solid rgba(51, 65, 85, 0.1);
-            background: rgba(56, 189, 248, 0.01);
+        .content-divider {
+            text-align: center;
+            margin: 48px 0;
+            color: rgba(148, 163, 184, 0.15);
+            font-size: 14px;
+            letter-spacing: 8px;
+            user-select: none;
+        }
+        .footer-section {
+            text-align: center;
+            padding: 40px 0 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .footer-brand {
+            font-family: "Cormorant Garamond", "Playfair Display", serif;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            background: linear-gradient(90deg, #D4A373, #E9C46A);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: block;
+            transform: rotate(-0.5deg);
+        }
+        .footer-tagline {
+            font-size: 13px;
+            color: rgba(148, 163, 184, 0.3);
+            margin-top: 8px;
+            letter-spacing: 2px;
+            font-weight: 300;
+        }
+        .footer-time {
+            font-size: 11px;
+            color: rgba(148, 163, 184, 0.15);
+            margin-top: 20px;
+            letter-spacing: 1px;
+        }
+        .actions {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
+            gap: 10px;
+            z-index: 100;
         }
-        .footer-info {
-            font-size: 12px;
-            color: #475569;
-        }
-        .footer-actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        /* ===== 按钮 ===== */
         .btn {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 10px 20px;
+            padding: 10px 22px;
             border: none;
-            border-radius: 10px;
+            border-radius: 20px;
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 500;
             cursor: pointer;
             text-decoration: none;
-            transition: all 0.2s;
+            transition: all 0.25s;
+            font-family: "Noto Serif SC", serif;
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(12px);
         }
-        .btn-primary {
-            background: linear-gradient(135deg, #1d4ed8, #2563eb);
-            color: white;
-            box-shadow: 0 2px 12px rgba(37, 99, 235, 0.25);
-        }
-        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(37,99,235,0.35); }
-        .btn-outline {
-            background: transparent;
-            border: 1px solid rgba(51, 65, 85, 0.4);
+        .btn-copy {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             color: #94a3b8;
         }
-        .btn-outline:hover { border-color: #38bdf8; color: #38bdf8; background: rgba(56,189,248,0.06); }
-        .btn-sm {
-            padding: 7px 14px;
-            font-size: 12px;
-            border-radius: 8px;
+        .btn-copy:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+            border-color: rgba(212, 163, 115, 0.2);
         }
-
+        .btn-origin {
+            background: rgba(212, 163, 115, 0.08);
+            border: 1px solid rgba(212, 163, 115, 0.12);
+            color: #D4A373;
+        }
+        .btn-origin:hover {
+            background: rgba(212, 163, 115, 0.12);
+            transform: translateY(-1px);
+        }
         .toast {
             position: fixed;
-            bottom: 28px;
+            bottom: 88px;
             left: 50%;
             transform: translateX(-50%) translateY(16px);
-            background: rgba(20, 23, 42, 0.95);
+            background: rgba(24, 24, 27, 0.95);
             backdrop-filter: blur(10px);
             color: #e2e8f0;
-            padding: 12px 24px;
-            border-radius: 12px;
-            border: 1px solid rgba(51, 65, 85, 0.3);
+            padding: 10px 22px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
             font-size: 13px;
             opacity: 0;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             z-index: 9999;
-            box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+            pointer-events: none;
+            font-family: "Noto Serif SC", serif;
         }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
         @media (max-width: 600px) {
-            body { padding: 20px 12px 40px; }
-            .cover { padding: 20px 18px 16px; }
-            .cover-header { flex-direction: column; gap: 8px; align-items: flex-start; }
-            .cover-headline { gap: 10px; padding-right: 0; }
-            .accent-bar { height: 28px; }
-            .title { font-size: 20px; }
-            .tags-section { padding: 12px 18px; }
-            .body { padding: 18px 18px 24px; }
-            .footer { padding: 14px 18px 16px; flex-direction: column; align-items: flex-start; }
+            body { padding: 40px 16px 100px; }
+            .brand-section { margin-bottom: 36px; }
+            .brand-name { font-size: 24px; letter-spacing: 4px; }
+            .ornament-line { margin-bottom: 36px; }
+            .main-title { font-size: 24px; margin-bottom: 28px; }
+            .main-content { font-size: 15px; line-height: 2.0; }
+            .actions { bottom: 24px; gap: 8px; flex-wrap: wrap; justify-content: center; }
+            .btn { padding: 8px 18px; font-size: 12px; }
+            .footer-section { padding: 28px 0 0; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- 顶部条 -->
-        <div class="top-bar">
-            <a href="{{ url_for('home', _external=True) }}" class="brand">InkFlow</a>
-            <div class="top-actions">
-                <button class="btn btn-outline btn-sm" onclick="copyContent()">📋 复制文案</button>
-            </div>
+    <div class="reader">
+        <div class="brand-section">
+            <div class="brand-name">InkFlow</div>
+            <span class="brand-sub">有些故事，适合深夜阅读。</span>
         </div>
-
-        <!-- 主卡片 -->
-        <div class="card">
-            <div class="cover">
-                <div class="cover-ornament"></div>
-                <div class="cover-header">
-                    <div class="cover-meta">
-                        <span class="style-badge">{{ style_icon }} {{ item.style }}</span>
-                        <span class="product-name">{{ item.product }}</span>
-                    </div>
-                </div>
-                {% if parsed_title %}
-                <div class="cover-headline">
-                    <div class="accent-bar"></div>
-                    <div class="title">{{ parsed_emoji }} {{ parsed_title }}</div>
-                </div>
-                {% endif %}
-            </div>
-
-            {% if parsed_tags %}
-            <div class="tags-section">
-                {% for tag in parsed_tags %}
-                <span class="tag">#{{ tag }}</span>
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            <div class="body">
-                <div class="content" id="shareContent">{{ parsed_content }}</div>
-            </div>
-
-            <div class="footer">
-                <div class="footer-info">
-                    由 {{ item.user.username }} 创作 · {{ item.created_at.strftime('%Y-%m-%d %H:%M') }}
-                </div>
-                <div class="footer-actions">
-                    <button class="btn btn-outline btn-sm" onclick="copyContent()">📋 复制文案</button>
-                    <a href="{{ url_for('home', _external=True) }}" class="btn btn-primary btn-sm">✨ 去 InkFlow 创作</a>
-                </div>
-            </div>
+        <div class="ornament-line"></div>
+        {% if parsed_title %}
+        <div class="main-title">{{ parsed_title }}</div>
+        {% endif %}
+        <div class="main-content" id="shareContent">{{ parsed_content }}</div>
+        <div class="content-divider">· · ·</div>
+        <div class="footer-section">
+            <span class="footer-brand">InkFlow 灵笔</span>
+            <span class="footer-tagline">把说不出口的话写出来</span>
+            <div class="footer-time">{{ item.created_at.strftime('%Y年%m月%d日') }}</div>
         </div>
     </div>
-
+    <div class="actions">
+        <button class="btn btn-copy" onclick="copyContent()">📋 复制</button>
+        <a href="{{ url_for('home', _external=True) }}" class="btn btn-origin">去 InkFlow 写下你的故事</a>
+    </div>
     <div class="toast" id="toast"></div>
-
     <script>
         function copyContent() {
             var el = document.getElementById('shareContent');
             var text = el.innerText;
             navigator.clipboard.writeText(text).then(function() {
-                showToast('✅ 文案已复制到剪贴板');
+                showToast('已复制到剪贴板');
             }).catch(function() {
                 var ta = document.createElement('textarea');
                 ta.value = text;
@@ -297,17 +225,14 @@
                 ta.select();
                 document.execCommand('copy');
                 document.body.removeChild(ta);
-                showToast('✅ 文案已复制到剪贴板');
+                showToast('已复制到剪贴板');
             });
         }
-
         function showToast(msg) {
             var t = document.getElementById('toast');
             t.textContent = msg;
             t.classList.add('show');
-            setTimeout(function() {
-                t.classList.remove('show');
-            }, 2500);
+            setTimeout(function() { t.classList.remove('show'); }, 2500);
         }
     </script>
 </body>

@@ -362,13 +362,36 @@ def history():
         except Exception:
             pass
 
-    pagination = query.order_by(History.created_at.desc())\
+        pagination = query.order_by(History.created_at.desc())\
         .paginate(page=page, per_page=10, error_out=False)
+
+    # 解析每条记录的标题和前两段内容
+    parsed_items = []
+    for item in pagination.items:
+        title, emoji, content, tags = parse_result(item.result)
+        if not title:
+            title = item.product
+        # 取前两段作为预览
+        preview = ""
+        if content:
+            paragraphs = [p.strip() for p in content.split("\n\n") if p.strip()]
+            preview = "\n\n".join(paragraphs[:2])
+
+        parsed_items.append({
+            "id": item.id,
+            "title": title,
+            "preview": preview,
+            "created_at": item.created_at,
+            "is_favorited": item.is_favorited,
+            "share_token": item.share_token,
+            "raw_result": item.result,
+        })
 
     return render_template("history.html", pagination=pagination, search=search,
                            style_filter=style_filter, date_from=date_from,
                            date_to=date_to, tokens_min=tokens_min, tokens_max=tokens_max,
-                           style_list=[c['label'] for c in EMOTION_CARDS])
+                           style_list=[c['label'] for c in EMOTION_CARDS],
+                           parsed_items=parsed_items)
 
 
 @app.route("/history/delete/<int:history_id>", methods=["POST"])
