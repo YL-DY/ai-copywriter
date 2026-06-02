@@ -791,6 +791,8 @@ function setPageView(view) {
     if (view === 'generate') {
         heroPage.style.display = 'none';
         generatePage.style.display = 'block';
+        // 每次切换到生成页时重新初始化选择器
+        setTimeout(function() { initCustomSelects(); }, 50);
     } else {
         heroPage.style.display = 'flex';
         generatePage.style.display = 'none';
