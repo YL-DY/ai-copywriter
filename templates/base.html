@@ -74,7 +74,7 @@
         /* ===== Navbar ===== */
         .navbar {
             padding: 0 40px;
-            height: 64px;
+            height: 56px;
             width: 100%;
             display: flex;
             justify-content: space-between;
@@ -553,9 +553,9 @@
         /* 底部导航（仅移动端可见） */
         .bottom-nav { display: none; }
 
-        @media (max-width: 600px) {
+        @media (max-width: 430px) {
             /* 顶部导航精简：只留 Logo + 主题 */
-            .navbar { padding: 0 14px; height: 52px; }
+            .navbar { padding: 0 14px; height: 56px; }
             .navbar .nav-links { gap: 4px; margin-left: auto; }
             .navbar .token-badge { font-size: 9px; padding: 2px 7px; letter-spacing: 0; white-space: nowrap; max-width: 100px; overflow: hidden; text-overflow: ellipsis; }
             .navbar .user-info { font-size: 11px; }
@@ -578,10 +578,10 @@
                 position: fixed;
                 bottom: 0; left: 0; right: 0;
                 height: 56px;
-                background: rgba(11, 15, 26, 0.92);
+                background: rgba(18, 18, 18, 0.95);
                 backdrop-filter: blur(16px);
                 -webkit-backdrop-filter: blur(16px);
-                border-top: 1px solid rgba(51, 65, 85, 0.2);
+                border-top: 1px solid rgba(255, 255, 255, 0.06);
                 z-index: 200;
                 justify-content: space-around;
                 align-items: center;
