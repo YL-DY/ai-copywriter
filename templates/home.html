@@ -725,6 +725,9 @@ function animateParticles() {
 animateParticles();
 
 // 自定义选择器（函数声明会被 hoist，但放在前面更清晰）
+// 全局标记防止重复绑定
+if (!window.__customSelectInited) {
+window.__customSelectInited = true;
 function initCustomSelects() {
     document.querySelectorAll('.custom-select').forEach(function(container) {
         var trigger = container.querySelector('.custom-select-trigger');
@@ -750,15 +753,22 @@ function initCustomSelects() {
             document.querySelectorAll('.custom-select').forEach(function(c) { c.classList.remove('open'); });
         }
 
-        trigger.addEventListener('click', function(e) {
+        // 先移除旧监听再绑定新监听
+        var oldClick = trigger._customClick;
+        if (oldClick) trigger.removeEventListener('click', oldClick);
+        var newClick = function(e) {
             e.stopPropagation();
             var isOpen = container.classList.contains('open');
             closeAll();
             if (!isOpen) container.classList.add('open');
-        });
+        };
+        trigger._customClick = newClick;
+        trigger.addEventListener('click', newClick);
 
         options.forEach(function(opt) {
-            opt.addEventListener('click', function(e) {
+            var oldOptClick = opt._customOptClick;
+            if (oldOptClick) opt.removeEventListener('click', oldOptClick);
+            var newOptClick = function(e) {
                 e.stopPropagation();
                 var value = opt.getAttribute('data-value');
                 options.forEach(function(o) { o.classList.remove('selected'); });
@@ -769,18 +779,29 @@ function initCustomSelects() {
                     hiddenSelect.dispatchEvent(new Event('change', { bubbles: true }));
                 }
                 container.classList.remove('open');
-            });
+            };
+            opt._customOptClick = newOptClick;
+            opt.addEventListener('click', newOptClick);
         });
 
         if (backdrop) {
-            backdrop.addEventListener('click', function() { container.classList.remove('open'); });
+            var oldBackdrop = backdrop._customBackdrop;
+            if (oldBackdrop) backdrop.removeEventListener('click', oldBackdrop);
+            var newBackdrop = function() { container.classList.remove('open'); };
+            backdrop._customBackdrop = newBackdrop;
+            backdrop.addEventListener('click', newBackdrop);
         }
     });
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.custom-select')) {
-            document.querySelectorAll('.custom-select').forEach(function(c) { c.classList.remove('open'); });
-        }
-    });
+    // 文档级监听只绑一次
+    if (!window.__docClickBound) {
+        window.__docClickBound = true;
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.custom-select')) {
+                document.querySelectorAll('.custom-select').forEach(function(c) { c.classList.remove('open'); });
+            }
+        });
+    }
+}
 }
 
 function setPageView(view) {
@@ -791,8 +812,7 @@ function setPageView(view) {
     if (view === 'generate') {
         heroPage.style.display = 'none';
         generatePage.style.display = 'block';
-        // 每次切换到生成页时重新初始化选择器
-        setTimeout(function() { initCustomSelects(); }, 50);
+
     } else {
         heroPage.style.display = 'flex';
         generatePage.style.display = 'none';
