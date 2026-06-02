@@ -27,8 +27,8 @@
                         <label style="font-size:11px;margin-bottom:3px;">风格</label>
                         <select name="style" style="padding:8px 10px;margin-bottom:0;font-size:12px;">
                             <option value="">全部</option>
-                            {% for s in style_list %}
-                            <option value="{{ s }}" {% if style_filter == s %}selected{% endif %}>{{ s }}</option>
+                            {% for c in emotion_cards %}
+                            <option value="{{ c.id }}" {% if style_filter == c.id %}selected{% endif %}>{{ c.label }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -79,7 +79,7 @@
                 <div style="display:flex;align-items:center;gap:10px;">
                     <input type="checkbox" class="compare-checkbox" value="{{ item.id }}" style="width:16px;height:16px;display:none;">
                     <div>
-                        <span class="history-product">{{ style_icons.get(item.style, '📝') }} {{ item.product }}</span>
+                        <span class="history-product"> {{ item.product }}</span>
                         <span class="history-style">{{ item.style }}</span>
                     </div>
                 </div>

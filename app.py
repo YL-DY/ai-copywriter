@@ -97,208 +97,58 @@ def get_active_api_key(user, attempt=0):
     return DEEPSEEK_API_KEY
 
 
-# ========== Prompt 工程系统 ==========
-# 每个风格有独立的 system_prompt（角色设定）+ user_prompt（任务指令）
+# ========== 情感表达引擎 ==========
+# 用户选择"此刻想表达什么"，自动映射到对应的写作方向和 Prompt
 
-SYSTEM_PROMPTS = {
-    "爆款风": """你是一位小红书爆款文案专家，擅长写情绪强烈、标题夸张、容易引发互动的内容。
-你的文风特点是：
-- 标题一定要吸睛、有冲击力、制造悬念
-- 大量使用 emoji 表达情绪
-- 语气像热门博主，口语化、亲切、有共鸣
-- 善用"姐妹们"、"谁懂啊"、"绝了"等爆款话术
-- 内容要有节奏感，短句为主，段落分明""",
+EMOTION_CARDS = [
+    {"id": "miss", "label": "我想念一个人", "subtitle": "那些没说出口的话"},
+    {"id": "regret", "label": "我有些遗憾", "subtitle": "关于错过与来不及"},
+    {"id": "heartfelt", "label": "我想说一句心里话", "subtitle": "把藏在心里的话写出来"},
+    {"id": "comfort", "label": "我想安慰自己", "subtitle": "给自己一点温柔"},
+    {"id": "story", "label": "我想写个故事", "subtitle": "把回忆变成故事"},
+    {"id": "moment", "label": "我想发朋友圈", "subtitle": "一句话表达情绪"},
+    {"id": "chat", "label": "随便陪我聊聊", "subtitle": "不知道说什么也没关系"},
+]
 
-    "高级感": """你是一位高端生活方式博主，擅长写有品味、有氛围感的精致文案。
-你的文风特点是：
-- 用词优雅、精致，避免口语化表达
-- 营造画面感和氛围感
-- 适当留白，不堆砌
-- 少量高质量 emoji（每段不超过1个）
-- 就像顶级杂志的专栏写作""",
-
-    "带货风": """你是一位专业带货博主，擅长写让人忍不住下单的种草文案。
-你的文风特点是：
-- 开篇直接痛点，制造需求
-- 突出产品的核心卖点和差异化优势
-- 用具体的使用场景和真实体验打动读者
-- 语言有说服力，善用"我用了之后……"的亲身分享
-- 结尾有明确的购买引导（CTA），但不生硬
-- 带适量 emoji""",
-
-    "情绪风": """你是一位擅长写情绪文案的生活分享博主。
-你的文风特点是：
-- 以真实感受和生活故事切入
-- 构建情感共鸣，让人"感同身受"
-- 语言细腻、真诚、不造作
-- 用细节打动人心
-- 带适量 emoji，不喧宾夺主""",
-
-    "搞笑风": """你是一位幽默搞笑的生活段子手。
-你的文风特点是：
-- 用轻松幽默的方式讲述产品体验
-- 善用网络热梗、夸张比喻
-- 有段子感，让人看完会心一笑
-- 节奏明快，不拖沓
-- 大量使用 emoji 和表情""",
-
-    "干货教程": """你是一位专业领域的知识博主，擅长写实用、易跟学的教程类内容。
-你的文风特点是：
-- 结构清晰，步骤明确
-- 信息密度高，不说废话
-- 专业但易懂，适合新手
-- 善用数字编号和分段
-- 适量使用 emoji 增加可读性""",
-
-    "测评对比": """你是一位真实的测评博主，擅长做客观、有说服力的产品对比。
-你的文风特点是：
-- 开头说明测评背景和真实使用时长
-- 优缺点都写，不吹不黑
-- 对比数据或体验要具体
-- 结尾给出明确的购买建议
-- 像朋友分享真实使用心得""",
-
-    "故事感": """你是一位擅长讲故事的叙事型博主，能用文字把读者带入一个完整的小故事中。
-你的文风特点是：
-- 以一个生活小场景或瞬间感触开头，制造代入感
-- 叙事有起承转合，像一篇微型故事
-- 产品自然地融入故事之中，不是硬广，而是情节的一部分
-- 语言流畅、有画面感，善用比喻和细节描写
-- 情感递进自然，结尾有余味或小反转
-- 适量使用 emoji 烘托氛围，不过度
-- 篇幅比一般文案稍长，故事讲完整""",
+EMOTION_PROMPTS = {
+    "miss": {
+        "role": "你是一个擅长用画面表达思念的人。你的文字有电影感，用具体场景代替直白抒情。",
+        "instruction": "请根据下面的内容，写一段关于「想念」的文字。\n\n我想说：{product}\n\n写作原则（非常重要）：\n1. 少情绪，多画面——不要直接说\"我很想你\"，而是用场景来表达。比如：\"路过那家奶茶店的时候，我下意识想问你喝什么，才想起我们已经很久没见了。\"\n2. 少说教，多留白——不要总结人生道理，把空间留给读者。\n3. 增加细节描写——多用：教室、校服、车站、路灯、旧照片、聊天记录、雨天、晚风、便利店、街角、黄昏、夏天等具象元素。\n4. 增强对话感——可以用\"你还记得吗？\"\"记得。\"\"那你后悔吗？\"\"后悔。\"这样的短句对话。\n5. 克制情绪——不要连续感叹号，不要网络热词，保持平静、真实、自然。\n6. 接近电影旁白或深夜电台的风格。\n\n请严格按照以下 JSON 格式返回结果：\n{\"title\": \"一句话标题\", \"content\": \"正文（多段落，用\\n\\n分隔）\", \"tags\": [\"标签1\", \"标签2\"]}\n\n正文不要出现任何markdown标记、不要加粗、不要斜体。"
+    },
+    "regret": {
+        "role": "你是一个懂得用细节讲述遗憾的人。你的文字像旧日记，平静中带着重量。",
+        "instruction": "请根据下面的内容，写一段关于「遗憾」的文字。\n\n我想说：{product}\n\n写作原则（非常重要）：\n1. 少情绪，多画面——用具体场景表达遗憾，不要直接说\"我很遗憾\"。\n2. 少说教，多留白——不要总结\"人生就是这样\"，把空间留给读者。\n3. 增加细节描写——多用：教室、校服、车站、路灯、旧照片、聊天记录、雨天、晚风、便利店、街角、黄昏、夏天等具象元素。\n4. 增强对话感——可以用短句对话。\n5. 克制情绪——不要连续感叹号，不要网络热词，保持平静、真实、自然。\n6. 接近散文片段或小说片段风格。\n\n请严格按照以下 JSON 格式返回结果：\n{\"title\": \"一句话标题\", \"content\": \"正文（多段落，用\\n\\n分隔）\", \"tags\": [\"标签1\", \"标签2\"]}\n\n正文不要出现任何markdown标记、不要加粗、不要斜体。"
+    },
+    "heartfelt": {
+        "role": "你是一个会用文字说出心里话的人。你的文字真实、朴素，像写给某个人的信。",
+        "instruction": "请根据下面的内容，写一段「心里话」。\n\n我想说：{product}\n\n写作原则（非常重要）：\n1. 少情绪，多画面——用具体场景和细节来表达，不要直接喊口号。\n2. 少说教，多留白——不要总结大道理。\n3. 增加细节描写——用生活中的小物件、小场景来承载情感。\n4. 增强对话感——像是在对某个人说话，可以用\"你知道吗\"\"我还记得\"这样的语气。\n5. 克制情绪——不要夸张，不要煽情，真诚最重要。\n6. 接近深夜电台或散文片段风格。\n\n请严格按照以下 JSON 格式返回结果：\n{\"title\": \"一句话标题\", \"content\": \"正文（多段落，用\\n\\n分隔）\", \"tags\": [\"标签1\", \"标签2\"]}\n\n正文不要出现任何markdown标记、不要加粗、不要斜体。"
+    },
+    "comfort": {
+        "role": "你是一个温柔的人，懂得如何安慰自己。你的文字像深夜的一杯温水，不烫嘴，但暖到心里。",
+        "instruction": "请根据下面的内容，写一段「安慰自己」的文字。\n\n我想说：{product}\n\n写作原则（非常重要）：\n1. 少情绪，多画面——不要直接说\"没关系\"\"一切都会好的\"，而是用场景来安慰。\n2. 少说教，多留白——不要总结人生道理。\n3. 增加细节描写——用身边的事物来隐喻：路灯、雨停、热茶、被子、窗外的光。\n4. 克制情绪——温柔但不煽情，平静但有力量。\n5. 像自己对自己说的话，真实、自然、不刻意。\n\n请严格按照以下 JSON 格式返回结果：\n{\"title\": \"一句话标题\", \"content\": \"正文（多段落，用\\n\\n分隔）\", \"tags\": [\"标签1\", \"标签2\"]}\n\n正文不要出现任何markdown标记、不要加粗、不要斜体。"
+    },
+    "story": {
+        "role": "你是一个会讲故事的人。你的文字有画面、有温度、有余味，像一篇短篇小说。",
+        "instruction": "请根据下面的内容，写一个「小故事」。\n\n我想说：{product}\n\n写作原则（非常重要）：\n1. 少情绪，多画面——用具体的场景、动作、对话来推进故事，不要直接说\"他很难过\"。\n2. 少说教，多留白——让故事本身说话，不要总结意义。\n3. 增加细节描写——多用：教室、校服、车站、路灯、旧照片、聊天记录、雨天、晚风、便利店、街角、黄昏、夏天等具象元素。\n4. 增强对话感——人物之间要有对话，短句自然。\n5. 克制情绪——平静地叙述，让读者自己感受。\n6. 接近小说片段或电影旁白风格。\n\n请严格按照以下 JSON 格式返回结果：\n{\"title\": \"故事标题\", \"content\": \"正文故事（多段落，用\\n\\n分隔）\", \"tags\": [\"标签1\", \"标签2\"]}\n\n正文不要出现任何markdown标记、不要加粗、不要斜体。"
+    },
+    "moment": {
+        "role": "你擅长用一句话击中人心。你的文字像朋友圈里那条让人停下来看了很久的动态。",
+        "instruction": "请根据下面的内容，写一段适合发「朋友圈」的文字。\n\n我想说：{product}\n\n写作原则（非常重要）：\n1. 少情绪，多画面——用一个小场景或小细节表达，不要直接宣泄情绪。\n2. 少说教，多留白——一句话就够了，不要说教。\n3. 增加细节描写——用具体的画面：黄昏的路、窗外的雨、一杯冷掉的咖啡。\n4. 克制情绪——平静、真实、不煽情。\n5. 像随手写下的一句话，但让人看了会停下来想一想。\n6. 接近电影旁白的风格。\n\n请严格按照以下 JSON 格式返回结果：\n{\"title\": \"一句话标题\", \"content\": \"正文（多段落，用\\n\\n分隔）\", \"tags\": [\"标签1\", \"标签2\"]}\n\n正文不要出现任何markdown标记、不要加粗、不要斜体。"
+    },
+    "chat": {
+        "role": "你是一个很好的倾听者。你的文字像老朋友深夜聊天，自然、放松、没有压力。",
+        "instruction": "请根据下面的内容，和我聊聊。\n\n我想说：{product}\n\n写作原则（非常重要）：\n1. 自然得像朋友聊天，不要像AI在回答问题。\n2. 用具体的画面和细节来回应，不要空洞地安慰。\n3. 可以有对话感，像在发消息一样。\n4. 克制情绪，不要夸张。\n5. 不知道说什么也没关系，真诚就好。\n6. 接近深夜和朋友聊天的风格。\n\n请严格按照以下 JSON 格式返回结果：\n{\"title\": \"一句话标题\", \"content\": \"正文（多段落，用\\n\\n分隔）\", \"tags\": [\"标签1\", \"标签2\"]}\n\n正文不要出现任何markdown标记、不要加粗、不要斜体。"
+    },
 }
 
-USER_PROMPTS = {
-    "爆款风": """请帮我写一篇小红书爆款文案，关于以下产品：
-
-产品：{product}
-
-要求：
-- 标题要夸张吸睛，制造悬念
-- 正文情绪强烈，口语化，有共鸣
-- 大量使用 emoji
-- 像热门博主的话术风格
-- 容易引发点赞和评论
-{extra}
-
-请严格按照以下 JSON 格式返回结果，不要加任何额外的文字：
-{{"title": "文案标题", "emoji": "🔥", "content": "正文内容（多段落，用\\n\\n分隔）", "tags": ["标签1", "标签2"]}}""",
-
-    "高级感": """请帮我写一篇高级感文案，关于以下产品：
-
-产品：{product}
-
-要求：
-- 文案精致、有氛围感
-- 用词高级，像高端杂志风格
-- 适度留白，不堆砌
-- 少量高质量 emoji
-{extra}
-
-请严格按照以下 JSON 格式返回结果，不要加任何额外的文字：
-{{"title": "文案标题", "emoji": "✨", "content": "正文内容（多段落，用\\n\\n分隔）", "tags": ["标签1", "标签2"]}}""",
-
-    "带货风": """请帮我写一篇带货型文案，关于以下产品：
-
-产品：{product}
-
-要求：
-- 开篇直击痛点
-- 突出核心卖点
-- 有真实使用感受
-- 结尾有购买引导（CTA）
-- 带适量 emoji
-{extra}
-
-请严格按照以下 JSON 格式返回结果，不要加任何额外的文字：
-{{"title": "文案标题", "emoji": "🛍️", "content": "正文内容（多段落，用\\n\\n分隔）", "tags": ["标签1", "标签2"]}}""",
-
-    "情绪风": """请帮我写一篇情绪感文案，关于以下产品：
-
-产品：{product}
-
-要求：
-- 以真实生活故事或感受切入
-- 构建情感共鸣
-- 语言细腻、真诚
-- 带适量 emoji
-{extra}
-
-请严格按照以下 JSON 格式返回结果，不要加任何额外的文字：
-{{"title": "文案标题", "emoji": "💭", "content": "正文内容（多段落，用\\n\\n分隔）", "tags": ["标签1", "标签2"]}}""",
-
-    "搞笑风": """请帮我写一篇搞笑风格文案，关于以下产品：
-
-产品：{product}
-
-要求：
-- 幽默搞笑，轻松有趣
-- 善用网络热梗
-- 有段子感
-- 大量使用 emoji
-{extra}
-
-请严格按照以下 JSON 格式返回结果，不要加任何额外的文字：
-{{"title": "文案标题", "emoji": "😂", "content": "正文内容（多段落，用\\n\\n分隔）", "tags": ["标签1", "标签2"]}}""",
-
-    "干货教程": """请帮我写一篇干货教程型文案，关于以下产品：
-
-产品：{product}
-
-要求：
-- 步骤清晰，结构分明
-- 信息密度高
-- 专业但易懂
-- 善用数字编号
-- 适量 emoji
-{extra}
-
-请严格按照以下 JSON 格式返回结果，不要加任何额外的文字：
-{{"title": "文案标题", "emoji": "📖", "content": "正文内容（多段落，用\\n\\n分隔）", "tags": ["标签1", "标签2"]}}""",
-
-    "测评对比": """请帮我写一篇测评对比型文案，关于以下产品：
-
-产品：{product}
-
-要求：
-- 说明测评背景和使用时长
-- 优缺点都写，真实客观
-- 对比要具体
-- 结尾给购买建议
-{extra}
-
-请严格按照以下 JSON 格式返回结果，不要加任何额外的文字：
-{{"title": "文案标题", "emoji": "⚖️", "content": "正文内容（多段落，用\\n\\n分隔）", "tags": ["标签1", "标签2"]}}""",
-
-    "故事感": """请帮我写一篇故事感文案，关于以下产品：
-
-产品：{product}
-
-要求：
-- 从一个真实的生活场景或情感瞬间切入
-- 讲一个完整的小故事（200-400字左右），有开头、发展、转折、结尾
-- 产品自然地出现在故事情节中，是推动故事的元素，不是硬广
-- 语言细腻有画面感，善用比喻和细节
-- 情感递进自然，结尾有回味
-- 适量使用 emoji 烘托氛围
-- 让人看完想分享这个故事本身
-{extra}
-
-请严格按照以下 JSON 格式返回结果，不要加任何额外的文字：
-{{"title": "故事标题", "emoji": "📖", "content": "正文故事（多段落，用\\n\\n分隔）", "tags": ["标签1", "标签2"]}}""",
+REWRITE_INSTRUCTIONS = {
+    "shorter": "请把下面的文字改得更简洁。保留核心的画面和情绪，去掉多余描述。\n遵循原则：少情绪多画面，少说教多留白，克制情绪。",
+    "premium": "请把下面的文字改得更有质感。用词更精致，像散文片段。\n遵循原则：少情绪多画面，少说教多留白，增加细节描写。",
+    "xiaohongshu": "请把下面的文字改得更适合发朋友圈。\n遵循原则：少情绪多画面，用一个小场景表达，平静真实自然。",
+    "emotional": "请把下面的文字改得更有画面感。用更多的细节和场景来表达情绪。\n遵循原则：少直接抒情，多用具体画面。",
+    "story": "请把下面的文字改写成一个有画面感的小故事。\n从一个具体的场景切入，有起承转合，语言流畅有画面感，结尾有余味。",
 }
 
-STYLE_ICONS = {
-    "爆款风": "🔥",
-    "高级感": "✨",
-    "带货风": "🛍️",
-    "情绪风": "💭",
-    "搞笑风": "😂",
-    "干货教程": "📖",
-    "测评对比": "⚖️",
-    "故事感": "📖",
-}
 
 
 def estimate_tokens(text):
@@ -337,10 +187,14 @@ def parse_result(raw):
     return title, emoji, content, tags
 
 
-def generate_messages(product, style, custom_prompt="", word_count=""):
+def generate_messages(product, emotion_id, custom_prompt="", word_count=""):
     """返回 system + user 消息对"""
-    system = SYSTEM_PROMPTS.get(style, SYSTEM_PROMPTS["爆款风"])
-    user_template = USER_PROMPTS.get(style, USER_PROMPTS["爆款风"])
+    emotion = EMOTION_PROMPTS.get(emotion_id)
+    if not emotion:
+        emotion = EMOTION_PROMPTS["heartfelt"]
+
+    system = emotion["role"]
+    user_template = emotion["instruction"]
 
     extra_parts = []
     if custom_prompt:
@@ -349,7 +203,7 @@ def generate_messages(product, style, custom_prompt="", word_count=""):
         extra_parts.append(f"\n字数要求：请控制在 {word_count} 字左右")
 
     extra = "\n".join(extra_parts)
-    user_msg = user_template.format(product=product, extra=extra)
+    user_msg = user_template.format(product=product) + extra
     return system, user_msg
 
 
@@ -370,9 +224,9 @@ def home():
 
     if request.method == "POST":
         product = request.form["product"]
-        style = request.form["style"]
+        emotion_id = request.form.get("emotion_id", "heartfelt")
         reuse_product = product
-        reuse_style = style
+        reuse_style = emotion_id
         custom_prompt = request.form.get("custom_prompt", "").strip()
         word_count = request.form.get("word_count", "").strip()
         reuse_custom_prompt = custom_prompt
@@ -391,7 +245,7 @@ def home():
                                    reuse_product=reuse_product, reuse_style=reuse_style,
                                    reuse_custom_prompt=reuse_custom_prompt, reuse_word_count=reuse_word_count)
 
-        system_msg, user_msg = generate_messages(product, style, custom_prompt, word_count)
+        system_msg, user_msg = generate_messages(product, emotion_id, custom_prompt, word_count)
         prompt_tokens = estimate_tokens(system_msg + user_msg)
 
         url = "https://api.deepseek.com/chat/completions"
@@ -428,7 +282,7 @@ def home():
             history = History(
                 user_id=current_user.id,
                 product=product,
-                style=style,
+                style=emotion_id,
                 prompt=system_msg + "\n\n" + user_msg,
                 result=result_raw,
                 tokens_used=result_tokens,
@@ -514,7 +368,7 @@ def history():
     return render_template("history.html", pagination=pagination, search=search,
                            style_filter=style_filter, date_from=date_from,
                            date_to=date_to, tokens_min=tokens_min, tokens_max=tokens_max,
-                           style_list=list(SYSTEM_PROMPTS.keys()))
+                           style_list=[c['label'] for c in EMOTION_CARDS])
 
 
 @app.route("/history/delete/<int:history_id>", methods=["POST"])
@@ -543,14 +397,6 @@ def regenerate(history_id):
                            reuse_style=item.style)
 
 
-REWRITE_INSTRUCTIONS = {
-    "shorter": "请把下面的文案改得更简洁、更短，保留核心信息和情绪，去掉多余描述。",
-    "premium": "请把下面的文案改得更有高级感，用词更精致优雅，去掉口语化表达，减少emoji数量。",
-    "xiaohongshu": "请把下面的文案改得更适合小红书平台发布，标题更吸睛，正文更口语化有共鸣，增加emoji，增加话题标签。",
-    "emotional": "请把下面的文案改得更有情绪感染力，用更细腻的语言表达情感，增加故事感和共鸣点。",
-    "story": "请把下面的文案改写成一个有故事感的小故事：从一个生活场景切入，有起承转合，产品自然地融入情节中，语言流畅有画面感，结尾有余味。",
-}
-
 
 @app.route("/rewrite", methods=["POST"])
 @login_required
@@ -562,13 +408,13 @@ def rewrite():
 
         source_text = data.get("text", "")
         action = data.get("action", "")
-        style = data.get("style", "爆款风")
+        emotion_id = data.get("style", "heartfelt")
 
         if not source_text or action not in REWRITE_INSTRUCTIONS:
             return {"ok": False, "error": "参数无效"}, 200
 
         instruction = REWRITE_INSTRUCTIONS[action]
-        system = SYSTEM_PROMPTS.get(style, SYSTEM_PROMPTS["爆款风"])
+        system = "你擅长用画面和细节改写文字，遵循少情绪多画面、少说教多留白的原则。"
 
         url = "https://api.deepseek.com/chat/completions"
         headers = {
@@ -581,7 +427,7 @@ def rewrite():
 {source_text}
 
 请严格按照以下 JSON 格式返回改写后的结果，不要加任何额外的文字：
-{{"title": "改写后的标题", "emoji": "{STYLE_ICONS.get(style, '📝')}", "content": "改写后的正文（多段落，用\\n\\n分隔）", "tags": ["标签1", "标签2"]}}"""
+{{"title": "改写后的标题", "emoji": "📝", "content": "改写后的正文（多段落，用\n\n分隔）", "tags": ["标签1", "标签2"]}}"""
         req_data = {
             "model": "deepseek-chat",
             "messages": [
@@ -611,7 +457,6 @@ def rewrite():
         return {"ok": False, "error": "API 请求超时，请重试"}, 200
     except Exception as e:
         return {"ok": False, "error": f"改写失败：{str(e)}"}, 200
-
 
 @app.route("/analyze", methods=["POST"])
 @login_required
@@ -788,7 +633,7 @@ def view_share(token):
     item = History.query.filter_by(share_token=token).first()
     if not item:
         return "该分享不存在或已失效", 404
-    style_icon = STYLE_ICONS.get(item.style, "📝")
+    style_icon = "📝"
     # 解析 result JSON，拆分成结构化数据
     title, emoji, content, tags = parse_result(item.result)
     # 如果解析后 content 还是原始 JSON 样子（包含 "title" 等字段），回退到纯文本
@@ -910,12 +755,10 @@ def inject_globals():
         daily_remaining = max(0, 10 - daily_used)
         return dict(user_token_remaining=remaining,
                     daily_remaining=daily_remaining,
-                    style_icons=STYLE_ICONS,
-                    style_list=list(SYSTEM_PROMPTS.keys()))
+                    emotion_cards=EMOTION_CARDS)
     return dict(user_token_remaining=0,
                 daily_remaining=10,
-                style_icons=STYLE_ICONS,
-                style_list=list(SYSTEM_PROMPTS.keys()))
+                emotion_cards=EMOTION_CARDS)
 
 
 import re as _re

@@ -17,7 +17,7 @@
                 <div style="padding:14px 16px 10px;border-bottom:1px solid rgba(51,65,85,0.1);">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                         <span style="font-size:11px;color:#475569;">{{ item.created_at.strftime('%m-%d %H:%M') }}</span>
-                        <span class="result-style-tag" style="font-size:11px;padding:2px 10px;">{{ style_icons.get(item.style, '📝') }} {{ item.style }}</span>
+                        <span class="result-style-tag" style="font-size:11px;padding:2px 10px;"> {{ item.style }}</span>
                     </div>
                     <div style="font-size:15px;font-weight:600;color:#f1f5f9;">{{ item.product }}</div>
                 </div>

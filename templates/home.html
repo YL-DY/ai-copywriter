@@ -677,6 +677,59 @@
 .hero::after {
     animation: floatGlow 20s ease-in-out infinite reverse !important;
 }
+
+/* ===== 情绪卡片选择网格 ===== */
+.emotion-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 8px;
+}
+.emotion-choice {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    padding: 20px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+}
+.emotion-choice:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(212, 163, 115, 0.2);
+    transform: translateY(-2px);
+}
+.emotion-choice.selected {
+    background: rgba(212, 163, 115, 0.08);
+    border-color: #D4A373;
+    box-shadow: 0 0 0 1px #D4A373, 0 4px 20px rgba(212, 163, 115, 0.1);
+}
+.emotion-choice-label {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+}
+.emotion-choice-sub {
+    font-size: 12px;
+    color: var(--text-subtle);
+    line-height: 1.4;
+}
+@media (max-width: 430px) {
+    .emotion-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    .emotion-choice {
+        padding: 16px 12px;
+        border-radius: 14px;
+    }
+    .emotion-choice-label {
+        font-size: 14px;
+    }
+}
 </style>
 {% endblock %}
 
@@ -732,56 +785,29 @@
 <div id="generatePage">
 <div class="container">
     <div class="card">
-        <h1>告诉我你的故事<small>剩下的 交给 InkFlow</small></h1>
+        <h1>你此刻想表达什么？<small>选择一个方向 剩下的交给 InkFlow</small></h1>
         <form method="POST" id="generateForm">
+            <!-- 情绪卡片选择区 -->
+            <label style="margin-bottom:12px;">你现在的情绪是？</label>
+            <div class="emotion-grid" id="emotionGrid">
+                {% for card in emotion_cards %}
+                <div class="emotion-choice" data-emotion="{{ card.id }}" onclick="selectEmotion(this)">
+                    <div class="emotion-choice-label">{{ card.label }}</div>
+                    <div class="emotion-choice-sub">{{ card.subtitle }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            <input type="hidden" name="emotion_id" id="emotionIdInput" value="heartfelt">
+
+            <div class="divider" style="margin:24px 0;"></div>
+
             <label>此刻你想表达什么？</label>
             <textarea name="product" rows="4" placeholder="例如：&#10;我喜欢了一个人很多年，&#10;却始终没能说出口..." required style="font-family:inherit;min-height:160px;">{{ reuse_product or request.form.get('product', '') }}</textarea>
 
-            <div class="form-row">
-                <div class="form-col">
-                    <label>文案风格</label>
-                    <div class="custom-select" id="styleSelectContainer">
-                        <div class="custom-select-trigger" tabindex="0" role="button">📝 爆款风</div>
-                        <div class="custom-select-backdrop"></div>
-                        <div class="custom-select-panel">
-                            {% for s in style_list %}
-                            <div class="custom-select-option {% if (reuse_style or request.form.get('style', '')) == s %}selected{% endif %}" data-value="{{ s }}">{{ style_icons[s] }} {{ s }}</div>
-                            {% endfor %}
-                        </div>
-                        <select name="style" id="styleSelect" style="display:none;">
-                            {% for s in style_list %}
-                            <option value="{{ s }}" {% if (reuse_style or request.form.get('style', '')) == s %}selected{% endif %}>{{ style_icons[s] }} {{ s }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-                <div class="form-col">
-                    <label>字数</label>
-                    <div class="custom-select" id="wordCountContainer">
-                        <div class="custom-select-trigger" tabindex="0" role="button">不限</div>
-                        <div class="custom-select-backdrop"></div>
-                        <div class="custom-select-panel">
-                            <div class="custom-select-option {% if (reuse_word_count or request.form.get('word_count', '')) == '' %}selected{% endif %}" data-value="">不限</div>
-                            <div class="custom-select-option {% if (reuse_word_count or request.form.get('word_count', '')) == '100-200' %}selected{% endif %}" data-value="100-200">100-200 字</div>
-                            <div class="custom-select-option {% if (reuse_word_count or request.form.get('word_count', '')) == '200-300' %}selected{% endif %}" data-value="200-300">200-300 字</div>
-                            <div class="custom-select-option {% if (reuse_word_count or request.form.get('word_count', '')) == '300-500' %}selected{% endif %}" data-value="300-500">300-500 字</div>
-                            <div class="custom-select-option {% if (reuse_word_count or request.form.get('word_count', '')) == '500-800' %}selected{% endif %}" data-value="500-800">500-800 字</div>
-                        </div>
-                        <select name="word_count" style="display:none;">
-                            <option value="">不限</option>
-                            <option value="100-200" {% if (reuse_word_count or request.form.get('word_count', '')) == '100-200' %}selected{% endif %}>100-200 字</option>
-                            <option value="200-300" {% if (reuse_word_count or request.form.get('word_count', '')) == '200-300' %}selected{% endif %}>200-300 字</option>
-                            <option value="300-500" {% if (reuse_word_count or request.form.get('word_count', '')) == '300-500' %}selected{% endif %}>300-500 字</option>
-                            <option value="500-800" {% if (reuse_word_count or request.form.get('word_count', '')) == '500-800' %}selected{% endif %}>500-800 字</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
             <details style="margin-bottom: 18px;">
-                <summary style="color:#64748b;font-size:13px;">📎 补充要求（选填，让文案更精准）</summary>
+                <summary style="color:#A1A1AA;font-size:13px;">📎 补充说明（选填，让文字更准）</summary>
                 <div class="mt-12">
-                    <textarea name="custom_prompt" rows="3" placeholder="例如：写给那个放不下的人 / 想要温暖治愈的语气 / 像老朋友在深夜谈心...">{{ reuse_custom_prompt or request.form.get('custom_prompt', '') }}</textarea>
+                    <textarea name="custom_prompt" rows="3" placeholder="例如：写给那个放不下的人 / 想要温暖治愈的语气 / 像老朋友在深夜谈心..." style="font-family:inherit;">{{ reuse_custom_prompt or request.form.get('custom_prompt', '') }}</textarea>
                 </div>
             </details>
 
@@ -1019,6 +1045,30 @@ function setPageView(view) {
 window.setPageView = setPageView;
 
 // 页面加载时：如果有结果，直接显示生成页
+
+// 情绪卡片选择
+function selectEmotion(el) {
+    var grid = document.getElementById('emotionGrid');
+    if (!grid) return;
+    var cards = grid.querySelectorAll('.emotion-choice');
+    cards.forEach(function(c) { c.classList.remove('selected'); });
+    el.classList.add('selected');
+    var emotionId = el.getAttribute('data-emotion');
+    var input = document.getElementById('emotionIdInput');
+    if (input) input.value = emotionId;
+}
+
+// 页面加载时默认选中第二个（心里话）
+window.addEventListener('DOMContentLoaded', function() {
+    var cards = document.querySelectorAll('.emotion-choice');
+    if (cards.length > 2) {
+        cards[2].classList.add('selected');
+        document.getElementById('emotionIdInput').value = 'heartfelt';
+    } else if (cards.length > 0) {
+        cards[0].classList.add('selected');
+    }
+});
+
 window.addEventListener('DOMContentLoaded', function() {
     var hasResult = document.querySelector('.result-box');
     if (hasResult) {
@@ -1126,8 +1176,8 @@ function showToast(msg) {
             if (titleEl) fullText += titleEl.textContent.trim() + '\n\n';
             fullText += bodyEl.innerText;
 
-            var styleSelect = document.getElementById('styleSelect');
-            var style = styleSelect ? styleSelect.value : '爆款风';
+            var styleSelect = document.getElementById('emotionIdInput');
+            var style = styleSelect ? styleSelect.value : 'heartfelt';
 
             rewriteBtns.forEach(function(b) {
                 b.disabled = true;
@@ -1217,8 +1267,8 @@ function showToast(msg) {
                 return;
             }
 
-            var styleSelect = document.getElementById('styleSelect');
-            var style = styleSelect ? styleSelect.value : '爆款风';
+            var styleSelect = document.getElementById('emotionIdInput');
+            var style = styleSelect ? styleSelect.value : 'heartfelt';
 
             analyzing = true;
             analyzeBtn.textContent = '⏳ 分析中...';

@@ -11,7 +11,7 @@
                 <div class="history-main">
                     <div class="history-product">{{ item.product }}</div>
                     <div class="history-meta">
-                        <span class="history-style">{{ style_icons.get(item.style, '📝') }} {{ item.style }}</span>
+                        <span class="history-style"> {{ item.style }}</span>
                         <span class="history-date">{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
                         <span class="history-tokens">⚡ {{ item.tokens_used }} tokens</span>
                     </div>
