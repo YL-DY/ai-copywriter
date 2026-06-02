@@ -108,7 +108,8 @@
             min-width: 0;
             flex-wrap: nowrap;
         }
-        .navbar .nav-links a {
+                .navbar .nav-links a,
+        .navbar .nav-link {
             color: var(--text-muted);
             text-decoration: none;
             font-size: 13px;
@@ -117,7 +118,8 @@
             border-radius: 8px;
             transition: all 0.2s;
         }
-        .navbar .nav-links a:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
+        .navbar .nav-links a:hover,
+        .navbar .nav-link:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
         .navbar .token-badge {
             font-size: 11px;
             color: var(--text-subtle);
@@ -549,6 +551,7 @@
             .navbar .nav-links { gap: 4px; margin-left: auto; }
             .navbar .token-badge { font-size: 9px; padding: 2px 7px; letter-spacing: 0; white-space: nowrap; max-width: 100px; overflow: hidden; text-overflow: ellipsis; }
             .navbar .user-info { font-size: 11px; }
+            .navbar .nav-link { display: none; }
             .navbar .nav-links a { display: none; }
 
             /* 品牌 Logo 紧凑、不歪斜 */
@@ -632,8 +635,11 @@
         <nav class="navbar">
             <a href="{{ url_for('home') }}" class="brand">Inkflow</a>
             <div class="nav-links">
-                <span class="token-badge">⚡ {{ user_token_remaining }}{% if not current_user.is_premium %}/月 · 今日 {{ daily_remaining }}/10{% endif %}</span>
+                                <span class="token-badge">⚡ {{ user_token_remaining }}{% if not current_user.is_premium %}/月 · 今日 {{ daily_remaining }}/10{% endif %}</span>
                                 <span class="user-info{% if request.endpoint == 'profile' %} user-visible{% endif %}">{{ current_user.username }}</span>
+                <a href="{{ url_for('history') }}" class="nav-link">历史</a>
+                <a href="{{ url_for('favorites') }}" class="nav-link">收藏</a>
+                <a href="{{ url_for('profile') }}" class="nav-link">个人</a>
                 <button class="theme-toggle" id="themeToggle" title="切换主题">&#127769;</button>
             </div>
         </nav>
