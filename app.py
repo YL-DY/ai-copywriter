@@ -202,7 +202,7 @@ def generate_messages(product, emotion_id, custom_prompt="", word_count=""):
     if word_count:
         extra_parts.append(f"\n字数要求：请控制在 {word_count} 字左右")
 
-        extra = "\n".join(extra_parts)
+    extra = "\n".join(extra_parts)
     user_msg = user_template.replace("{product}", product) + extra
     return system, user_msg
 
