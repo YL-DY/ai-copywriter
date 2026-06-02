@@ -1002,15 +1002,17 @@ function initCustomSelects() {
 function setPageView(view) {
     var heroPage = document.getElementById('heroPage');
     var generatePage = document.getElementById('generatePage');
+    var emotionSection = document.getElementById('emotionSection');
     if (!heroPage || !generatePage) return;
 
     if (view === 'generate') {
         heroPage.style.display = 'none';
         generatePage.style.display = 'block';
-
+        if (emotionSection) emotionSection.style.display = 'none';
     } else {
         heroPage.style.display = 'flex';
         generatePage.style.display = 'none';
+        if (emotionSection) emotionSection.style.display = 'block';
     }
 }
 
