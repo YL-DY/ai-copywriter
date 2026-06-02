@@ -362,7 +362,7 @@ def history():
         except Exception:
             pass
 
-        pagination = query.order_by(History.created_at.desc())\
+    pagination = query.order_by(History.created_at.desc())\
         .paginate(page=page, per_page=10, error_out=False)
 
     # 解析每条记录的标题和前两段内容
