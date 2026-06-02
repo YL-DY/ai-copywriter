@@ -726,69 +726,60 @@ animateParticles();
 
 // 自定义选择器（函数声明会被 hoist，但放在前面更清晰）
 function initCustomSelects() {
-    var containers = document.querySelectorAll('.custom-select');
-    if (containers.length === 0) return;
-    containers.forEach(function(container) {
+    document.querySelectorAll('.custom-select').forEach(function(container) {
         var trigger = container.querySelector('.custom-select-trigger');
         var panel = container.querySelector('.custom-select-panel');
         var backdrop = container.querySelector('.custom-select-backdrop');
         var hiddenSelect = container.querySelector('select');
-        var options = container.querySelectorAll('.custom-select-option');
-
         if (!trigger || !panel || !hiddenSelect) return;
 
-        // 设置 trigger 初始文本
+        var options = container.querySelectorAll('.custom-select-option');
         var selectedOpt = container.querySelector('.custom-select-option.selected');
         if (selectedOpt) {
             trigger.textContent = selectedOpt.textContent.trim();
         } else {
-            for (var oi = 0; oi < options.length; oi++) {
-                if (options[oi].getAttribute('data-value') === hiddenSelect.value) {
-                    trigger.textContent = options[oi].textContent.trim();
+            for (var i = 0; i < options.length; i++) {
+                if (options[i].getAttribute('data-value') === hiddenSelect.value) {
+                    trigger.textContent = options[i].textContent.trim();
                     break;
                 }
             }
         }
 
+        function closeAll() {
+            document.querySelectorAll('.custom-select').forEach(function(c) { c.classList.remove('open'); });
+        }
+
         trigger.addEventListener('click', function(e) {
             e.stopPropagation();
-            if (container.classList.contains('open')) {
-                container.classList.remove('open');
-            } else {
-                containers.forEach(function(c) { c.classList.remove('open'); });
-                container.classList.add('open');
-            }
+            var isOpen = container.classList.contains('open');
+            closeAll();
+            if (!isOpen) container.classList.add('open');
         });
 
         options.forEach(function(opt) {
             opt.addEventListener('click', function(e) {
                 e.stopPropagation();
                 var value = opt.getAttribute('data-value');
-                var label = opt.textContent.trim();
                 options.forEach(function(o) { o.classList.remove('selected'); });
                 opt.classList.add('selected');
-                trigger.textContent = label;
+                trigger.textContent = opt.textContent.trim();
                 if (hiddenSelect) {
                     hiddenSelect.value = value;
-                    var evt = new Event('change', { bubbles: true });
-                    hiddenSelect.dispatchEvent(evt);
+                    hiddenSelect.dispatchEvent(new Event('change', { bubbles: true }));
                 }
                 container.classList.remove('open');
             });
         });
 
         if (backdrop) {
-            backdrop.addEventListener('click', function() {
-                container.classList.remove('open');
-            });
+            backdrop.addEventListener('click', function() { container.classList.remove('open'); });
         }
     });
     document.addEventListener('click', function(e) {
-        containers.forEach(function(c) {
-            if (!c.contains(e.target)) {
-                c.classList.remove('open');
-            }
-        });
+        if (!e.target.closest('.custom-select')) {
+            document.querySelectorAll('.custom-select').forEach(function(c) { c.classList.remove('open'); });
+        }
     });
 }
 
