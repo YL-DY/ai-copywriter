@@ -10,6 +10,13 @@ import io
 from models import db, User, History
 from auth.routes import auth_bp
 
+# 文学体系
+from literary import (
+    generate_short_text, get_daily_pick, get_daily_detail,
+    mark_user_read, get_user_reads,
+    WORLDS, WORLD_LABELS, WORLD_DESCRIPTIONS,
+)
+
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "xiaohongshu-secret-key-2024")
 # Railway 部署用 PostgreSQL，本地开发用 SQLite
@@ -797,6 +804,117 @@ def highlight_keywords(text, keyword):
         text,
         flags=_re.IGNORECASE
     )
+
+
+# ============================================================
+# 文学体系 API
+# ============================================================
+
+@app.route("/api/literary/worlds")
+@login_required
+def api_literary_worlds():
+    """返回所有文学世界"""
+    return jsonify({
+        "worlds": [
+            {
+                "id": w,
+                "label": WORLD_LABELS.get(w, w),
+                "description": WORLD_DESCRIPTIONS.get(w, ""),
+            }
+            for w in WORLDS
+        ]
+    })
+
+
+@app.route("/api/literary/generate", methods=["POST"])
+@login_required
+def api_literary_generate():
+    """文学体系生成短文"""
+    data = request.get_json() or {}
+    world_id = data.get("world_id")
+    emotion_id = data.get("emotion_id")
+    length = data.get("length", "short")
+    seed_words = data.get("seed_words", "")
+
+    result = generate_short_text(
+        world_id=world_id,
+        emotion_id=emotion_id,
+        seed_words=seed_words,
+        length=length,
+    )
+
+    return jsonify({
+        "ok": True,
+        "title": result["title"],
+        "content": result["content"],
+        "world_id": result.get("world_id", world_id),
+        "world_label": result.get("world_label", ""),
+    })
+
+
+@app.route("/api/daily/picks")
+@login_required
+def api_daily_picks():
+    """获取每日摘录"""
+    max_count = request.args.get("count", 5, type=int)
+    # 简单兴趣匹配：从用户的历史记录中推测
+    # 暂用随机兴趣
+    picks = get_daily_pick(user_id=current_user.id, max_count=max_count)
+
+    read_ids = get_user_reads(current_user.id)
+    for p in picks:
+        p["is_read"] = p.get("id") in read_ids
+
+    return jsonify({
+        "ok": True,
+        "picks": picks,
+        "date": date.today().isoformat(),
+    })
+
+
+@app.route("/api/daily/read", methods=["POST"])
+@login_required
+def api_daily_read():
+    """标记摘录为已读"""
+    data = request.get_json() or {}
+    pick_id = data.get("pick_id")
+    if pick_id:
+        mark_user_read(current_user.id, pick_id)
+    return jsonify({"ok": True})
+
+
+@app.route("/api/daily/detail")
+@login_required
+def api_daily_detail():
+    """摘录详情（含相关世界推荐）"""
+    pick_id = request.args.get("pick_id", "")
+    detail = get_daily_detail(pick_id)
+    return jsonify({"ok": True, **detail})
+
+
+@app.route("/api/literary/generate-from-pick", methods=["POST"])
+@login_required
+def api_generate_from_pick():
+    """从摘录生成创作起点"""
+    data = request.get_json() or {}
+    world_id = data.get("world_id")
+    title = data.get("title", "")
+    content = data.get("content", "")
+
+    # 基于摘录内容生成相似主题的短文
+    result = generate_short_text(
+        world_id=world_id or "warmth",
+        length="medium",
+        seed_words=title,
+    )
+
+    return jsonify({
+        "ok": True,
+        "title": result["title"],
+        "content": result["content"],
+        "world_id": result.get("world_id", world_id),
+        "world_label": result.get("world_label", ""),
+    })
 
 
 if __name__ == "__main__":
