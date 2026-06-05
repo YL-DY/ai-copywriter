@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+{% block title %}今日摘录 - InkFlow{% endblock %}
+{% block content %}
+<div class="daily-page">
+    <div class="daily-header">
+        <h1 class="daily-title">今日摘录</h1>
+        <p class="daily-date" id="dailyDate"></p>
+    </div>
+
+    <!-- 文章卡片（一屏一篇） -->
+    <div class="daily-carousel" id="dailyCarousel">
+        <div class="carousel-track" id="carouselTrack">
+            <!-- 由 JS 动态渲染 -->
+        </div>
+
+        <!-- 导航指示器 -->
+        <div class="carousel-nav" id="carouselNav">
+            <button class="carousel-arrow" id="prevBtn" onclick="slidePrev()">←</button>
+            <span class="carousel-counter" id="carouselCounter">1 / 3</span>
+            <button class="carousel-arrow" id="nextBtn" onclick="slideNext()">→</button>
+        </div>
+    </div>
+
+    <!-- 空状态 -->
+    <div class="daily-empty" id="dailyEmpty" style="display:none;">
+        <div class="empty-icon">📖</div>
+        <h2>今日暂无推荐</h2>
+        <p>去文学世界转转，寻找灵感吧</p>
+        <a href="{{ url_for('worlds') }}" class="btn btn-sm btn-outline" style="margin-top:12px;">探索文学世界</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+    .daily-page {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 40px 20px 80px;
+        animation: cardUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .daily-header {
+        text-align: center;
+        margin-bottom: 28px;
+    }
+    .daily-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-primary);
+        letter-spacing: 2px;
+        margin-bottom: 4px;
+    }
+    .daily-date {
+        font-size: 13px;
+        color: var(--text-subtle);
+        letter-spacing: 2px;
+    }
+
+    .daily-carousel {
+        position: relative;
+        overflow: hidden;
+        border-radius: 18px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        min-height: 400px;
+        transition: background 0.3s ease, border-color 0.3s ease;
+    }
+    .carousel-track {
+        transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+    }
+    .carousel-slide {
+        min-width: 100%;
+        padding: 40px 36px 80px;
+        box-sizing: border-box;
+    }
+    .slide-world {
+        font-size: 11px;
+        color: var(--text-subtle);
+        letter-spacing: 2px;
+        margin-bottom: 16px;
+        text-transform: uppercase;
+    }
+    .slide-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 20px;
+        line-height: 1.4;
+        letter-spacing: 0.5px;
+    }
+    .slide-content {
+        font-size: 15px;
+        line-height: 2.0;
+        color: var(--text-secondary);
+        white-space: pre-wrap;
+        letter-spacing: 0.3px;
+    }
+    .slide-author {
+        margin-top: 24px;
+        font-size: 12px;
+        color: var(--text-subtle);
+        font-style: italic;
+        letter-spacing: 1px;
+    }
+    .slide-actions {
+        margin-top: 20px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .slide-actions .btn-sm {
+        font-size: 12px;
+        padding: 6px 14px;
+    }
+
+    .carousel-nav {
+        position: absolute;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: var(--bg-card);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        padding: 8px 14px;
+        border-radius: 20px;
+        border: 1px solid var(--border-color);
+    }
+    .carousel-arrow {
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        font-size: 16px;
+        cursor: pointer;
+        padding: 4px 10px;
+        border-radius: 8px;
+        transition: all 0.2s;
+        line-height: 1;
+    }
+    .carousel-arrow:hover {
+        color: var(--text-primary);
+        background: var(--bg-hover);
+    }
+    .carousel-arrow:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+    .carousel-counter {
+        font-size: 12px;
+        color: var(--text-subtle);
+        letter-spacing: 1px;
+        min-width: 50px;
+        text-align: center;
+    }
+
+    .daily-empty {
+        text-align: center;
+        padding: 80px 20px;
+    }
+    .daily-empty .empty-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+    }
+    .daily-empty h2 {
+        font-size: 20px;
+        color: var(--text-secondary);
+        margin-bottom: 8px;
+    }
+    .daily-empty p {
+        font-size: 14px;
+        color: var(--text-subtle);
+    }
+
+    /* 加载 / 切换动画 */
+    .slide-enter { animation: slideFadeIn 0.4s ease both; }
+    @keyframes slideFadeIn {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 600px) {
+        .daily-title { font-size: 22px; }
+        .carousel-slide { padding: 28px 20px 80px; }
+        .slide-title { font-size: 20px; }
+        .slide-content { font-size: 14px; line-height: 1.8; }
+    }
+</style>
+
+<script>
+let currentSlide = 0;
+let picks = [];
+
+const WORLD_ICONS = { youth: "🌿", unrequited: "💔", nostalgia: "📻", lonely: "🌌", warmth: "🔥", romance: "🌹", wildfire: "🔥", mountains: "⛰️" };
+
+// 加载每日摘录
+function loadPicks() {
+    fetch('/api/daily/picks?count=5')
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok && data.picks.length > 0) {
+            picks = data.picks;
+            renderSlides();
+            document.getElementById('dailyEmpty').style.display = 'none';
+        } else {
+            document.getElementById('dailyEmpty').style.display = 'block';
+        }
+    })
+    .catch(() => {
+        document.getElementById('dailyEmpty').style.display = 'block';
+    });
+
+    // 更新日期
+    const dateEl = document.getElementById('dailyDate');
+    const now = new Date();
+    const months = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+    dateEl.textContent = `${now.getFullYear()}年${months[now.getMonth()]}${now.getDate()}日`;
+}
+
+function renderSlides() {
+    const track = document.getElementById('carouselTrack');
+    track.innerHTML = picks.map((pick, idx) => `
+        <div class="carousel-slide" data-index="${idx}">
+            <div class="slide-world">${WORLD_ICONS[pick.world_id] || '📝'} ${pick.world_label}</div>
+            <div class="slide-title">${pick.title}</div>
+            <div class="slide-content">${pick.content}</div>
+            <div class="slide-author">${pick.author}${pick.source ? ' · ' + pick.source : ''}</div>
+            <div class="slide-actions">
+                <button class="btn btn-sm btn-outline" onclick="markRead('${pick.id}')">✓ 已读</button>
+                <button class="btn btn-sm btn-outline" onclick="generateFromPick(${idx})">✍️ 我也想写</button>
+                <button class="btn btn-sm btn-outline" onclick="copyPick(${idx})">📋 复制</button>
+            </div>
+        </div>
+    `).join('');
+    updateNav();
+}
+
+function slideNext() {
+    if (currentSlide < picks.length - 1) {
+        currentSlide++;
+        updateTrack();
+        markRead(picks[currentSlide].id);
+    }
+}
+
+function slidePrev() {
+    if (currentSlide > 0) {
+        currentSlide--;
+        updateTrack();
+    }
+}
+
+function updateTrack() {
+    const track = document.getElementById('carouselTrack');
+    track.style.transform = `translateX(-${currentSlide * 100}%)`;
+    updateNav();
+}
+
+function updateNav() {
+    document.getElementById('carouselCounter').textContent = `${currentSlide + 1} / ${picks.length}`;
+    document.getElementById('prevBtn').disabled = currentSlide === 0;
+    document.getElementById('nextBtn').disabled = currentSlide === picks.length - 1;
+}
+
+// 键盘事件
+document.addEventListener('keydown', function(e) {
+    if (picks.length === 0) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { slideNext(); e.preventDefault(); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { slidePrev(); e.preventDefault(); }
+});
+
+// 触屏滑动
+let touchStartX = 0;
+let touchEndX = 0;
+document.addEventListener('touchstart', function(e) {
+    touchStartX = e.changedTouches[0].screenX;
+}, {passive: true});
+document.addEventListener('touchend', function(e) {
+    touchEndX = e.changedTouches[0].screenX;
+    const diff = touchStartX - touchEndX;
+    if (Math.abs(diff) > 50) {
+        if (diff > 0) slideNext();
+        else slidePrev();
+    }
+}, {passive: true});
+
+function markRead(pickId) {
+    fetch('/api/daily/read', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({pick_id: pickId})
+    });
+}
+
+function generateFromPick(idx) {
+    const pick = picks[idx];
+    const btn = document.querySelectorAll('.slide-actions .btn')[1];
+    if (btn) { btn.disabled = true; btn.textContent = '生成中...'; }
+
+    fetch('/api/literary/generate-from-pick', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            world_id: pick.world_id,
+            title: pick.title,
+            content: pick.content,
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            showToast('✍️ 已基于此内容生成一段文字');
+        }
+    })
+    .catch(() => showToast('❌ 生成失败'))
+    .finally(() => {
+        if (btn) { btn.disabled = false; btn.textContent = '✍️ 我也想写'; }
+    });
+}
+
+function copyPick(idx) {
+    const pick = picks[idx];
+    const text = `${pick.title}\n\n${pick.content}`;
+    navigator.clipboard.writeText(text).then(() => showToast('📋 已复制'));
+}
+
+loadPicks();
+</script>
+{% endblock %}

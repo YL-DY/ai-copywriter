@@ -14,7 +14,7 @@ from auth.routes import auth_bp
 from literary import (
     generate_short_text, get_daily_pick, get_daily_detail,
     mark_user_read, get_user_reads,
-    WORLDS, WORLD_LABELS, WORLD_DESCRIPTIONS,
+    WORLDS, WORLD_LABELS, WORLD_DESCRIPTIONS, EMOTION_TO_WORLDS,
 )
 
 app = Flask(__name__)
@@ -804,6 +804,18 @@ def highlight_keywords(text, keyword):
         text,
         flags=_re.IGNORECASE
     )
+
+
+@app.route("/daily")
+@login_required
+def daily():
+    return render_template("daily.html")
+
+
+@app.route("/worlds")
+@login_required
+def worlds():
+    return render_template("worlds.html")
 
 
 # ============================================================

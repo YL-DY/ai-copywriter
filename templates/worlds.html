@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+{% block title %}文学世界 - InkFlow{% endblock %}
+{% block content %}
+<div class="worlds-page">
+    <div class="worlds-header">
+        <h1 class="worlds-title">选择一个文学世界</h1>
+        <p class="worlds-subtitle">每个世界都有它独特的语言和风景</p>
+    </div>
+
+    <div class="worlds-grid" id="worldsGrid">
+        <!-- 由 JS 动态渲染 -->
+    </div>
+
+    <!-- 创作入口 -->
+    <div class="quick-write">
+        <h2 class="quick-write-title">或者，直接告诉我想表达什么</h2>
+        <div class="quick-write-box">
+            <textarea id="quickSeed" class="quick-write-input" placeholder="此刻你想表达什么？比如「我想念一个人」「今天的心情」「一个回忆」……" rows="2"></textarea>
+            <button class="quick-write-btn" onclick="quickGenerate()" id="quickGenBtn">✍️ 帮我写</button>
+        </div>
+        <div class="quick-result" id="quickResult" style="display:none;">
+            <div class="quick-result-card">
+                <div class="qr-title" id="qrTitle"></div>
+                <div class="qr-world" id="qrWorld"></div>
+                <div class="qr-content" id="qrContent"></div>
+                <div class="qr-actions">
+                    <button class="btn btn-sm btn-outline" onclick="regenerateQuick()">🔄 再写一次</button>
+                    <button class="btn btn-sm btn-outline" onclick="copyQuickResult()">📋 复制</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+    .worlds-page {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px 20px 80px;
+        animation: cardUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .worlds-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    .worlds-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-primary);
+        letter-spacing: 2px;
+        margin-bottom: 8px;
+    }
+    .worlds-subtitle {
+        font-size: 14px;
+        color: var(--text-subtle);
+        letter-spacing: 1px;
+    }
+
+    .worlds-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 16px;
+        margin-bottom: 48px;
+    }
+
+    .world-card {
+        background: var(--bg-card);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 28px 24px;
+        cursor: pointer;
+        transition: all 0.25s;
+        position: relative;
+        overflow: hidden;
+    }
+    .world-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #D4A373, #E9C46A);
+        opacity: 0;
+        transition: opacity 0.25s;
+    }
+    .world-card:hover {
+        border-color: rgba(212, 163, 115, 0.15);
+        transform: translateY(-2px);
+    }
+    .world-card:hover::before {
+        opacity: 0.6;
+    }
+    .world-card:active {
+        transform: translateY(0);
+    }
+
+    .world-card-icon {
+        font-size: 32px;
+        margin-bottom: 12px;
+    }
+    .world-card-name {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 6px;
+        letter-spacing: 0.5px;
+    }
+    .world-card-desc {
+        font-size: 13px;
+        line-height: 1.6;
+        color: var(--text-muted);
+    }
+    .world-card-action {
+        margin-top: 14px;
+        font-size: 12px;
+        color: #D4A373;
+        font-weight: 500;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .world-card:hover .world-card-action {
+        opacity: 1;
+    }
+
+    /* 快速创作 */
+    .quick-write {
+        max-width: 600px;
+        margin: 0 auto;
+        text-align: center;
+    }
+    .quick-write-title {
+        font-size: 18px;
+        color: var(--text-secondary);
+        font-weight: 600;
+        margin-bottom: 20px;
+        letter-spacing: 1px;
+    }
+    .quick-write-box {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    .quick-write-input {
+        flex: 1;
+        padding: 14px 18px;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        background: var(--input-bg);
+        color: var(--text-primary);
+        font-size: 14px;
+        font-family: inherit;
+        resize: none;
+        outline: none;
+        transition: border-color 0.2s;
+        line-height: 1.6;
+    }
+    .quick-write-input:focus {
+        border-color: rgba(212, 163, 115, 0.25);
+    }
+    .quick-write-btn {
+        padding: 14px 24px;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #D4A373, #E9C46A);
+        color: #121212;
+        font-weight: 700;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+        font-family: inherit;
+    }
+    .quick-write-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 16px rgba(212, 163, 115, 0.3);
+    }
+    .quick-write-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .quick-result-card {
+        margin-top: 24px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 24px;
+        text-align: left;
+        animation: cardUp 0.4s ease both;
+    }
+    .qr-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+    }
+    .qr-world {
+        font-size: 11px;
+        color: var(--text-subtle);
+        margin-bottom: 16px;
+        letter-spacing: 1px;
+    }
+    .qr-content {
+        font-size: 14px;
+        line-height: 1.9;
+        color: var(--text-secondary);
+        white-space: pre-wrap;
+    }
+    .qr-actions {
+        margin-top: 16px;
+        display: flex;
+        gap: 8px;
+    }
+
+    @media (max-width: 600px) {
+        .worlds-grid {
+            grid-template-columns: 1fr;
+        }
+        .quick-write-box {
+            flex-direction: column;
+        }
+        .quick-write-btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<script>
+// 世界图标映射
+const WORLD_ICONS = {
+    youth: "🌿", unrequited: "💔", nostalgia: "📻",
+    lonely: "🌌", warmth: "🔥", romance: "🌹",
+    wildfire: "🔥", mountains: "⛰️",
+};
+
+// 加载世界列表
+fetch('/api/literary/worlds')
+.then(r => r.json())
+.then(data => {
+    const grid = document.getElementById('worldsGrid');
+    grid.innerHTML = data.worlds.map(w => `
+        <div class="world-card" onclick="selectWorld('${w.id}')">
+            <div class="world-card-icon">${WORLD_ICONS[w.id] || '📝'}</div>
+            <div class="world-card-name">${w.label}</div>
+            <div class="world-card-desc">${w.description || ''}</div>
+            <div class="world-card-action">进入 →</div>
+        </div>
+    `).join('');
+});
+
+function selectWorld(worldId) {
+    // 填入快捷创作框并触发
+    const seed = document.getElementById('quickSeed');
+    seed.value = '';
+    seed.placeholder = `在「${WORLD_ICONS[worldId] || ''}」的世界里，你想写下什么？`;
+    seed.focus();
+    window._selectedWorld = worldId;
+}
+
+function quickGenerate() {
+    const seed = document.getElementById('quickSeed').value.trim();
+    const worldId = window._selectedWorld;
+    const btn = document.getElementById('quickGenBtn');
+    if (!seed) { showToast('请先写点什么'); return; }
+    btn.disabled = true;
+    btn.textContent = '生成中...';
+
+    fetch('/api/literary/generate', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            world_id: worldId,
+            seed_words: seed,
+            length: 'medium',
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            document.getElementById('qrTitle').textContent = data.title;
+            document.getElementById('qrWorld').textContent = data.world_label;
+            document.getElementById('qrContent').textContent = data.content;
+            document.getElementById('quickResult').style.display = 'block';
+        } else {
+            showToast('❌ 生成失败');
+        }
+    })
+    .catch(() => showToast('❌ 网络错误'))
+    .finally(() => { btn.disabled = false; btn.textContent = '✍️ 帮我写'; });
+}
+
+function regenerateQuick() {
+    document.getElementById('quickSeed').value = '';
+    quickGenerate();
+}
+
+function copyQuickResult() {
+    const text = document.getElementById('qrContent').innerText;
+    navigator.clipboard.writeText(text).then(() => showToast('📋 已复制'));
+}
+
+const worldIcons = { youth: "🌿", unrequited: "💔", nostalgia: "📻", lonely: "🌌", warmth: "🔥", romance: "🌹", wildfire: "🔥", mountains: "⛰️" };
+</script>
+{% endblock %}

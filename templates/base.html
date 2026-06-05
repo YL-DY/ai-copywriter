@@ -645,6 +645,8 @@
             <div class="nav-links">
                                 <span class="token-badge">⚡ {{ user_token_remaining }}{% if not current_user.is_premium %}/月 · 今日 {{ daily_remaining }}/10{% endif %}</span>
                                 <span class="user-info{% if request.endpoint == 'profile' %} user-visible{% endif %}">{{ current_user.username }}</span>
+                                <a href="{{ url_for('daily') }}" class="nav-link">摘录</a>
+                <a href="{{ url_for('worlds') }}" class="nav-link">世界</a>
                 <a href="{{ url_for('history') }}" class="nav-link">历史</a>
                 <a href="{{ url_for('favorites') }}" class="nav-link">收藏</a>
                 <a href="{{ url_for('profile') }}" class="nav-link">个人</a>
@@ -656,6 +658,10 @@
         <a href="javascript:void(0)" class="bottom-nav-item {% if request.endpoint == 'home' %}active{% endif %}" data-tab="home" id="bottomTabHome">
             <span class="bottom-nav-icon">&#9998;</span>
             <span class="bottom-nav-label">生成</span>
+        </a>
+        <a href="{{ url_for('daily') }}" class="bottom-nav-item {% if request.endpoint == 'daily' %}active{% endif %}" data-tab="daily">
+            <span class="bottom-nav-icon">&#128214;</span>
+            <span class="bottom-nav-label">摘录</span>
         </a>
         <a href="{{ url_for('history') }}" class="bottom-nav-item {% if request.endpoint == 'history' %}active{% endif %}" data-tab="history">
             <span class="bottom-nav-icon">&#128196;</span>
