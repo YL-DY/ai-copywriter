@@ -63,8 +63,26 @@ EMOTION_TO_WORLDS = {
 
 _world_data_cache = {}
 
+# 加载扩展数据（JSON 补充文件）
+_expansion_data = None
+def _get_expansion():
+    global _expansion_data
+    if _expansion_data is not None:
+        return _expansion_data
+    json_path = os.path.join(os.path.dirname(__file__), "expansion_data.json")
+    if os.path.exists(json_path):
+        try:
+            with open(json_path, "r", encoding="utf-8") as f:
+                _expansion_data = json.load(f)
+        except Exception:
+            _expansion_data = {}
+    else:
+        _expansion_data = {}
+    return _expansion_data
+
+
 def load_world(world_id):
-    """加载某个文学世界的完整数据"""
+    """加载某个文学世界的完整数据（含扩展数据）"""
     if world_id in _world_data_cache:
         return _world_data_cache[world_id]
     
@@ -73,12 +91,28 @@ def load_world(world_id):
         import importlib
         mod = importlib.import_module(module_path)
         data = {
-            "images": getattr(mod, "IMAGES", []),
-            "phrases": getattr(mod, "PHRASES", []),
-            "openings": getattr(mod, "OPENINGS", []),
-            "closings": getattr(mod, "CLOSINGS", []),
-            "samples": getattr(mod, "SAMPLES", []),
+            "images": list(getattr(mod, "IMAGES", [])),
+            "phrases": list(getattr(mod, "PHRASES", [])),
+            "openings": list(getattr(mod, "OPENINGS", [])),
+            "closings": list(getattr(mod, "CLOSINGS", [])),
+            "samples": list(getattr(mod, "SAMPLES", [])),
         }
+        
+        # 合并扩展数据
+        expansion = _get_expansion()
+        if world_id in expansion:
+            ext = expansion[world_id]
+            for key in ["images", "phrases", "openings", "closings"]:
+                if key in ext and isinstance(ext[key], list):
+                    existing = data.get(key, [])
+                    # 去重合并（用集合去重）
+                    existing_set = set(existing)
+                    for item in ext[key]:
+                        if item not in existing_set:
+                            existing.append(item)
+                            existing_set.add(item)
+                    data[key] = existing
+        
         _world_data_cache[world_id] = data
         return data
     except Exception as e:
