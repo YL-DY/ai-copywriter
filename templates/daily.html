@@ -235,9 +235,9 @@ function renderSlides() {
             <div class="slide-author">${pick.author}${pick.source ? ' · ' + pick.source : ''}</div>
             <div class="slide-actions">
                 <button class="btn btn-sm btn-outline" onclick="markRead('${pick.id}')" id="read-${pick.id}">${pick.is_read ? '✅ 已读' : '✓ 已读'}</button>
-                <button class="btn btn-sm btn-outline" onclick="generateFromPick(${idx})">✍️ 我也想写</button>
                 <button class="btn btn-sm btn-outline" onclick="copyPick(${idx})">📋 复制</button>
                 <button class="btn btn-sm btn-outline" onclick="toggleFavPick('${pick.id}', ${idx})" id="fav-${pick.id}">♡ 收藏</button>
+                <button class="btn btn-sm btn-outline" onclick="sharePick(${idx})">🔗 分享卡片</button>
             </div>
         </div>
     `).join('');
@@ -308,32 +308,60 @@ function markRead(pickId, btn) {
     showToast('✅ 已标记为已读');
 }
 
-function generateFromPick(idx) {
+function sharePick(idx) {
     const pick = picks[idx];
-    const btns = document.querySelectorAll('.slide-actions .btn');
-    const btn = btns[1];
-    if (btn) { btn.disabled = true; btn.textContent = '生成中...'; }
+    if (!pick) return;
 
-    fetch('/api/literary/generate-from-pick', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-            world_id: pick.world_id,
+    // 构建分享卡片 HTML
+    var excerpt = (pick.content || '').slice(0, 200);
+    if (pick.content && pick.content.length > 200) excerpt += '…';
+
+    var shareHtml = '<!DOCTYPE html><html lang=\"zh-CN\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1.0\">' +
+        '<title>' + pick.title + ' - InkFlow</title>' +
+        '<style>' +
+        '*{margin:0;padding:0;box-sizing:border-box}body{' +
+        'font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",\"Noto Sans SC\",sans-serif;' +
+        'background:#f5f5f5;color:#1a1a2e;display:flex;justify-content:center;padding:40px 20px}' +
+        '.card{max-width:480px;width:100%;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08)}' +
+        '.card-header{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:32px 24px;color:#fff;text-align:center}' +
+        '.card-header h1{font-size:22px;font-weight:700;line-height:1.4;margin-bottom:8px}' +
+        '.card-header .meta{font-size:12px;opacity:0.8}' +
+        '.card-body{padding:24px}' +
+        '.card-body .excerpt{font-size:14px;line-height:1.7;color:#555}' +
+        '.card-footer{padding:16px 24px;border-top:1px solid #eee;display:flex;align-items:center;justify-content:space-between}' +
+        '.brand{font-size:11px;color:#999}' +
+        '.slogan{text-align:center;font-size:12px;color:#999;margin-top:16px;padding-bottom:8px}' +
+        '</style></head><body><div class=\"card\">' +
+        '<div class=\"card-header\"><h1>' + pick.title + '</h1>' +
+        '<div class=\"meta\">' + (pick.world_label || '摘录') + '</div></div>' +
+        '<div class=\"card-body"><p class=\"excerpt\">' + excerpt + '</p>' +
+        '<p class=\"slogan\">文字有温度，也值得被看见<br>— InkFlow</p></div>' +
+        '<div class=\"card-footer"><span class=\"brand\">InkFlow</span>' +
+        '<span class=\"brand\">' + pick.author + '</span></div></div></body></html>';
+
+    // 用 Blob 生成可分享的 HTML 文件
+    var blob = new Blob([shareHtml], {type: 'text/html;charset=utf-8'});
+    var file = new File([blob], pick.title.slice(0, 20) + '_分享卡片.html', {type: 'text/html'});
+
+    // 优先用 Web Share API
+    if (navigator.share && navigator.canShare && navigator.canShare({files: [file]})) {
+        navigator.share({
             title: pick.title,
-            content: pick.content,
-        })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.ok) {
-            showToast('✍️ 已生成，去首页查看');
-            setTimeout(() => { window.location.href = '/'; }, 1200);
-        }
-    })
-    .catch(() => showToast('❌ 生成失败'))
-    .finally(() => {
-        if (btn) { btn.disabled = false; btn.textContent = '✍️ 我也想写'; }
-    });
+            text: pick.content.slice(0, 100),
+            files: [file]
+        }).catch(function() {});
+        showToast('🔗 分享卡片已生成');
+    } else {
+        // 下载卡片文件
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = pick.title.slice(0, 20) + '_分享卡片.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+        showToast('📄 分享卡片已下载');
+    }
 }
 
 function copyPick(idx) {
