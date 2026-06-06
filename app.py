@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, send_file, jsonify
+﻿from flask import Flask, render_template, request, redirect, url_for, flash, send_file, jsonify
 from flask_login import LoginManager, login_required, current_user
 import requests
 import hashlib
@@ -84,6 +84,14 @@ def ensure_db():
                     db.session.execute(_text("ALTER TABLE users ADD COLUMN api_key VARCHAR(200) DEFAULT ''"))
                 if "backup_api_key" not in u_cols:
                     db.session.execute(_text("ALTER TABLE users ADD COLUMN backup_api_key VARCHAR(200) DEFAULT ''"))
+                if "wechat_openid" not in u_cols:
+                    db.session.execute(_text("ALTER TABLE users ADD COLUMN wechat_openid VARCHAR(64) DEFAULT NULL"))
+                if "wechat_unionid" not in u_cols:
+                    db.session.execute(_text("ALTER TABLE users ADD COLUMN wechat_unionid VARCHAR(64) DEFAULT NULL"))
+                if "avatar_url" not in u_cols:
+                    db.session.execute(_text("ALTER TABLE users ADD COLUMN avatar_url VARCHAR(500) DEFAULT ''"))
+                if "nickname" not in u_cols:
+                    db.session.execute(_text("ALTER TABLE users ADD COLUMN nickname VARCHAR(80) DEFAULT ''"))
         except Exception:
             db.session.rollback()
         _db_initialized = True

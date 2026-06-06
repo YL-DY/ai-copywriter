@@ -26,6 +26,11 @@ class User(UserMixin, db.Model):
     # API Key 管理
     api_key = db.Column(db.String(200), default="")
     backup_api_key = db.Column(db.String(200), default="")
+    # 微信登录
+    wechat_openid = db.Column(db.String(64), unique=True, nullable=True)
+    wechat_unionid = db.Column(db.String(64), nullable=True)
+    avatar_url = db.Column(db.String(500), default="")
+    nickname = db.Column(db.String(80), default="")
 
     histories = db.relationship("History", backref="user", lazy=True, order_by="History.created_at.desc()")
 
