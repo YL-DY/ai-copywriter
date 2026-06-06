@@ -833,6 +833,12 @@ def daily():
     return render_template("daily.html")
 
 
+@app.route("/daily/favs")
+@login_required
+def daily_favs():
+    return render_template("daily_favs.html")
+
+
 @app.route("/worlds")
 @login_required
 def worlds():
@@ -923,6 +929,77 @@ def api_daily_detail():
     pick_id = request.args.get("pick_id", "")
     detail = get_daily_detail(pick_id)
     return jsonify({"ok": True, **detail})
+
+
+@app.route("/api/daily/fav", methods=["POST"])
+@login_required
+def api_daily_fav():
+    """收藏/取消收藏摘录"""
+    import json as _json
+    data = request.get_json() or {}
+    pick_id = data.get("pick_id", "")
+    action = data.get("action", "toggle")
+
+    if not pick_id:
+        return {"ok": False, "error": "缺少 pick_id"}, 200
+
+    existing = Favorite.query.filter_by(user_id=current_user.id, pick_id=pick_id).first()
+
+    if existing:
+        db.session.delete(existing)
+        db.session.commit()
+        return {"ok": True, "faved": False}
+
+    # 收藏时保存摘录快照
+    detail = get_daily_detail(pick_id)
+    fav = Favorite(
+        user_id=current_user.id,
+        pick_id=pick_id,
+        pick_data=_json.dumps(detail, ensure_ascii=False),
+    )
+    db.session.add(fav)
+    db.session.commit()
+    return {"ok": True, "faved": True}
+
+
+@app.route("/api/daily/favs")
+@login_required
+def api_daily_favs():
+    """获取已收藏摘录列表"""
+    page = request.args.get("page", 1, type=int)
+    per_page = 20
+
+    favs = Favorite.query.filter_by(user_id=current_user.id)\
+        .filter(Favorite.pick_id.isnot(None))\
+        .order_by(Favorite.created_at.desc())\
+        .paginate(page=page, per_page=per_page, error_out=False)
+
+    items = []
+    for fav in favs.items:
+        pick = {}
+        if fav.pick_data:
+            import json as _json
+            try:
+                pick = _json.loads(fav.pick_data)
+            except Exception:
+                pass
+        items.append({
+            "fav_id": fav.id,
+            "pick_id": fav.pick_id,
+            "title": pick.get("title", ""),
+            "content": pick.get("content", ""),
+            "author": pick.get("author", ""),
+            "world_label": pick.get("world_label", ""),
+            "saved_at": fav.created_at.strftime("%m-%d %H:%M"),
+        })
+
+    return jsonify({
+        "ok": True,
+        "items": items,
+        "page": favs.page,
+        "pages": favs.pages,
+        "total": favs.total,
+    })
 
 
 @app.route("/api/literary/generate-from-pick", methods=["POST"])

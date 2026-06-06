@@ -109,13 +109,16 @@ class Like(db.Model):
 
 
 class Favorite(db.Model):
-    """收藏记录"""
+    """收藏记录（社区作品 + 摘录）"""
     __tablename__ = "favorites"
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    post_id = db.Column(db.Integer, db.ForeignKey("posts.id"), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey("posts.id"), nullable=True)
+    pick_id = db.Column(db.String(64), nullable=True)  # 摘录收藏
+    pick_data = db.Column(db.Text, default="")         # 摘录快照（JSON）
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    __table_args__ = (db.UniqueConstraint("user_id", "post_id", name="uq_fav"),)
+    __table_args__ = (db.UniqueConstraint("user_id", "post_id", name="uq_fav"),
+                      db.UniqueConstraint("user_id", "pick_id", name="uq_fav_pick"),)
 

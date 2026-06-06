@@ -28,6 +28,10 @@
         <p>去文学世界转转，寻找灵感吧</p>
         <a href="{{ url_for('worlds') }}" class="btn btn-sm btn-outline" style="margin-top:12px;">探索文学世界</a>
     </div>
+
+    <div class="daily-footer">
+        <a href="{{ url_for('daily_favs') }}" class="btn btn-sm btn-outline">❤️ 收藏的摘录</a>
+    </div>
 </div>
 {% endblock %}
 
@@ -187,6 +191,8 @@
         .slide-title { font-size: 20px; }
         .slide-content { font-size: 14px; line-height: 1.8; }
     }
+
+    .daily-footer { text-align: center; margin-top: 24px; }
 </style>
 
 <script>
@@ -228,9 +234,10 @@ function renderSlides() {
             <div class="slide-content">${pick.content}</div>
             <div class="slide-author">${pick.author}${pick.source ? ' · ' + pick.source : ''}</div>
             <div class="slide-actions">
-                <button class="btn btn-sm btn-outline" onclick="markRead('${pick.id}')">✓ 已读</button>
+                <button class="btn btn-sm btn-outline" onclick="markRead('${pick.id}', this)">${pick.is_read ? '✅ 已读' : '✓ 已读'}</button>
                 <button class="btn btn-sm btn-outline" onclick="generateFromPick(${idx})">✍️ 我也想写</button>
                 <button class="btn btn-sm btn-outline" onclick="copyPick(${idx})">📋 复制</button>
+                <button class="btn btn-sm btn-outline" onclick="toggleFavPick('${pick.id}', this)" id="fav-${pick.id}">♡ 收藏</button>
             </div>
         </div>
     `).join('');
@@ -286,17 +293,25 @@ document.addEventListener('touchend', function(e) {
     }
 }, {passive: true});
 
-function markRead(pickId) {
+function markRead(pickId, btn) {
     fetch('/api/daily/read', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({pick_id: pickId})
     });
+    if (btn) {
+        btn.textContent = '✅ 已读';
+        btn.style.borderColor = 'var(--primary-color)';
+        btn.style.color = 'var(--primary-color)';
+        btn.disabled = true;
+    }
+    showToast('✅ 已标记为已读');
 }
 
 function generateFromPick(idx) {
     const pick = picks[idx];
-    const btn = document.querySelectorAll('.slide-actions .btn')[1];
+    const btns = document.querySelectorAll('.slide-actions .btn');
+    const btn = btns[1];
     if (btn) { btn.disabled = true; btn.textContent = '生成中...'; }
 
     fetch('/api/literary/generate-from-pick', {
@@ -311,7 +326,8 @@ function generateFromPick(idx) {
     .then(r => r.json())
     .then(data => {
         if (data.ok) {
-            showToast('✍️ 已基于此内容生成一段文字');
+            showToast('✍️ 已生成，去首页查看');
+            setTimeout(() => { window.location.href = '/'; }, 1200);
         }
     })
     .catch(() => showToast('❌ 生成失败'))
@@ -322,10 +338,67 @@ function generateFromPick(idx) {
 
 function copyPick(idx) {
     const pick = picks[idx];
-    const text = `${pick.title}\n\n${pick.content}`;
-    navigator.clipboard.writeText(text).then(() => showToast('📋 已复制'));
+    const text = pick.title + '\n\n' + pick.content;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() {
+            showToast('📋 已复制');
+        }).catch(function() {
+            fallbackCopy(text);
+        });
+    } else {
+        fallbackCopy(text);
+    }
 }
 
-loadPicks();
+function fallbackCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('📋 已复制');
+}
+
+function toggleFavPick(pickId, btn) {
+    if (!btn) btn = document.getElementById('fav-' + pickId);
+    fetch('/api/daily/fav', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({pick_id: pickId})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            if (data.faved) {
+                btn.textContent = '❤️ 已收藏';
+                btn.style.borderColor = 'var(--primary-color)';
+                btn.style.color = 'var(--primary-color)';
+                showToast('❤️ 已收藏');
+            } else {
+                btn.textContent = '♡ 收藏';
+                btn.style.borderColor = '';
+                btn.style.color = '';
+                showToast('已取消收藏');
+            }
+        }
+    })
+    .catch(function() { showToast('❌ 操作失败'); });
+}
+
+function showToast(msg) {
+    var old = document.querySelector('.toast');
+    if (old) old.remove();
+    var toast = document.createElement('div');
+    toast.className = 'toast show';
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(function() {
+        toast.classList.remove('show');
+        setTimeout(function() { toast.remove(); }, 300);
+    }, 2000);
+}
 </script>
 {% endblock %}
