@@ -6,50 +6,91 @@
   <div id="favList" class="fav-list"></div>
   <div id="favEmpty" class="empty-state" style="display:none;">
     <p>还没有收藏摘录。</p>
-    <a href="{{ url_for('daily') }}" class="btn btn-outline">去看看今日摘录</a>
+    <a href="{{ url_for('daily') }}" class="btn-link">去看看今日摘录</a>
   </div>
   <div id="favPagination" class="pagination" style="display:none;"></div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.fav-page { max-width: 680px; margin: 0 auto; padding: 30px 20px 80px; }
+.fav-page h1 { font-size: 24px; font-weight: 700; margin-bottom: 24px; color: var(--text-primary); }
+.fav-list { display: flex; flex-direction: column; gap: 14px; }
+.fav-card {
+  background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px;
+  padding: 20px; transition: opacity 0.3s ease;
+}
+.fav-meta { font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; letter-spacing: 1px; }
+.fav-title { font-size: 17px; font-weight: 700; margin: 0 0 8px; line-height: 1.4; color: var(--text-primary); }
+.fav-preview { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin: 0 0 12px; }
+.fav-actions { display: flex; gap: 8px; }
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text-secondary); }
+.btn-link { display: inline-block; margin-top: 12px; padding: 10px 20px; border: 1px solid var(--border-color); border-radius: 10px; color: var(--text-primary); text-decoration: none; font-size: 13px; cursor: pointer; }
+.btn-link:hover { border-color: var(--primary-color); color: var(--primary-color); }
+.pagination { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 30px 0; }
+.page-btn { padding: 8px 16px; border: 1px solid var(--border-color); border-radius: 8px; text-decoration: none; font-size: 13px; color: var(--text-primary); cursor: pointer; background: transparent; }
+.page-btn:hover { border-color: var(--primary-color); color: var(--primary-color); }
+.page-info { font-size: 13px; color: var(--text-secondary); }
+</style>
 
 <script>
-let favPage = 1;
+var favPage = 1;
 
 function loadFavs() {
   fetch('/api/daily/favs?page=' + favPage)
-  .then(r => r.json())
-  .then(data => {
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
     if (!data.ok || data.items.length === 0) {
-      document.getElementById('favList').style.display = 'none';
-      document.getElementById('favPagination').style.display = 'none';
-      document.getElementById('favEmpty').style.display = 'block';
+      var list = document.getElementById('favList');
+      var pag = document.getElementById('favPagination');
+      var empty = document.getElementById('favEmpty');
+      if (list) list.style.display = 'none';
+      if (pag) pag.style.display = 'none';
+      if (empty) empty.style.display = 'block';
       return;
     }
-    document.getElementById('favEmpty').style.display = 'none';
-    document.getElementById('favList').style.display = 'block';
-    document.getElementById('favList').innerHTML = data.items.map(function(item) {
-      var preview = item.content ? item.content.slice(0, 120) + (item.content.length > 120 ? '...' : '') : '';
-      return '<div class="fav-card">' +
-        '<div class="fav-meta">' + (item.world_label || '摘录') + ' · 收藏于 ' + item.saved_at + '</div>' +
-        '<h3 class="fav-title">' + (item.title || '无标题') + '</h3>' +
-        '<p class="fav-preview">' + preview + '</p>' +
-        '<div class="fav-actions">' +
-          '<button class="btn btn-sm btn-outline" onclick="removeFav(\'' + item.pick_id + '\', this)">取消收藏</button>' +
-        '</div>' +
-      '</div>';
-    }).join('');
-
-    // 分页
+    var empty = document.getElementById('favEmpty');
+    var list = document.getElementById('favList');
     var pag = document.getElementById('favPagination');
-    if (data.pages > 1) {
-      pag.style.display = 'flex';
+    if (empty) empty.style.display = 'none';
+    if (list) {
+      list.style.display = 'block';
       var html = '';
-      if (data.page > 1) html += '<a href="javascript:void(0)" onclick="goPage(' + (data.page - 1) + ')" class="page-btn">上一页</a>';
-      html += '<span class="page-info">' + data.page + ' / ' + data.pages + '</span>';
-      if (data.page < data.pages) html += '<a href="javascript:void(0)" onclick="goPage(' + (data.page + 1) + ')" class="page-btn">下一页</a>';
-      pag.innerHTML = html;
-    } else {
-      pag.style.display = 'none';
+      for (var i = 0; i < data.items.length; i++) {
+        var item = data.items[i];
+        var preview = '';
+        if (item.content) {
+          preview = item.content.slice(0, 120);
+          if (item.content.length > 120) preview += '...';
+        }
+        html += '<div class="fav-card">' +
+          '<div class="fav-meta">' + (item.world_label || '摘录') + ' · 收藏于 ' + item.saved_at + '</div>' +
+          '<h3 class="fav-title">' + (item.title || '无标题') + '</h3>' +
+          '<p class="fav-preview">' + preview + '</p>' +
+          '<div class="fav-actions">' +
+            '<button class="btn btn-sm btn-outline" onclick="removeFav(\'' + item.pick_id + '\', this)">取消收藏</button>' +
+          '</div>' +
+        '</div>';
+      }
+      list.innerHTML = html;
     }
+
+    if (pag) {
+      if (data.pages > 1) {
+        pag.style.display = 'flex';
+        var ph = '';
+        if (data.page > 1) ph += '<button onclick="goPage(' + (data.page - 1) + ')" class="page-btn">上一页</button>';
+        ph += '<span class="page-info">' + data.page + ' / ' + data.pages + '</span>';
+        if (data.page < data.pages) ph += '<button onclick="goPage(' + (data.page + 1) + ')" class="page-btn">下一页</button>';
+        pag.innerHTML = ph;
+      } else {
+        pag.style.display = 'none';
+      }
+    }
+  })
+  .catch(function(err) {
+    console.error('loadFavs error:', err);
   });
 }
 
@@ -64,7 +105,7 @@ function removeFav(pickId, btn) {
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({pick_id: pickId})
   })
-  .then(r => r.json())
+  .then(function(r) { return r.json(); })
   .then(function(data) {
     if (data.ok) {
       var card = btn.closest('.fav-card');
@@ -88,27 +129,6 @@ function showToast(msg) {
   }, 2000);
 }
 
-loadFavs();
+setTimeout(loadFavs, 100);
 </script>
-
-<style>
-.fav-page { max-width: 680px; margin: 0 auto; padding: 30px 20px 80px; }
-.fav-page h1 { font-size: 24px; font-weight: 700; margin-bottom: 24px; }
-.fav-list { display: flex; flex-direction: column; gap: 14px; }
-.fav-card {
-  background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px;
-  padding: 20px; transition: opacity 0.3s ease;
-}
-.fav-meta { font-size: 11px; color: var(--text-subtle); margin-bottom: 8px; letter-spacing: 1px; }
-.fav-title { font-size: 17px; font-weight: 700; margin: 0 0 8px; line-height: 1.4; }
-.fav-preview { font-size: 13px; color: var(--text-subtle); line-height: 1.6; margin: 0 0 12px; }
-.fav-actions { display: flex; gap: 8px; }
-.empty-state { text-align: center; padding: 60px 20px; color: var(--text-subtle); }
-.btn-outline { display: inline-block; margin-top: 12px; padding: 10px 20px; border: 1px solid var(--border-color); border-radius: 10px; color: var(--text-color); text-decoration: none; font-size: 13px; }
-.btn-outline:hover { border-color: var(--primary-color); color: var(--primary-color); }
-.pagination { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 30px 0; }
-.page-btn { padding: 8px 16px; border: 1px solid var(--border-color); border-radius: 8px; text-decoration: none; font-size: 13px; color: var(--text-color); }
-.page-btn:hover { border-color: var(--primary-color); color: var(--primary-color); }
-.page-info { font-size: 13px; color: var(--text-subtle); }
-</style>
 {% endblock %}

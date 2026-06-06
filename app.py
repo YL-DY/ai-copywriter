@@ -938,7 +938,7 @@ def api_daily_fav():
     import json as _json
     data = request.get_json() or {}
     pick_id = data.get("pick_id", "")
-    action = data.get("action", "toggle")
+    pick_data_raw = data.get("pick_data", {})
 
     if not pick_id:
         return {"ok": False, "error": "缺少 pick_id"}, 200
@@ -951,11 +951,16 @@ def api_daily_fav():
         return {"ok": True, "faved": False}
 
     # 收藏时保存摘录快照
-    detail = get_daily_detail(pick_id)
+    if pick_data_raw and isinstance(pick_data_raw, dict):
+        pick_data = pick_data_raw
+    else:
+        detail = get_daily_detail(pick_id)
+        pick_data = detail
+
     fav = Favorite(
         user_id=current_user.id,
         pick_id=pick_id,
-        pick_data=_json.dumps(detail, ensure_ascii=False),
+        pick_data=_json.dumps(pick_data, ensure_ascii=False),
     )
     db.session.add(fav)
     db.session.commit()
