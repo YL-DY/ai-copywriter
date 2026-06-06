@@ -234,10 +234,10 @@ function renderSlides() {
             <div class="slide-content">${pick.content}</div>
             <div class="slide-author">${pick.author}${pick.source ? ' · ' + pick.source : ''}</div>
             <div class="slide-actions">
-                <button class="btn btn-sm btn-outline" onclick="markRead('${pick.id}', this)">${pick.is_read ? '✅ 已读' : '✓ 已读'}</button>
+                <button class="btn btn-sm btn-outline" onclick="markRead('${pick.id}')" id="read-${pick.id}">${pick.is_read ? '✅ 已读' : '✓ 已读'}</button>
                 <button class="btn btn-sm btn-outline" onclick="generateFromPick(${idx})">✍️ 我也想写</button>
                 <button class="btn btn-sm btn-outline" onclick="copyPick(${idx})">📋 复制</button>
-                <button class="btn btn-sm btn-outline" onclick="toggleFavPick('${pick.id}', this)" id="fav-${pick.id}">♡ 收藏</button>
+                <button class="btn btn-sm btn-outline" onclick="toggleFavPick('${pick.id}')" id="fav-${pick.id}">♡ 收藏</button>
             </div>
         </div>
     `).join('');
@@ -362,8 +362,8 @@ function fallbackCopy(text) {
     showToast('📋 已复制');
 }
 
-function toggleFavPick(pickId, btn) {
-    if (!btn) btn = document.getElementById('fav-' + pickId);
+function toggleFavPick(pickId) {
+    const btn = document.getElementById('fav-' + pickId);
     fetch('/api/daily/fav', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
