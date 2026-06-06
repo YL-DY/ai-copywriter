@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}我的收藏 - InkFlow{% endblock %}
+{% block content %}
+<div class="fav-page">
+  <h1>我的收藏</h1>
+
+  <div class="post-grid">
+    {% for post in posts %}
+    <div class="post-card" onclick="window.location='{{ url_for('community.post_detail', post_id=post.id) }}'">
+      <div class="post-card-header">
+        <div class="post-author">
+          <div class="avatar-sm">{{ post.author_name[:1] }}</div>
+          <span>{{ post.author_name }}</span>
+        </div>
+        <span class="post-time">{{ post.created_at }}</span>
+      </div>
+      <h3 class="post-title">{{ post.title }}</h3>
+      <p class="post-preview">{{ post.content_preview }}</p>
+      {% if post.tags %}
+      <div class="post-tags">
+        {% for t in post.tags %}
+        <span class="tag-badge">{{ t }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+      <div class="post-stats">
+        <span>❤️ {{ post.like_count }}</span>
+      </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <p>还没有收藏的作品。</p>
+      <a href="{{ url_for('community.index') }}" class="btn btn-outline">去社区看看</a>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if pagination.pages > 1 %}
+  <div class="pagination">
+    {% if pagination.has_prev %}
+    <a href="{{ url_for('community.my_favorites', page=pagination.prev_num) }}" class="page-btn">上一页</a>
+    {% endif %}
+    <span class="page-info">{{ pagination.page }} / {{ pagination.pages }}</span>
+    {% if pagination.has_next %}
+    <a href="{{ url_for('community.my_favorites', page=pagination.next_num) }}" class="page-btn">下一页</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+<style>
+.fav-page { max-width: 700px; margin: 0 auto; padding: 30px 20px 80px; }
+.fav-page h1 { font-size: 24px; font-weight: 700; margin-bottom: 24px; }
+.post-grid { display: flex; flex-direction: column; gap: 12px; }
+.post-card {
+  background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px;
+  padding: 16px; cursor: pointer; transition: all 0.2s;
+}
+.post-card:hover { border-color: var(--primary-color); }
+.post-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.post-author { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-subtle); }
+.avatar-sm { width: 24px; height: 24px; border-radius: 50%; background: var(--primary-color); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+.post-time { font-size: 12px; color: var(--text-subtle); }
+.post-title { font-size: 16px; font-weight: 700; margin: 0 0 6px; }
+.post-preview { font-size: 13px; color: var(--text-subtle); line-height: 1.5; margin: 0 0 10px; }
+.post-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.tag-badge { padding: 2px 10px; border-radius: 20px; background: var(--bg-color); color: var(--text-subtle); font-size: 11px; }
+.post-stats { font-size: 12px; color: var(--text-subtle); }
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text-subtle); }
+.btn-outline { display: inline-block; margin-top: 12px; padding: 10px 20px; border: 1px solid var(--border-color); border-radius: 10px; color: var(--text-color); text-decoration: none; font-size: 13px; }
+.btn-outline:hover { border-color: var(--primary-color); color: var(--primary-color); }
+.pagination { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 30px 0; }
+.page-btn { padding: 8px 16px; border: 1px solid var(--border-color); border-radius: 8px; text-decoration: none; font-size: 13px; color: var(--text-color); }
+.page-btn:hover { border-color: var(--primary-color); color: var(--primary-color); }
+.page-info { font-size: 13px; color: var(--text-subtle); }
+</style>
+{% endblock %}

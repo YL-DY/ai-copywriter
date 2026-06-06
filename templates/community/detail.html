@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }} - InkFlow{% endblock %}
+{% block content %}
+<div class="detail-page">
+  <div class="detail-header">
+    <div class="detail-author">
+      <a href="{{ url_for('community.user_page', user_id=author.id) }}" class="author-link">
+        <div class="avatar-md">{{ author.nickname[:1] if author.nickname else author.username[:1] }}</div>
+        <div class="author-info">
+          <span class="author-name">{{ author.nickname or author.username }}</span>
+          <span class="author-bio">查看作者主页 →</span>
+        </div>
+      </a>
+    </div>
+    <span class="detail-time">{{ post.created_at.strftime('%Y年%m月%d日 %H:%M') }}</span>
+  </div>
+
+  <h1 class="detail-title">{{ post.title }}</h1>
+
+  <div class="detail-content">
+    {% for paragraph in post.content.split('\n\n') %}
+    <p>{{ paragraph | replace('\n', '<br>') | safe }}</p>
+    {% endfor %}
+  </div>
+
+  {% if tags %}
+  <div class="detail-tags">
+    {% for t in tags %}
+    <a href="{{ url_for('community.search', tag=t) }}" class="tag-badge">{{ t }}</a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="detail-actions">
+    {% if is_logged_in %}
+    <button class="action-btn {% if user_liked %}active{% endif %}" onclick="toggleLike({{ post.id }})" id="like-btn">
+      <span id="like-icon">{{ '❤️' if user_liked else '🤍' }}</span>
+      <span id="like-count">{{ post.like_count }}</span>
+    </button>
+    <button class="action-btn {% if user_faved %}active{% endif %}" onclick="toggleFav({{ post.id }})" id="fav-btn">
+      <span id="fav-icon">{{ '📌' if user_faved else '📌' }}</span>
+      <span id="fav-count">{{ post.fav_count }}</span>
+    </button>
+    <button class="action-btn" onclick="sharePost({{ post.id }})">
+      <span>🔗</span> <span>分享</span>
+    </button>
+    {% else %}
+    <a href="{{ url_for('auth.login') }}?next={{ url_for('community.post_detail', post_id=post.id) }}" class="action-btn">
+      🤍 {{ post.like_count }}
+    </a>
+    <a href="{{ url_for('auth.login') }}?next={{ url_for('community.post_detail', post_id=post.id) }}" class="action-btn">
+      📌 {{ post.fav_count }}
+    </a>
+    {% endif %}
+    <span class="action-btn static">👁️ {{ post.view_count }}</span>
+  </div>
+
+  <div class="detail-back">
+    <a href="{{ url_for('community.index') }}">← 返回社区</a>
+  </div>
+</div>
+
+<script>
+async function toggleLike(postId) {
+  const res = await fetch('/community/api/like/' + postId, { method: 'POST' });
+  const data = await res.json();
+  if (data.ok) {
+    document.getElementById('like-icon').textContent = data.liked ? '❤️' : '🤍';
+    document.getElementById('like-count').textContent = data.count;
+    document.getElementById('like-btn').classList.toggle('active', data.liked);
+  }
+}
+
+async function toggleFav(postId) {
+  const res = await fetch('/community/api/fav/' + postId, { method: 'POST' });
+  const data = await res.json();
+  if (data.ok) {
+    document.getElementById('fav-icon').textContent = data.faved ? '📌' : '📌';
+    document.getElementById('fav-count').textContent = data.count;
+    document.getElementById('fav-btn').classList.toggle('active', data.faved);
+  }
+}
+
+async function sharePost(postId) {
+  const shareUrl = window.location.origin + '/community/share/' + postId;
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: document.title, url: shareUrl });
+      fetch('/community/api/share/' + postId, { method: 'POST' });
+    } catch(e) {}
+  } else {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      alert('链接已复制，快去分享吧！');
+      fetch('/community/api/share/' + postId, { method: 'POST' });
+    } catch(e) {
+      prompt('复制链接分享：', shareUrl);
+    }
+  }
+}
+</script>
+
+<style>
+.detail-page { max-width: 700px; margin: 0 auto; padding: 30px 20px 80px; }
+.detail-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.author-link { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+.avatar-md {
+  width: 36px; height: 36px; border-radius: 50%; background: var(--primary-color);
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700;
+}
+.author-info { display: flex; flex-direction: column; }
+.author-name { font-size: 14px; font-weight: 600; color: var(--text-color); }
+.author-bio { font-size: 12px; color: var(--text-subtle); }
+.detail-time { font-size: 12px; color: var(--text-subtle); }
+.detail-title { font-size: 26px; font-weight: 700; line-height: 1.3; margin: 0 0 24px; }
+.detail-content { font-size: 15px; line-height: 1.8; color: var(--text-color); }
+.detail-content p { margin: 0 0 1.2em; }
+.detail-tags { display: flex; gap: 6px; flex-wrap: wrap; margin: 24px 0; }
+.tag-badge {
+  display: inline-block; padding: 4px 12px; border-radius: 20px;
+  background: var(--bg-color); color: var(--text-subtle); font-size: 12px;
+  text-decoration: none;
+}
+.detail-actions { display: flex; gap: 12px; margin: 32px 0; padding: 16px 0; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); }
+.action-btn {
+  display: flex; align-items: center; gap: 4px; padding: 8px 16px;
+  border: 1px solid var(--border-color); border-radius: 24px;
+  background: transparent; color: var(--text-color); font-size: 13px;
+  text-decoration: none; cursor: pointer; transition: all 0.2s;
+}
+.action-btn:hover, .action-btn.active { border-color: var(--primary-color); color: var(--primary-color); }
+.action-btn.static { border-color: transparent; cursor: default; }
+.detail-back { margin-top: 24px; }
+.detail-back a { color: var(--text-subtle); text-decoration: none; font-size: 13px; }
+.detail-back a:hover { color: var(--primary-color); }
+</style>
+{% endblock %}

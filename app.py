@@ -7,8 +7,9 @@ from datetime import date, timedelta, datetime as _datetime
 import zipfile
 import io
 
-from models import db, User, History
+from models import db, User, History, Post, Like, Favorite
 from auth.routes import auth_bp
+from community.routes import community_bp
 
 # 文学体系
 from literary import (
@@ -42,6 +43,7 @@ def load_user(user_id):
 
 
 app.register_blueprint(auth_bp)
+app.register_blueprint(community_bp)
 
 # ===== 首次请求时创建数据库表 =====
 _db_initialized = False
@@ -92,6 +94,17 @@ def ensure_db():
                     db.session.execute(_text("ALTER TABLE users ADD COLUMN avatar_url VARCHAR(500) DEFAULT ''"))
                 if "nickname" not in u_cols:
                     db.session.execute(_text("ALTER TABLE users ADD COLUMN nickname VARCHAR(80) DEFAULT ''"))
+        except Exception:
+            db.session.rollback()
+        # 社区表兼容
+        try:
+            from sqlalchemy import inspect as _ins_p
+            ps = _ins_p(db.engine)
+            all_tables = ps.get_table_names()
+            ns = {"db": db}
+            exec("from models import Post, Like, Favorite", ns)
+            # 用 db.create_all() 对于新表会自动创建
+            db.create_all()
         except Exception:
             db.session.rollback()
         _db_initialized = True

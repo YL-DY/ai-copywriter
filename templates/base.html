@@ -646,10 +646,11 @@
                                 <span class="token-badge">⚡ {{ user_token_remaining }}{% if not current_user.is_premium %}/月 · 今日 {{ daily_remaining }}/10{% endif %}</span>
                                 <span class="user-info{% if request.endpoint == 'profile' %} user-visible{% endif %}">{{ current_user.username }}</span>
                                 <a href="{{ url_for('daily') }}" class="nav-link">摘录</a>
-                <a href="{{ url_for('worlds') }}" class="nav-link">世界</a>
-                <a href="{{ url_for('history') }}" class="nav-link">历史</a>
-                <a href="{{ url_for('favorites') }}" class="nav-link">收藏</a>
-                <a href="{{ url_for('profile') }}" class="nav-link">个人</a>
+                                <a href="{{ url_for('worlds') }}" class="nav-link">世界</a>
+                                <a href="{{ url_for('community.index') }}" class="nav-link">社区</a>
+                                <a href="{{ url_for('history') }}" class="nav-link">历史</a>
+                                <a href="{{ url_for('favorites') }}" class="nav-link">收藏</a>
+                                <a href="{{ url_for('profile') }}" class="nav-link">个人</a>
                 <button class="theme-toggle" id="themeToggle" title="切换主题">&#127769;</button>
             </div>
         </nav>
@@ -659,9 +660,13 @@
             <span class="bottom-nav-icon">&#9998;</span>
             <span class="bottom-nav-label">生成</span>
         </a>
-        <a href="{{ url_for('daily') }}" class="bottom-nav-item {% if request.endpoint == 'daily' %}active{% endif %}" data-tab="daily">
+                <a href="{{ url_for('daily') }}" class="bottom-nav-item {% if request.endpoint == 'daily' %}active{% endif %}" data-tab="daily">
             <span class="bottom-nav-icon">&#128214;</span>
             <span class="bottom-nav-label">摘录</span>
+        </a>
+        <a href="{{ url_for('community.index') }}" class="bottom-nav-item {% if request.endpoint and request.endpoint.startswith('community') %}active{% endif %}" data-tab="community">
+            <span class="bottom-nav-icon">&#9993;</span>
+            <span class="bottom-nav-label">社区</span>
         </a>
         <a href="{{ url_for('history') }}" class="bottom-nav-item {% if request.endpoint == 'history' %}active{% endif %}" data-tab="history">
             <span class="bottom-nav-icon">&#128196;</span>
@@ -675,6 +680,16 @@
             <span class="bottom-nav-icon">&#128100;</span>
             <span class="bottom-nav-label">个人</span>
         </a>
+    </nav>
+    {% else %}
+    <nav class="navbar">
+        <a href="{{ url_for('auth.login') }}" class="brand">Inkflow</a>
+        <div class="nav-links">
+            <a href="{{ url_for('community.index') }}" class="nav-link">社区</a>
+            <a href="{{ url_for('auth.login') }}" class="nav-link">登录</a>
+            <a href="{{ url_for('auth.register') }}" class="nav-link">注册</a>
+            <button class="theme-toggle" id="themeToggle" title="切换主题">&#127769;</button>
+        </div>
     </nav>
     {% endif %}
 

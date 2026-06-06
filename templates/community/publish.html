@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}发布作品 - InkFlow{% endblock %}
+{% block content %}
+<div class="publish-page">
+  <h1>发布作品</h1>
+  <form method="POST" class="publish-form">
+    <label for="title">标题</label>
+    <input type="text" name="title" id="title" placeholder="给你的作品起个名字" maxlength="200" required>
+
+    <label for="content">正文</label>
+    <textarea name="content" id="content" placeholder="写下你的文字..." rows="12" maxlength="20000" required></textarea>
+
+    <label>标签（可多选）</label>
+    <div class="tag-selector">
+      {% for t in all_tags %}
+      <label class="tag-option">
+        <input type="checkbox" name="tag" value="{{ t }}" class="tag-checkbox" onchange="updateTags()">
+        <span>{{ t }}</span>
+      </label>
+      {% endfor %}
+    </div>
+    <input type="hidden" name="tags" id="tags-input" value="[]">
+
+    <button type="submit" class="btn btn-primary btn-submit">发布作品</button>
+  </form>
+</div>
+
+<script>
+function updateTags() {
+  const checks = document.querySelectorAll('.tag-checkbox:checked');
+  const tags = Array.from(checks).map(c => c.value);
+  document.getElementById('tags-input').value = JSON.stringify(tags);
+}
+</script>
+
+<style>
+.publish-page { max-width: 700px; margin: 0 auto; padding: 30px 20px 80px; }
+.publish-page h1 { font-size: 24px; font-weight: 700; margin-bottom: 24px; }
+.publish-form label { display: block; font-size: 14px; font-weight: 600; margin: 16px 0 6px; color: var(--text-color); }
+.publish-form input[type="text"],
+.publish-form textarea {
+  width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 10px;
+  background: var(--card-bg); color: var(--text-color); font-size: 14px;
+  outline: none; transition: border-color 0.2s; box-sizing: border-box; font-family: inherit;
+}
+.publish-form input[type="text"]:focus,
+.publish-form textarea:focus { border-color: var(--primary-color); }
+.publish-form textarea { resize: vertical; min-height: 200px; }
+.tag-selector { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 16px; }
+.tag-option { cursor: pointer; }
+.tag-option input { display: none; }
+.tag-option span {
+  display: inline-block; padding: 6px 14px; border: 1px solid var(--border-color);
+  border-radius: 20px; font-size: 13px; color: var(--text-subtle);
+  transition: all 0.2s; cursor: pointer;
+}
+.tag-option input:checked + span {
+  background: var(--primary-color); color: #fff; border-color: var(--primary-color);
+}
+.btn-submit { width: 100%; padding: 14px; font-size: 15px; margin-top: 12px; }
+</style>
+{% endblock %}
