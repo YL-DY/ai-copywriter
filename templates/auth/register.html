@@ -18,14 +18,6 @@
             <button type="submit" class="btn btn-primary" style="width:100%;">注册</button>
         </form>
 
-        <div class="divider">
-            <span>或</span>
-        </div>
-
-        <a href="{{ url_for('auth.wechat_login') }}" class="btn btn-wechat">
-            <span class="wechat-icon">&#xe60b;</span> 微信扫码登录
-        </a>
-
         <div class="auth-link">
             已有账号？<a href="{{ url_for('auth.login') }}">去登录</a>
         </div>
