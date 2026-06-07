@@ -10,7 +10,6 @@ from flask_login import login_required, current_user
 from sqlalchemy import func
 
 from models import db, User, Post, Like, Favorite
-from auth.routes import check_sensitive
 
 community_bp = Blueprint("community", __name__, url_prefix="/community")
 
@@ -28,6 +27,12 @@ CONTENT_BLOCK_KEYWORDS = [
     "傻逼", "操你妈", "去死", "废物", "垃圾",
 ]
 
+SENSITIVE_KEYWORDS = [
+    "习近平", "李克强", "天安门", "法轮功", "六四",
+    "共产党", "国民党", "台独", "藏独", "疆独",
+    "敏感词", "政治敏感",
+]
+
 
 def check_content_blocked(text):
     if not text:
@@ -35,6 +40,16 @@ def check_content_blocked(text):
     t = text.lower()
     for word in CONTENT_BLOCK_KEYWORDS:
         if word in t or word in text:
+            return False, word
+    return True, None
+
+
+def check_sensitive(text):
+    """检测敏感词，返回 (是否通过, 命中的敏感词)"""
+    if not text:
+        return True, None
+    for word in SENSITIVE_KEYWORDS:
+        if word in text:
             return False, word
     return True, None
 
