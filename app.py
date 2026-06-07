@@ -251,7 +251,7 @@ def home():
             current_user.daily_count = 0
             current_user.daily_date = today
 
-        if not current_user.is_premium and current_user.daily_count >= 10:
+        if current_user.daily_count >= 10:
             flash("今日免费次数已用完（每日 10 次），明天再来吧", "error")
             return render_template("home.html", result_raw="", result_title="", result_emoji="", result_content="", result_tags=[],
                                    reuse_product=reuse_product, reuse_style=reuse_style,
