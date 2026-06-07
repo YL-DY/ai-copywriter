@@ -44,6 +44,11 @@
     <button class="action-btn" onclick="sharePost({{ post.id }})">
       <span>🔗</span> <span>分享</span>
     </button>
+    {% if is_author %}
+    <button class="action-btn action-btn-danger" onclick="deletePost({{ post.id }})">
+      <span>🗑️</span> <span>删除</span>
+    </button>
+    {% endif %}
     {% else %}
     <a href="{{ url_for('auth.login') }}?next={{ url_for('community.post_detail', post_id=post.id) }}" class="action-btn">
       🤍 {{ post.like_count }}
@@ -98,6 +103,16 @@ async function sharePost(postId) {
     }
   }
 }
+
+async function deletePost(postId) {
+  if (!confirm('确定要删除这篇文章吗？此操作不可撤销。')) return;
+  const res = await fetch('/community/delete/' + postId, { method: 'POST' });
+  if (res.redirected) {
+    window.location.href = res.url;
+  } else {
+    window.location.href = '/community';
+  }
+}
 </script>
 
 <style>
@@ -131,6 +146,8 @@ async function sharePost(postId) {
 }
 .action-btn:hover, .action-btn.active { border-color: var(--primary-color); color: var(--primary-color); }
 .action-btn.static { border-color: transparent; cursor: default; }
+.action-btn-danger { border-color: #ef4444; color: #ef4444; }
+.action-btn-danger:hover { background: #fef2f2; border-color: #dc2626; color: #dc2626; }
 .detail-back { margin-top: 24px; }
 .detail-back a { color: var(--text-subtle); text-decoration: none; font-size: 13px; }
 .detail-back a:hover { color: var(--primary-color); }

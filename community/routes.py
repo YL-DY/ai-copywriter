@@ -268,6 +268,27 @@ def api_share(post_id):
     return {"ok": True, "count": post.share_count}
 
 
+@community_bp.route("/delete/<int:post_id>", methods=["POST"])
+@login_required
+def delete_post(post_id):
+    """删除自己的社区作品（级联删除关联的点赞和收藏记录）"""
+    post = Post.query.get_or_404(post_id)
+    if post.user_id != current_user.id:
+        flash("无权限删除", "error")
+        return redirect(url_for("community.index"))
+
+    # 删除关联的点赞记录
+    Like.query.filter_by(post_id=post_id).delete()
+    # 删除关联的收藏记录
+    Favorite.query.filter_by(post_id=post_id).delete()
+    # 删除文章本身
+    db.session.delete(post)
+    db.session.commit()
+
+    flash("文章已删除", "success")
+    return redirect(url_for("community.index"))
+
+
 @community_bp.route("/share/<int:post_id>")
 def share_card(post_id):
     post = Post.query.get_or_404(post_id)

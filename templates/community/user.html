@@ -34,6 +34,9 @@
       <div class="post-stats">
         <span>❤️ {{ post.like_count }}</span>
         <span class="post-time">{{ post.created_at }}</span>
+        {% if is_self %}
+        <button class="post-delete-btn" onclick="event.stopPropagation(); if(confirm('确定要删除这篇文章吗？此操作不可撤销。')){ fetch('/community/delete/'+{{ post.id }},{method:'POST'}).then(r=>{if(r.redirected)window.location.href=r.url;else window.location.href='/community';}); }" title="删除文章">🗑️</button>
+        {% endif %}
       </div>
     </div>
     {% else %}
@@ -79,8 +82,14 @@
 .post-preview { font-size: 13px; color: var(--text-subtle); line-height: 1.5; margin: 0 0 10px; }
 .post-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
 .tag-badge { padding: 2px 10px; border-radius: 20px; background: var(--bg-color); color: var(--text-subtle); font-size: 11px; }
-.post-stats { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-subtle); }
+.post-stats { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-subtle); }
 .post-time { font-size: 11px; }
+.post-delete-btn {
+  background: none; border: none; cursor: pointer; font-size: 14px;
+  padding: 2px 6px; border-radius: 4px; opacity: 0.5; transition: all 0.2s;
+  line-height: 1;
+}
+.post-delete-btn:hover { opacity: 1; background: #fef2f2; }
 .empty-state { text-align: center; padding: 40px; color: var(--text-subtle); }
 .pagination { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 30px 0; }
 .page-btn { padding: 8px 16px; border: 1px solid var(--border-color); border-radius: 8px; text-decoration: none; font-size: 13px; color: var(--text-color); }

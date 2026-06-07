@@ -21,9 +21,15 @@ from literary import (
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "xiaohongshu-secret-key-2024")
 # Railway 部署用 PostgreSQL，本地开发用 SQLite
-database_url = os.environ.get("DATABASE_URL", "sqlite:///xiaohongshu.db")
-if database_url and database_url.startswith("postgres://"):
-    database_url = database_url.replace("postgres://", "postgresql://", 1)
+database_url = os.environ.get("DATABASE_URL", "")
+if database_url:
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+else:
+    # 使用基于 instance_path 的绝对路径，避免多数据库文件问题
+    db_dir = os.path.join(app.instance_path)
+    os.makedirs(db_dir, exist_ok=True)
+    database_url = f"sqlite:///{os.path.join(db_dir, 'xiaohongshu.db').replace(os.sep, '/')}"
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 
 db.init_app(app)
@@ -45,69 +51,50 @@ def load_user(user_id):
 app.register_blueprint(auth_bp)
 app.register_blueprint(community_bp)
 
-# ===== 首次请求时创建数据库表 =====
-_db_initialized = False
+# ===== 数据库初始化（应用启动时执行一次） =====
+def _run_migration():
+    """执行数据库迁移：补充缺失列（安全、幂等）"""
+    try:
+        from sqlalchemy import inspect, text as _text
+        ins = inspect(db.engine)
 
-@app.before_request
-def ensure_db():
-    global _db_initialized
-    if not _db_initialized:
-        os.makedirs("instance", exist_ok=True)
-        db.create_all()
-        # 检查并补充缺失列（仅首次）
-        try:
-            from sqlalchemy import inspect, text as _text
-            ins = inspect(db.engine)
-            columns = [c["name"] for c in ins.get_columns("users")]
+        # 迁移 users 表
+        if "users" in ins.get_table_names():
+            cols = {c["name"] for c in ins.get_columns("users")}
             with db.session.begin():
-                if "daily_count" not in columns:
-                    db.session.execute(_text("ALTER TABLE users ADD COLUMN daily_count INTEGER DEFAULT 0"))
-                if "daily_date" not in columns:
-                    db.session.execute(_text("ALTER TABLE users ADD COLUMN daily_date VARCHAR(10) DEFAULT ''"))
-        except Exception:
-            db.session.rollback()
-        try:
-            from sqlalchemy import inspect as _inspect2
-            ins2 = _inspect2(db.engine)
-            h_cols = [c["name"] for c in ins2.get_columns("histories")]
+                for col_name, col_def in [
+                    ("daily_count", "INTEGER DEFAULT 0"),
+                    ("daily_date", "VARCHAR(10) DEFAULT ''"),
+                    ("api_key", "VARCHAR(200) DEFAULT ''"),
+                    ("backup_api_key", "VARCHAR(200) DEFAULT ''"),
+                    ("wechat_openid", "VARCHAR(64) DEFAULT NULL"),
+                    ("wechat_unionid", "VARCHAR(64) DEFAULT NULL"),
+                    ("avatar_url", "VARCHAR(500) DEFAULT ''"),
+                    ("nickname", "VARCHAR(80) DEFAULT ''"),
+                ]:
+                    if col_name not in cols:
+                        db.session.execute(_text(
+                            f"ALTER TABLE users ADD COLUMN {col_name} {col_def}"
+                        ))
+
+        # 迁移 histories 表
+        if "histories" in ins.get_table_names():
+            h_cols = {c["name"] for c in ins.get_columns("histories")}
             with db.session.begin():
                 if "is_favorited" not in h_cols:
                     db.session.execute(_text("ALTER TABLE histories ADD COLUMN is_favorited BOOLEAN DEFAULT 0"))
                 if "share_token" not in h_cols:
                     db.session.execute(_text("ALTER TABLE histories ADD COLUMN share_token VARCHAR(64) DEFAULT ''"))
-        except Exception:
-            db.session.rollback()
-        try:
-            from sqlalchemy import inspect as _inspect3
-            ins3 = _inspect3(db.engine)
-            u_cols = [c["name"] for c in ins3.get_columns("users")]
-            with db.session.begin():
-                if "api_key" not in u_cols:
-                    db.session.execute(_text("ALTER TABLE users ADD COLUMN api_key VARCHAR(200) DEFAULT ''"))
-                if "backup_api_key" not in u_cols:
-                    db.session.execute(_text("ALTER TABLE users ADD COLUMN backup_api_key VARCHAR(200) DEFAULT ''"))
-                if "wechat_openid" not in u_cols:
-                    db.session.execute(_text("ALTER TABLE users ADD COLUMN wechat_openid VARCHAR(64) DEFAULT NULL"))
-                if "wechat_unionid" not in u_cols:
-                    db.session.execute(_text("ALTER TABLE users ADD COLUMN wechat_unionid VARCHAR(64) DEFAULT NULL"))
-                if "avatar_url" not in u_cols:
-                    db.session.execute(_text("ALTER TABLE users ADD COLUMN avatar_url VARCHAR(500) DEFAULT ''"))
-                if "nickname" not in u_cols:
-                    db.session.execute(_text("ALTER TABLE users ADD COLUMN nickname VARCHAR(80) DEFAULT ''"))
-        except Exception:
-            db.session.rollback()
-        # 社区表兼容
-        try:
-            from sqlalchemy import inspect as _ins_p
-            ps = _ins_p(db.engine)
-            all_tables = ps.get_table_names()
-            ns = {"db": db}
-            exec("from models import Post, Like, Favorite", ns)
-            # 用 db.create_all() 对于新表会自动创建
-            db.create_all()
-        except Exception:
-            db.session.rollback()
-        _db_initialized = True
+
+    except Exception:
+        db.session.rollback()
+
+
+# 在应用上下文中执行初始化
+with app.app_context():
+    os.makedirs("instance", exist_ok=True)
+    db.create_all()
+    _run_migration()
 
 DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "sk-929e447310024be5bec2a1587f2c414f")
 
