@@ -20,7 +20,7 @@
                 {% endif %}
             </div>
             <div style="font-size:12px;color:#475569;margin-top:6px;">
-                {{ current_user.created_at.strftime('%Y-%m-%d') }} 加入
+                {{ current_user.created_at | localtime("%Y-%m-%d") }} 加入
             </div>
         </div>
 
@@ -28,42 +28,18 @@
         <div class="stat-grid">
             <div class="stat-card">
                 <div class="stat-value">{{ total_count }}</div>
-                <div class="stat-label">总生成数</div>
+                <div class="stat-label">累计创作</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value">{{ fav_count }}</div>
                 <div class="stat-label">⭐ 收藏数</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-value">{{ total_tokens_used }}</div>
-                <div class="stat-label">总消耗 Tokens</div>
-            </div>
         </div>
 
-        <!-- Token 详情 -->
-        <div style="background:rgba(11,15,26,0.35);border:1px solid rgba(51,65,85,0.2);border-radius:12px;padding:20px;">
-            <div style="font-size:13px;color:#64748b;font-weight:500;margin-bottom:16px;">📊 用量详情</div>
-            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(51,65,85,0.1);">
-                <span style="color:#94a3b8;font-size:13px;">剩余可用 Tokens</span>
-                <span style="color:#f1f5f9;font-weight:600;">{% if current_user.is_premium %}无限制{% else %}{{ user_token_remaining }}{% endif %}</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(51,65,85,0.1);">
-                <span style="color:#94a3b8;font-size:13px;">每日已用</span>
-                <span style="color:#f1f5f9;font-weight:600;">{{ daily_remaining }}/10</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;padding:8px 0;">
-                <span style="color:#94a3b8;font-size:13px;">总消耗</span>
-                <span style="color:#f1f5f9;font-weight:600;">{{ total_tokens_used }}</span>
-            </div>
-        </div>
-
-        <!-- 图表: 近7天趋势 -->
+        <!-- 图表: 创作活跃度 -->
         <div style="margin-top:24px;background:rgba(11,15,26,0.35);border:1px solid rgba(51,65,85,0.2);border-radius:12px;padding:20px;">
-            <div style="font-size:13px;color:#64748b;font-weight:500;margin-bottom:16px;">📈 近7天用量趋势</div>
+            <div style="font-size:13px;color:#64748b;font-weight:500;margin-bottom:16px;">📈 创作活跃度</div>
             <div style="display:flex;gap:16px;flex-wrap:wrap;">
-                <div style="flex:1;min-width:260px;">
-                    <canvas id="tokenChart" height="180"></canvas>
-                </div>
                 <div style="flex:1;min-width:260px;">
                     <canvas id="countChart" height="180"></canvas>
                 </div>
@@ -72,7 +48,7 @@
 
                 <!-- 快捷入口 -->
         <div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap;">
-            <a href="{{ url_for('home') }}" class="btn btn-primary" style="flex:1;text-decoration:none;justify-content:center;">✏️ 生成文案</a>
+            <a href="{{ url_for('home') }}" class="btn btn-primary" style="flex:1;text-decoration:none;justify-content:center;">✏️ 开始创作</a>
             <a href="{{ url_for('history') }}" class="btn btn-success" style="flex:1;text-decoration:none;justify-content:center;">📋 历史记录</a>
         </div>
         <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
@@ -115,32 +91,13 @@
             }
         };
 
-        // Token 趋势
-        new Chart(document.getElementById('tokenChart'), {
-            type: 'line',
-            data: {
-                labels: data.labels,
-                datasets: [{
-                    label: 'Token 消耗',
-                    data: data.token_data,
-                    borderColor: '#38bdf8',
-                    backgroundColor: 'rgba(56,189,248,0.1)',
-                    fill: true,
-                    tension: 0.3,
-                    pointBackgroundColor: '#38bdf8',
-                    pointRadius: 3
-                }]
-            },
-            options: commonOpts
-        });
-
-        // 生成次数趋势
+        // 创作活跃度
         new Chart(document.getElementById('countChart'), {
             type: 'bar',
             data: {
                 labels: data.labels,
                 datasets: [{
-                    label: '生成次数',
+                    label: '创作次数',
                     data: data.count_data,
                     backgroundColor: 'rgba(167,139,250,0.5)',
                     borderColor: '#a78bfa',

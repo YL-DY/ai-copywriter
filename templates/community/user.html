@@ -33,7 +33,7 @@
       {% endif %}
       <div class="post-stats">
         <span>❤️ {{ post.like_count }}</span>
-        <span class="post-time">{{ post.created_at }}</span>
+        <span class="post-time">{{ post.created_at | localtime("%m-%d %H:%M") }}</span>
         {% if is_self %}
         <button class="post-delete-btn" onclick="event.stopPropagation(); if(confirm('确定要删除这篇文章吗？此操作不可撤销。')){ fetch('/community/delete/'+{{ post.id }},{method:'POST'}).then(r=>{if(r.redirected)window.location.href=r.url;else window.location.href='/community';}); }" title="删除文章">🗑️</button>
         {% endif %}

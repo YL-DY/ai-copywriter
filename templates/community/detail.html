@@ -12,7 +12,7 @@
         </div>
       </a>
     </div>
-    <span class="detail-time">{{ post.created_at.strftime('%Y年%m月%d日 %H:%M') }}</span>
+    <span class="detail-time">{{ post.created_at | localtime }}</span>
   </div>
 
   <h1 class="detail-title">{{ post.title }}</h1>

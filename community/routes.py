@@ -46,6 +46,12 @@ def format_post(p):
             tags = _json.loads(p.tags)
         except Exception:
             tags = [p.tags]
+    # 将 UTC 时间转换为北京时间 (UTC+8)
+    created = p.created_at
+    if created is not None:
+        if created.tzinfo is None:
+            created = created.replace(tzinfo=timezone.utc)
+        created = created.astimezone(timezone(timedelta(hours=8)))
     return {
         "id": p.id,
         "title": p.title,
@@ -53,7 +59,7 @@ def format_post(p):
         "author_id": p.user_id,
         "author_name": p.author_nick,
         "author_avatar": p.author.avatar_url or "",
-        "created_at": p.created_at.strftime("%m-%d %H:%M"),
+        "created_at": created.strftime("%m-%d %H:%M") if created else "",
         "tags": tags,
         "like_count": p.like_count,
         "fav_count": p.fav_count,

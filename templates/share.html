@@ -204,7 +204,7 @@
         <div class="footer-section">
             <span class="footer-brand">InkFlow 灵笔</span>
             <span class="footer-tagline">把说不出口的话写出来</span>
-            <div class="footer-time">{{ item.created_at.strftime('%Y年%m月%d日') }}</div>
+            <div class="footer-time">{{ item.created_at | localtime("%Y年%m月%d日") }}</div>
         </div>
     </div>
     <div class="actions">

@@ -16,7 +16,7 @@
                 <!-- Header -->
                 <div style="padding:14px 16px 10px;border-bottom:1px solid rgba(51,65,85,0.1);">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                        <span style="font-size:11px;color:#475569;">{{ item.created_at.strftime('%m-%d %H:%M') }}</span>
+                        <span style="font-size:11px;color:#475569;">{{ item.created_at | localtime("%m-%d %H:%M") }}</span>
                         <span class="result-style-tag" style="font-size:11px;padding:2px 10px;"> {{ item.style }}</span>
                     </div>
                     <div style="font-size:15px;font-weight:600;color:#f1f5f9;">{{ item.product }}</div>
@@ -27,7 +27,6 @@
                 </div>
                 <!-- Footer -->
                 <div style="padding:10px 16px;border-top:1px solid rgba(51,65,85,0.1);display:flex;gap:6px;flex-wrap:wrap;">
-                    <span style="font-size:11px;color:#475569;">⚡ {{ item.tokens_used }} tokens</span>
                     <form method="POST" action="{{ url_for('toggle_favorite', history_id=item.id) }}" style="display:inline;" class="fav-form-sm">
                         <button type="submit" class="btn-sm {{ 'btn-success' if item.is_favorited else 'btn-outline' }}" style="font-size:10px;padding:3px 8px;">
                             {% if item.is_favorited %}⭐{% else %}☆{% endif %}

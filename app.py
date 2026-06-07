@@ -1,4 +1,5 @@
 ﻿from flask import Flask, render_template, request, redirect, url_for, flash, send_file, jsonify
+from datetime import timezone as _tz, timedelta as _td
 from flask_login import LoginManager, login_required, current_user
 import requests
 import hashlib
@@ -166,10 +167,6 @@ REWRITE_INSTRUCTIONS = {
 
 
 
-def estimate_tokens(text):
-    return len(text)
-
-
 def parse_result(raw):
     """解析模型返回的 JSON，解析失败则退回纯文本"""
     import json as _json
@@ -230,7 +227,6 @@ def home():
     result_emoji = ""
     result_content = ""
     result_tags = []
-    result_tokens = 0
     last_history_id = 0
     reuse_product = ""
     reuse_style = ""
@@ -256,12 +252,10 @@ def home():
         if not current_user.is_premium and current_user.daily_count >= 10:
             flash("今日免费次数已用完（每日 10 次），明天再来吧", "error")
             return render_template("home.html", result_raw="", result_title="", result_emoji="", result_content="", result_tags=[],
-                                   result_tokens=0,
                                    reuse_product=reuse_product, reuse_style=reuse_style,
                                    reuse_custom_prompt=reuse_custom_prompt, reuse_word_count=reuse_word_count)
 
         system_msg, user_msg = generate_messages(product, emotion_id, custom_prompt, word_count)
-        prompt_tokens = estimate_tokens(system_msg + user_msg)
 
         url = "https://api.deepseek.com/chat/completions"
         headers = {
@@ -283,13 +277,10 @@ def home():
             if "choices" not in resp_data:
                 flash(f"API 调用失败：{resp_data}", "error")
                 return render_template("home.html", result_raw="", result_title="", result_emoji="", result_content="", result_tags=[],
-                                       result_tokens=0,
                                        reuse_product=reuse_product, reuse_style=reuse_style,
                                        reuse_custom_prompt=reuse_custom_prompt, reuse_word_count=reuse_word_count)
 
             result_raw = resp_data["choices"][0]["message"]["content"]
-            output_tokens = estimate_tokens(result_raw)
-            result_tokens = prompt_tokens + output_tokens
 
             # 解析 JSON 结构化结果
             result_title, result_emoji, result_content, result_tags = parse_result(result_raw)
@@ -300,16 +291,15 @@ def home():
                 style=emotion_id,
                 prompt=system_msg + "\n\n" + user_msg,
                 result=result_raw,
-                tokens_used=result_tokens,
+                tokens_used=0,
             )
             db.session.add(history)
             db.session.flush()  # 获取 id 而不提交
             last_history_id = history.id
-            current_user.total_tokens += result_tokens
             current_user.daily_count += 1
             db.session.commit()
 
-            flash(f"生成成功！消耗约 {result_tokens} tokens", "success")
+            flash("生成成功！", "success")
 
         except requests.exceptions.Timeout:
             flash("API 请求超时，请稍后重试", "error")
@@ -322,7 +312,6 @@ def home():
                            result_emoji=result_emoji,
                            result_content=result_content,
                            result_tags=result_tags,
-                           result_tokens=result_tokens,
                            last_history_id=last_history_id,
                            reuse_product=reuse_product,
                            reuse_style=reuse_style,
@@ -338,8 +327,6 @@ def history():
     style_filter = request.args.get("style", "").strip()
     date_from = request.args.get("date_from", "").strip()
     date_to = request.args.get("date_to", "").strip()
-    tokens_min = request.args.get("tokens_min", "")
-    tokens_max = request.args.get("tokens_max", "")
 
     query = History.query.filter_by(user_id=current_user.id)
 
@@ -360,20 +347,6 @@ def history():
         try:
             dt_to = _datetime.strptime(date_to, "%Y-%m-%d") + timedelta(days=1)
             query = query.filter(History.created_at < dt_to)
-        except Exception:
-            pass
-
-    if tokens_min:
-        try:
-            tmin = int(tokens_min)
-            query = query.filter(History.tokens_used >= tmin)
-        except Exception:
-            pass
-
-    if tokens_max:
-        try:
-            tmax = int(tokens_max)
-            query = query.filter(History.tokens_used <= tmax)
         except Exception:
             pass
 
@@ -404,7 +377,7 @@ def history():
 
     return render_template("history.html", pagination=pagination, search=search,
                            style_filter=style_filter, date_from=date_from,
-                           date_to=date_to, tokens_min=tokens_min, tokens_max=tokens_max,
+                           date_to=date_to,
                            style_list=[c['label'] for c in EMOTION_CARDS],
                            parsed_items=parsed_items)
 
@@ -603,11 +576,9 @@ def settings():
 @login_required
 def profile():
     total_count = History.query.filter_by(user_id=current_user.id).count()
-    total_tokens_used = db.session.query(db.func.sum(History.tokens_used))\
-        .filter(History.user_id == current_user.id).scalar() or 0
     fav_count = History.query.filter_by(user_id=current_user.id, is_favorited=True).count()
     return render_template("profile.html", total_count=total_count,
-                           total_tokens_used=total_tokens_used, fav_count=fav_count)
+                           fav_count=fav_count)
 
 
 @app.route("/favorites")
@@ -748,10 +719,9 @@ def export():
 @app.route("/stats-data")
 @login_required
 def stats_data():
-    """返回最近7天的每日 Token 用量和生成次数"""
+    """返回最近7天的每日创作次数"""
     today = date.today()
     labels = []
-    token_data = []
     count_data = []
 
     for i in range(6, -1, -1):
@@ -763,20 +733,16 @@ def stats_data():
         start = _datetime(day.year, day.month, day.day)
         end = start + timedelta(days=1)
 
-        records = History.query.filter(
+        day_count = History.query.filter(
             History.user_id == current_user.id,
             History.created_at >= start,
             History.created_at < end
-        ).all()
+        ).count()
 
-        day_tokens = sum(r.tokens_used for r in records)
-        day_count = len(records)
-        token_data.append(day_tokens)
         count_data.append(day_count)
 
     return jsonify({
         "labels": labels,
-        "token_data": token_data,
         "count_data": count_data
     })
 
@@ -784,22 +750,30 @@ def stats_data():
 @app.context_processor
 def inject_globals():
     if current_user.is_authenticated:
-        remaining = current_user.tokens_remaining
         today = date.today().isoformat()
         if current_user.daily_date != today:
             daily_used = 0
         else:
             daily_used = current_user.daily_count
         daily_remaining = max(0, 10 - daily_used)
-        return dict(user_token_remaining=remaining,
-                    daily_remaining=daily_remaining,
+        return dict(daily_remaining=daily_remaining,
                     emotion_cards=EMOTION_CARDS)
-    return dict(user_token_remaining=0,
-                daily_remaining=10,
+    return dict(daily_remaining=10,
                 emotion_cards=EMOTION_CARDS)
 
 
 import re as _re
+
+@app.template_filter("localtime")
+def localtime_filter(dt, fmt="%Y年%m月%d日 %H:%M"):
+    """将 UTC datetime 转换为北京时间 (UTC+8) 并格式化"""
+    if dt is None:
+        return ""
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=_tz.utc)
+    beijing = dt.astimezone(_tz(_td(hours=8)))
+    return beijing.strftime(fmt)
+
 
 @app.template_filter("highlight_keywords")
 def highlight_keywords(text, keyword):

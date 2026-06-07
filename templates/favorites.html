@@ -12,8 +12,7 @@
                     <div class="history-product">{{ item.product }}</div>
                     <div class="history-meta">
                         <span class="history-style"> {{ item.style }}</span>
-                        <span class="history-date">{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
-                        <span class="history-tokens">⚡ {{ item.tokens_used }} tokens</span>
+                        <span class="history-date">{{ item.created_at | localtime("%Y-%m-%d %H:%M") }}</span>
                     </div>
                     <div class="history-preview">{{ item.result[:120] }}{% if item.result|length > 120 %}...{% endif %}</div>
                 </div>
@@ -32,9 +31,9 @@
         {% else %}
         <div class="empty-state">
             <div class="empty-icon">⭐</div>
-            <div class="empty-text">还没有收藏任何文案</div>
-            <p style="color:#64748b;font-size:14px;margin-bottom:24px;">在历史记录或生成结果中点击 ⭐ 即可收藏</p>
-            <a href="{{ url_for('home') }}" class="btn btn-primary">去生成文案</a>
+            <div class="empty-text">还没有收藏任何作品</div>
+            <p style="color:#64748b;font-size:14px;margin-bottom:24px;">在创作记录或作品详情中点击 ⭐ 即可收藏</p>
+            <a href="{{ url_for('home') }}" class="btn btn-primary">开始创作</a>
         </div>
         {% endif %}
 

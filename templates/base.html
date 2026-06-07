@@ -128,15 +128,6 @@
         }
         .navbar .nav-links a:hover,
         .navbar .nav-link:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
-        .navbar .token-badge {
-            font-size: 11px;
-            color: var(--text-subtle);
-            padding: 3px 10px;
-            border-radius: 6px;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid var(--border-color);
-            white-space: nowrap;
-        }
         .navbar .user-info { color: var(--text-subtle); font-size: 13px; display: none; }
         .navbar .user-info.user-visible { display: inline-block; }
 
@@ -478,7 +469,6 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
-        .history-tokens { font-size: 11px; color: var(--text-subtle); }
         .history-actions { display: flex; gap: 6px; align-items: center; }
 
         .search-form { margin-bottom: 20px; }
@@ -557,7 +547,6 @@
             /* 顶部导航精简：只留 Logo + 主题 */
             .navbar { padding: 0 14px; height: 56px; }
             .navbar .nav-links { gap: 4px; margin-left: auto; }
-            .navbar .token-badge { font-size: 9px; padding: 2px 7px; letter-spacing: 0; white-space: nowrap; max-width: 100px; overflow: hidden; text-overflow: ellipsis; }
             .navbar .user-info { font-size: 11px; }
             .navbar .nav-link { display: none; }
             .navbar .nav-links a { display: none; }
@@ -643,7 +632,6 @@
         <nav class="navbar">
             <a href="{{ url_for('home') }}" class="brand">Inkflow</a>
             <div class="nav-links">
-                                <span class="token-badge">⚡ {{ user_token_remaining }}{% if not current_user.is_premium %}/月 · 今日 {{ daily_remaining }}/10{% endif %}</span>
                                 <span class="user-info{% if request.endpoint == 'profile' %} user-visible{% endif %}">{{ current_user.username }}</span>
                                 <a href="{{ url_for('daily') }}" class="nav-link">摘录</a>
                                 <a href="{{ url_for('worlds') }}" class="nav-link">世界</a>

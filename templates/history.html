@@ -24,7 +24,7 @@
                 </div>
             </div>
             <div class="entry-meta">
-                <time>{{ item.created_at.strftime('%Y年%m月%d日 · %H:%M') }}</time>
+                <time>{{ item.created_at | localtime("%Y年%m月%d日 · %H:%M") }}</time>
             </div>
             <div class="entry-preview">{{ item.preview }}</div>
             <details class="entry-full">
