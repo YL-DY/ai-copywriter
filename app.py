@@ -17,7 +17,7 @@ from literary import (
     generate_short_text, get_daily_pick, get_daily_detail,
     mark_user_read, get_user_reads, WORLDS, WORLD_LABELS,
     WORLD_DESCRIPTIONS, EMOTION_TO_WORLDS,
-    generate_with_style, STYLES, STYLE_LABELS,
+    generate_with_style, STYLES,
 )
 
 app = Flask(__name__)
@@ -129,6 +129,33 @@ EMOTION_CARDS = [
     {"id": "chat", "label": "随便陪我聊聊", "subtitle": "不知道说什么也没关系"},
 ]
 
+# ========== 写作风格指令 ==========
+# 用户选择风格后，在 system prompt 中追加风格指令
+# 情绪（emotion_id）+ 风格（style_id）共同决定最终 Prompt
+
+STYLE_INSTRUCTIONS = {
+    "modern_poetry": "【风格指令：现代诗】\n请用现代诗的形式来写。短句、留白、意象化表达。大量使用换行和自由诗格式。不要解释意象的含义，让画面自己说话。",
+    "youth_campus": "【风格指令：青春文学】\n请用青春文学的笔调来写。校园感、成长感、克制情绪。多用具体的校园场景（教室、走廊、操场、单车）来表达情感。",
+    "regret_lit": "【风格指令：遗憾文学】\n请用遗憾文学的笔调来写。克制、不煽情、后劲强。用具体的细节和场景来表达遗憾，不要直接说\"遗憾\"。结尾要有余味。",
+    "healing_lit": "【风格指令：治愈文学】\n请用治愈文学的笔调来写。温暖、柔和、给予希望。用生活中的小温暖来抚慰人心，不要强行说教。",
+    "premium_prose": "【风格指令：高级散文】\n请用高级散文的笔调来写。文字精致、画面感强、有文学质感。用词考究但不做作，节奏舒缓有韵味。",
+    "viral_xiaohongshu": "【风格指令：小红书爆款】\n请用小红书爆款笔记的风格来写。开头要抓人、有共鸣、容易传播。口语化但不失质感，适合截图分享。",
+    "late_night": "【风格指令：深夜情绪】\n请用深夜情绪的风格来写。适合夜晚阅读，安静、克制、有沉浸感。像一个人在深夜的独白，真实而不夸张。",
+    "short_sentence": "【风格指令：短句摘抄】\n请用短句摘抄的风格来写。每句话都可以独立传播。字数少、密度高、一句顶一万句。适合做成金句卡片。",
+}
+
+# 风格标签（用于前端展示）
+STYLE_LABELS_V2 = {
+    "modern_poetry": "现代诗",
+    "youth_campus": "青春文学",
+    "regret_lit": "遗憾文学",
+    "healing_lit": "治愈文学",
+    "premium_prose": "高级散文",
+    "viral_xiaohongshu": "小红书爆款",
+    "late_night": "深夜情绪",
+    "short_sentence": "短句摘抄",
+}
+
 EMOTION_PROMPTS = {
     "miss": {
         "role": "你是一个擅长用画面表达思念的人。你的文字有电影感，用具体场景代替直白抒情。",
@@ -202,13 +229,19 @@ def parse_result(raw):
     return title, emoji, content, tags
 
 
-def generate_messages(product, emotion_id, custom_prompt="", word_count=""):
-    """返回 system + user 消息对"""
+def generate_messages(product, emotion_id, style_id="", custom_prompt="", word_count=""):
+    """返回 system + user 消息对
+    情绪（emotion_id）+ 风格（style_id）共同决定最终 Prompt
+    """
     emotion = EMOTION_PROMPTS.get(emotion_id)
     if not emotion:
         emotion = EMOTION_PROMPTS["heartfelt"]
 
+    # system prompt = 情绪角色 + 风格指令
     system = emotion["role"]
+    if style_id and style_id in STYLE_INSTRUCTIONS:
+        system += "\n\n" + STYLE_INSTRUCTIONS[style_id]
+
     user_template = emotion["instruction"]
 
     extra_parts = []
@@ -239,6 +272,7 @@ def home():
     if request.method == "POST":
         product = request.form["product"]
         emotion_id = request.form.get("emotion_id", "heartfelt")
+        style_id = request.form.get("style_id", "").strip()
         reuse_product = product
         reuse_style = emotion_id
         custom_prompt = request.form.get("custom_prompt", "").strip()
@@ -258,7 +292,7 @@ def home():
                                    reuse_product=reuse_product, reuse_style=reuse_style,
                                    reuse_custom_prompt=reuse_custom_prompt, reuse_word_count=reuse_word_count)
 
-        system_msg, user_msg = generate_messages(product, emotion_id, custom_prompt, word_count)
+        system_msg, user_msg = generate_messages(product, emotion_id, style_id, custom_prompt, word_count)
 
         url = "https://api.deepseek.com/chat/completions"
         headers = {
@@ -761,10 +795,10 @@ def inject_globals():
         daily_remaining = max(0, 10 - daily_used)
         return dict(daily_remaining=daily_remaining,
                     emotion_cards=EMOTION_CARDS,
-                    style_labels=STYLE_LABELS)
+                    style_labels=STYLE_LABELS_V2)
     return dict(daily_remaining=10,
                 emotion_cards=EMOTION_CARDS,
-                style_labels=STYLE_LABELS)
+                style_labels=STYLE_LABELS_V2)
 
 
 import re as _re
