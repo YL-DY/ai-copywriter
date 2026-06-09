@@ -756,6 +756,11 @@
                 if (done) {
                     splash.style.display = 'none';
                     document.body.classList.add('splash-done');
+                    // 跳过开场时立即触发 Hero 动画
+                    var heroPage = document.getElementById('heroPage');
+                    if (heroPage) {
+                        heroPage.classList.add('hero-animate');
+                    }
                     return;
                 }
                 // 立即写入标记
@@ -790,6 +795,11 @@
                     splash.classList.add('hide');
                     document.body.classList.remove('splash-active');
                     document.body.classList.add('splash-done');
+                    // 品牌动画结束后触发 Hero 逐行动画
+                    var heroPage = document.getElementById('heroPage');
+                    if (heroPage) {
+                        heroPage.classList.add('hero-animate');
+                    }
                     setTimeout(function() {
                         splash.style.display = 'none';
                     }, 1000);

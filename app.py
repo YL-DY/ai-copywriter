@@ -328,6 +328,8 @@ def clean_content(text):
     
     # 2. 将转义 \n 转换为真实换行
     cleaned = cleaned.replace("\\n", "\n")
+    # 2b. 将 HTML <br> 标签转换为真实换行（防止 AI 返回 HTML 标签）
+    cleaned = cleaned.replace("<br>", "\n").replace("<br/>", "\n").replace("<br />", "\n")
     
     # 3. 去除残留的 JSON 结构标记
     import re as _re
