@@ -147,7 +147,7 @@
             color: #D4A373;
         }
 
-        /* ===== Splash 品牌开场动画 ===== */
+        /* ===== Splash 品牌开场动画（两阶段） ===== */
         #splashScreen {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -174,6 +174,15 @@
             100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
         .splash-content { position: relative; z-index: 1; text-align: center; }
+
+        /* ——— 阶段一：InkFlow / 灵笔 ——— */
+        .splash-phase1 {
+            opacity: 1;
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .splash-phase1.hide {
+            opacity: 0;
+        }
         .splash-brand {
             display: inline-block;
             font-family: "Cormorant Garamond", "Playfair Display", serif;
@@ -196,18 +205,6 @@
             0% { opacity: 0; filter: blur(10px); transform: translateY(20px) scale(0.8) rotate(-1.5deg); }
             50% { opacity: 1; filter: blur(0); transform: translateY(-2px) scale(1.03) rotate(-1.5deg); }
             100% { opacity: 1; filter: blur(0); transform: translateY(0) scale(1) rotate(-1.5deg); }
-        }
-        /* 流光扫光 */
-        .splash-brand::after {
-            content: '';
-            position: absolute;
-            top: 0; left: -100%; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%);
-            animation: splashShine 1.6s ease-in-out 0.8s forwards;
-        }
-        @keyframes splashShine {
-            0% { left: -100%; }
-            100% { left: 200%; }
         }
         .splash-sub {
             display: block;
@@ -236,6 +233,49 @@
             0% { width: 0; }
             100% { width: 120px; }
         }
+
+        /* ——— 阶段二：每个人都有故事 ——— */
+        .splash-phase2 {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            opacity: 0;
+            transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+        }
+        .splash-phase2.show {
+            opacity: 1;
+        }
+        .splash-phase2-text {
+            font-family: "Noto Serif SC", "Cormorant Garamond", serif;
+            font-size: 28px;
+            font-weight: 300;
+            color: rgba(212, 163, 115, 0.85);
+            line-height: 1.8;
+            letter-spacing: 2px;
+        }
+        .splash-phase2-text .line {
+            display: block;
+            opacity: 0;
+            transform: translateY(12px);
+            animation: phase2LineIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .splash-phase2-text .line:nth-child(1) { animation-delay: 0.1s; }
+        .splash-phase2-text .line:nth-child(2) { animation-delay: 0.5s; }
+        .splash-phase2-text .line:nth-child(3) { animation-delay: 0.9s; }
+        @keyframes phase2LineIn {
+            0% { opacity: 0; transform: translateY(12px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .splash-phase2-divider {
+            width: 0;
+            height: 1px;
+            margin: 16px auto 0;
+            background: linear-gradient(90deg, transparent, rgba(212,163,115,0.25), transparent);
+            animation: phase2LineIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) 1.3s forwards;
+        }
+
         /* 星点 */
         .splash-stars {
             position: absolute;
@@ -612,19 +652,31 @@
             .result-header { flex-direction: column; gap: 8px; align-items: flex-start; }
             h1 { font-size: 20px; }
             .stat-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+            /* 移动端 splash 阶段二文案缩小 */
+            .splash-phase2-text { font-size: 22px; }
         }
         </style>
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <!-- Splash 品牌开场 -->
+    <!-- Splash 品牌开场（两阶段） -->
     <div id="splashScreen">
         <div class="splash-glow"></div>
         <div class="splash-stars" id="splashStars"></div>
-        <div class="splash-content">
+        <!-- 阶段一：InkFlow / 灵笔 -->
+        <div class="splash-content splash-phase1" id="splashPhase1">
             <div class="splash-brand">InkFlow</div>
             <span class="splash-sub">灵 笔</span>
             <div class="splash-line"></div>
+        </div>
+        <!-- 阶段二：每个人都有故事 -->
+        <div class="splash-phase2" id="splashPhase2">
+            <div class="splash-phase2-text">
+                <span class="line">每个人都有故事</span>
+                <span class="line">只是缺一句</span>
+                <span class="line">恰好表达的话</span>
+            </div>
+            <div class="splash-phase2-divider"></div>
         </div>
     </div>
 
@@ -693,7 +745,7 @@
     {% block content %}{% endblock %}
 
                 <script>
-    // 品牌开场动画（仅首次进入，标记立即写入）
+    // 品牌开场动画（两阶段，仅首次进入）
     (function() {
                 var KEY = 'inkflow_splash_played';
                 var done = sessionStorage.getItem(KEY);
@@ -706,6 +758,9 @@
                 // 立即写入标记
                 sessionStorage.setItem(KEY, '1');
                 document.body.classList.add('splash-active');
+
+                var phase1 = document.getElementById('splashPhase1');
+                var phase2 = document.getElementById('splashPhase2');
 
                 // 生成星点
                 var container = document.getElementById('splashStars');
@@ -720,7 +775,14 @@
                     container.appendChild(dot);
                 }
 
-                // 2.4s 后淡出 splash，显示内容
+                // 阶段一：InkFlow 显示约 2s
+                // 2s 后淡出阶段一，显示"每个人都有故事"
+                setTimeout(function() {
+                    if (phase1) phase1.classList.add('hide');
+                    if (phase2) phase2.classList.add('show');
+                }, 2000);
+
+                // 阶段二保持约 3.5s 后整体淡出
                 setTimeout(function() {
                     splash.classList.add('hide');
                     document.body.classList.remove('splash-active');
@@ -728,7 +790,7 @@
                     setTimeout(function() {
                         splash.style.display = 'none';
                     }, 1000);
-                }, 2400);
+                }, 5500);
     })();
 
     // 移动端：键盘弹出时隐藏底部导航

@@ -52,43 +52,35 @@
     z-index: 1;
 }
 
-/* ——— 品牌字 InkFlow —— 持续呼吸光泽 ——— */
-.hero-brand-word {
-    display: inline-block;
-    font-family: "Cormorant Garamond", "Playfair Display", serif;
-    font-size: 64px;
-    font-weight: 700;
-    letter-spacing: 3px;
-    transform: rotate(-1.5deg);
-    background: linear-gradient(90deg, #D4A373, #E9C46A, #D4A373);
-    background-size: 200% 200%;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    animation: brandShimmer 4s ease-in-out infinite;
-}
-@keyframes brandShimmer {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-}
-
-/* ——— 中文主标题 ——— */
+/* ——— 中文主标题（逐行出现） ——— */
 .hero-title {
     font-size: 42px;
     font-weight: 700;
-    line-height: 1.2;
+    line-height: 1.3;
     letter-spacing: -0.5px;
     margin-bottom: 20px;
 }
-.hero-title-line { display: block; }
+.hero-title-line {
+    display: block;
+    opacity: 0;
+    transform: translateY(16px);
+    animation: heroLineIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes heroLineIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 
-/* ——— 副标题 ——— */
+/* ——— 副标题（逐行出现） ——— */
 .hero-subtitle {
     font-size: 17px;
     color: #64748b;
-    line-height: 1.6;
+    line-height: 1.8;
     margin-bottom: 36px;
     font-weight: 400;
+    opacity: 0;
+    transform: translateY(16px);
+    animation: heroLineIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 1.0s forwards;
 }
 
 /* ——— CTA 按钮 ——— */
@@ -721,10 +713,134 @@
     color: var(--text-subtle);
     letter-spacing: 1px;
 }
+
+/* ——— 今日句子 · 单卡片居中 ——— */
+.emotion-card-single {
+    max-width: 520px;
+    min-width: 280px;
+    padding: 40px 32px;
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(212, 163, 115, 0.12);
+    border-radius: 24px;
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+}
+.emotion-card-single::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at center, rgba(212, 163, 115, 0.03) 0%, transparent 60%);
+    pointer-events: none;
+}
+.emotion-card-single:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(212, 163, 115, 0.25);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
+}
+.emotion-card-single .emotion-card-text {
+    font-size: 18px;
+    line-height: 2;
+    color: #f1f5f9;
+    font-weight: 400;
+    letter-spacing: 1px;
+    font-family: "Noto Serif SC", "Cormorant Garamond", serif;
+    white-space: pre-line;
+}
+
+/* ===== 风格灵感 · 横向滚动展示区 ===== */
+.style-showcase {
+    max-width: 900px;
+    margin: 0 auto 80px;
+    padding: 0 20px;
+}
+.style-showcase-title {
+    font-family: "Cormorant Garamond", "Noto Serif SC", serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 32px;
+    text-align: center;
+    letter-spacing: 2px;
+}
+.style-showcase-scroll {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding: 8px 4px 16px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(212, 163, 115, 0.2) transparent;
+}
+.style-showcase-scroll::-webkit-scrollbar {
+    height: 4px;
+}
+.style-showcase-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+.style-showcase-scroll::-webkit-scrollbar-thumb {
+    background: rgba(212, 163, 115, 0.2);
+    border-radius: 4px;
+}
+.style-showcase-card {
+    flex: 0 0 240px;
+    scroll-snap-align: start;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 20px;
+    padding: 28px 24px;
+    text-align: center;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: default;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+.style-showcase-card:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(212, 163, 115, 0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}
+.style-showcase-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #D4A373;
+    letter-spacing: 2px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(212, 163, 115, 0.1);
+    width: 100%;
+}
+.style-showcase-sample {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #94a3b8;
+    font-family: "Noto Serif SC", "Cormorant Garamond", serif;
+    white-space: pre-line;
+    letter-spacing: 0.5px;
+}
+
 @media (max-width: 600px) {
     .emotion-section { margin: 40px auto; }
     .emotion-title { font-size: 22px; }
     .emotion-card { min-width: 100%; max-width: 100%; padding: 24px 20px; }
+    .emotion-card-single { padding: 32px 24px; }
+    .emotion-card-single .emotion-card-text { font-size: 16px; }
+    .style-showcase { margin: 0 auto 50px; }
+    .style-showcase-title { font-size: 22px; margin-bottom: 24px; }
+    .style-showcase-scroll { gap: 14px; padding: 4px 0 12px; }
+    .style-showcase-card { flex: 0 0 200px; padding: 22px 18px; }
+    .style-showcase-sample { font-size: 13px; }
 }
 
 /* ===== 情绪卡片结果页 ===== */
@@ -896,56 +1012,56 @@
 <div id="heroPage" class="hero">
     <div class="hero-inner">
         <div class="hero-title">
-            <span class="hero-brand-word">InkFlow</span>
-            <span class="hero-title-line">每个人都有故事</span>
-            <span class="hero-title-line">只是缺一句恰好表达的话</span>
+            <span class="hero-title-line" style="animation-delay:0s;">每个人都有故事</span>
+            <span class="hero-title-line" style="animation-delay:0.5s;">只是有些话<br>始终停在心里</span>
         </div>
         <div class="hero-subtitle">
-            让文字替你说出那些<br>难以开口的情绪与故事
+            把情绪写成文字<br>把故事留给时间
         </div>
-        <a href="#" class="hero-cta" id="ctaBtn">
+        <a href="#" class="hero-cta" id="ctaBtn" style="opacity:0;transform:translateY(16px);animation:heroLineIn 0.8s cubic-bezier(0.16,1,0.3,1) 1.5s forwards;">
             开始书写 →
         </a>
         <div class="hero-features">
-            <div class="hero-feature">📖 治愈系文字</div>
-            <div class="hero-feature">💫 情绪表达</div>
-            <div class="hero-feature">🌙 深夜故事</div>
+            <div class="hero-feature">📖 现代诗</div>
+            <div class="hero-feature">💫 情绪书写</div>
+            <div class="hero-feature">🌙 故事叙述</div>
         </div>
     </div>
 </div>
 
-<!-- ===== 情绪展示区 ===== -->
+<!-- ===== 今日句子（随机展示） ===== -->
 <div class="emotion-section" id="emotionSection">
-    <h2 class="emotion-title">有些话 总能在深夜击中人心</h2>
+    <h2 class="emotion-title">今日句子</h2>
     <div class="emotion-cards">
-        <div class="emotion-card">
-            <div class="emotion-card-icon">🌙</div>
-            <div class="emotion-card-text">"后来我才明白，<br>遗憾不是没得到，<br>而是差一点就得到了。"</div>
-            <div class="emotion-card-divider"></div>
-            <div class="emotion-card-author">—— 深夜书店</div>
-        </div>
-        <div class="emotion-card">
-            <div class="emotion-card-icon">✨</div>
-            <div class="emotion-card-text">"你以为时间会冲淡一切，<br>可它只是教会你习惯。"</div>
-            <div class="emotion-card-divider"></div>
-            <div class="emotion-card-author">—— 深夜书店</div>
-        </div>
-        <div class="emotion-card">
+        <div class="emotion-card emotion-card-single">
             <div class="emotion-card-icon">📖</div>
-            <div class="emotion-card-text">"故事的结局并不重要，<br>重要的是你曾认真爱过。"</div>
+            <div class="emotion-card-text">"{{ random_sentence|replace('\n', '<br>') }}"</div>
             <div class="emotion-card-divider"></div>
-            <div class="emotion-card-author">—— 深夜书店</div>
+            <div class="emotion-card-author">—— InkFlow · 每日一句</div>
         </div>
+    </div>
+</div>
+
+<!-- ===== 风格灵感展示区 ===== -->
+<div class="style-showcase" id="styleShowcase">
+    <h2 class="style-showcase-title">风格灵感</h2>
+    <div class="style-showcase-scroll">
+        {% for s in style_samples %}
+        <div class="style-showcase-card">
+            <div class="style-showcase-name">{{ s.name }}</div>
+            <div class="style-showcase-sample">{{ s.sample|replace('\n', '<br>') }}</div>
+        </div>
+        {% endfor %}
     </div>
 </div>
 
 <div id="generatePage">
 <div class="container">
     <div class="card">
-        <h1>你此刻想表达什么？<small>选择一个方向 剩下的交给 InkFlow</small></h1>
+        <h1>你想写什么？</h1>
         <form method="POST" id="generateForm">
             <!-- 情绪卡片选择区 -->
-            <label style="margin-bottom:12px;">你现在的情绪是？</label>
+            <label style="margin-bottom:12px;">你想写什么？</label>
             <div class="emotion-grid" id="emotionGrid">
                 {% for card in emotion_cards %}
                 <div class="emotion-choice" data-emotion="{{ card.id }}" onclick="selectEmotion(this)">
@@ -958,8 +1074,7 @@
 
             <div class="divider" style="margin:24px 0;"></div>
 
-            <label>此刻你想表达什么？</label>
-            <textarea name="product" rows="4" placeholder="例如：&#10;我喜欢了一个人很多年，&#10;却始终没能说出口..." required style="font-family:inherit;min-height:160px;">{{ reuse_product or request.form.get('product', '') }}</textarea>
+            <textarea name="product" rows="4" placeholder="例如：&#10;失眠&#10;暗恋&#10;遗憾&#10;重逢&#10;离别&#10;青春&#10;毕业" required style="font-family:inherit;min-height:160px;">{{ reuse_product or request.form.get('product', '') }}</textarea>
 
             <details style="margin-bottom: 18px;">
                 <summary style="color:#A1A1AA;font-size:13px;">📎 补充说明（选填，让文字更准）</summary>
@@ -970,7 +1085,7 @@
 
             <!-- 风格选择（选填） -->
             <details style="margin-bottom: 18px;">
-                <summary style="color:#A1A1AA;font-size:13px;">🎨 选择写作风格（选填）</summary>
+                <summary style="color:#A1A1AA;font-size:13px;">你希望它是什么样子？</summary>
                 <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;">
                     <label style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:20px;border:1px solid rgba(212,163,115,0.2);background:rgba(212,163,115,0.06);font-size:13px;color:var(--text-primary);transition:all 0.2s;">
                         <input type="radio" name="style_id" value="" checked style="accent-color:#D4A373;">
@@ -990,7 +1105,7 @@
             </div>
 
             <button type="submit" class="btn btn-primary" id="generateBtn" style="width:100%;font-size:15px;padding:16px;border-radius:14px;">
-                ✨ 让文字替我说话
+                开始书写
             </button>
         </form>
 

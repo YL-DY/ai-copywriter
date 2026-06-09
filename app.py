@@ -4,6 +4,7 @@ from flask_login import LoginManager, login_required, current_user
 import requests
 import hashlib
 import os
+import random
 from datetime import date, timedelta, datetime as _datetime
 import zipfile
 import io
@@ -155,6 +156,23 @@ STYLE_LABELS_V2 = {
     "late_night": "深夜情绪",
     "short_sentence": "短句摘抄",
 }
+
+# ========== 今日句子随机句库 ==========
+TODAY_SENTENCES = [
+    "春天会周而复始，\n而我只想与你的眼睛重逢。",
+    "后来我才明白，\n遗憾不是没得到，\n而是差一点就得到了。",
+    "我见过很多月亮，\n却只记得你那晚的眼睛。",
+    "有些告别没有声音，\n却在心里下了一场很久的雨。",
+    "故事结束后，\n我依然会路过那条街。",
+]
+
+# ========== 风格灵感展示数据 ==========
+STYLE_SAMPLES = [
+    {"id": "modern_poetry", "name": "现代诗", "sample": "我想见见你\n仅此而已"},
+    {"id": "youth_campus", "name": "青春随笔", "sample": "他早就下课铃响\n是你的心在拖堂"},
+    {"id": "late_night", "name": "深夜独白", "sample": "长途电话的最后一秒\n我们谁都没有挂断"},
+    {"id": "short_sentence", "name": "短句", "sample": "有些人\n光是遇见\n就已经是上上签了"},
+]
 
 # 旧风格名 → 新风格名映射（用于历史数据兼容显示）
 STYLE_NAME_MAP = {
@@ -877,10 +895,14 @@ def inject_globals():
         daily_remaining = max(0, 10 - daily_used)
         return dict(daily_remaining=daily_remaining,
                     emotion_cards=EMOTION_CARDS,
-                    style_labels=STYLE_LABELS_V2)
+                    style_labels=STYLE_LABELS_V2,
+                    random_sentence=random.choice(TODAY_SENTENCES),
+                    style_samples=STYLE_SAMPLES)
     return dict(daily_remaining=10,
                 emotion_cards=EMOTION_CARDS,
-                style_labels=STYLE_LABELS_V2)
+                style_labels=STYLE_LABELS_V2,
+                random_sentence=random.choice(TODAY_SENTENCES),
+                style_samples=STYLE_SAMPLES)
 
 
 import re as _re
