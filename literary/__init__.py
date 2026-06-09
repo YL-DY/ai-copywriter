@@ -329,7 +329,7 @@ STYLES = [
     "healing_lit",        # 治愈文学
     "late_night",         # 深夜情绪
     "short_sentence",     # 高级短句
-    "viral_essay",        # 抖音爆款随笔
+    "viral_essay",        # 网感文学
 ]
 
 STYLE_LABELS = {
@@ -340,7 +340,7 @@ STYLE_LABELS = {
     "healing_lit": "治愈文学",
     "late_night": "深夜情绪",
     "short_sentence": "高级短句",
-    "viral_essay": "抖音爆款随笔",
+    "viral_essay": "网感文学",
 }
 
 STYLE_DESCRIPTIONS = {
@@ -351,7 +351,7 @@ STYLE_DESCRIPTIONS = {
     "healing_lit": "温柔、希望、与自己和解。给疲惫的心一个拥抱。",
     "late_night": "凌晨、独处、克制地表达。深夜的情绪最真实。",
     "short_sentence": "字数极少、密度极高。一句顶一万句。",
-    "viral_essay": "口语化、有共鸣、易转发。像朋友在聊天。",
+    "viral_essay": "口语化、有共鸣、有网感。像深夜刷到的一条动态。",
 }
 
 # ============================
@@ -531,7 +531,7 @@ _SHORT_SENTENCES = [
     "你是我 青春里最温柔的遗憾。",
 ]
 
-# --- 抖音爆款随笔 ---
+# --- 网感文学 ---
 _VIRAL_TOPICS = [
     "你有没有发现 长大后 我们都学会了沉默",
     "今天在地铁上 看到一个女孩 哭得很克制",
@@ -770,7 +770,7 @@ def _gen_short_sentence(seed_words="", length="short"):
 
 
 def _gen_viral_essay(seed_words="", length="short"):
-    """抖音爆款随笔生成器：口语化、有共鸣、易转发"""
+    """网感文学生成器：口语化、有共鸣、有网感"""
     topics = random.sample(_VIRAL_TOPICS, min(2, len(_VIRAL_TOPICS)))
     endings = random.sample(_VIRAL_ENDINGS, min(2, len(_VIRAL_ENDINGS)))
     
@@ -797,7 +797,7 @@ def _gen_viral_essay(seed_words="", length="short"):
     ]
     title = random.choice(title_templates)
     
-    return {"title": title, "content": content, "style_id": "viral_essay", "style_label": "抖音爆款随笔"}
+    return {"title": title, "content": content, "style_id": "viral_essay", "style_label": "网感文学"}
 
 
 # ============================
