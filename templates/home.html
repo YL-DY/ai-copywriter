@@ -331,6 +331,167 @@
     }
 }
 
+/* ===== 智能文学排版系统 ===== */
+/* 金句海报模式（≤20字） */
+.result-layout-poster {
+    text-align: center;
+    padding: 48px 32px 40px;
+    background: linear-gradient(160deg, rgba(212,163,115,0.03) 0%, rgba(233,196,106,0.02) 100%);
+    border-radius: 20px;
+    margin: -8px -8px 0;
+    position: relative;
+    overflow: hidden;
+}
+.result-layout-poster::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(212,163,115,0.04) 0%, transparent 70%);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+.result-layout-poster .poster-quote-mark {
+    font-size: 48px;
+    color: rgba(212,163,115,0.15);
+    line-height: 1;
+    margin-bottom: 8px;
+    font-family: "Cormorant Garamond", serif;
+}
+.result-layout-poster .poster-text {
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.6;
+    color: #f1f5f9;
+    letter-spacing: 1px;
+    max-width: 480px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+}
+.result-layout-poster .poster-divider {
+    width: 40px;
+    height: 2px;
+    background: linear-gradient(90deg, #D4A373, #E9C46A);
+    margin: 20px auto 16px;
+    border-radius: 2px;
+}
+.result-layout-poster .poster-author {
+    font-size: 12px;
+    color: #64748b;
+    letter-spacing: 2px;
+    font-family: "Cormorant Garamond", "Noto Serif SC", serif;
+}
+
+/* 现代诗居中模式（50-180字，或换行密集） */
+.result-layout-poem {
+    text-align: center;
+    padding: 40px 28px 36px;
+    position: relative;
+}
+.result-layout-poem .poem-line {
+    display: block;
+    line-height: 2.4;
+    font-size: 15px;
+    color: #e2e8f0;
+    letter-spacing: 0.5px;
+    opacity: 0;
+    animation: poemLineIn 0.4s ease forwards;
+}
+.result-layout-poem .poem-stanza {
+    margin-bottom: 24px;
+}
+.result-layout-poem .poem-stanza:last-child {
+    margin-bottom: 0;
+}
+@keyframes poemLineIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.result-layout-poem .poem-author {
+    margin-top: 32px;
+    font-size: 12px;
+    color: #64748b;
+    letter-spacing: 2px;
+    font-family: "Cormorant Garamond", "Noto Serif SC", serif;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    padding-top: 20px;
+    display: inline-block;
+}
+
+/* 图文随笔模式（180-500字，段落叙事） */
+.result-layout-essay {
+    padding: 8px 4px;
+}
+.result-layout-essay .essay-paragraph {
+    margin-bottom: 20px;
+    line-height: 2;
+    font-size: 15px;
+    color: #cbd5e1;
+    text-indent: 2em;
+    letter-spacing: 0.3px;
+}
+.result-layout-essay .essay-paragraph:first-of-type::first-letter {
+    font-size: 28px;
+    font-weight: 700;
+    color: #D4A373;
+    float: left;
+    margin-right: 8px;
+    line-height: 1;
+    font-family: "Cormorant Garamond", "Noto Serif SC", serif;
+}
+.result-layout-essay .essay-divider {
+    text-align: center;
+    color: rgba(212,163,115,0.2);
+    font-size: 18px;
+    margin: 24px 0;
+    letter-spacing: 8px;
+}
+
+/* 长文阅读模式（500字以上） */
+.result-layout-longread {
+    padding: 4px;
+    max-width: 680px;
+    margin: 0 auto;
+}
+.result-layout-longread .longread-paragraph {
+    margin-bottom: 18px;
+    line-height: 2;
+    font-size: 15px;
+    color: #cbd5e1;
+    text-indent: 2em;
+    letter-spacing: 0.3px;
+}
+.result-layout-longread .longread-section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #f1f5f9;
+    margin: 28px 0 14px;
+    letter-spacing: 0.5px;
+    text-indent: 0;
+}
+.result-layout-longread .longread-divider {
+    text-align: center;
+    color: rgba(212,163,115,0.15);
+    font-size: 14px;
+    margin: 28px 0;
+    letter-spacing: 6px;
+}
+
+/* 排版模式标签 */
+.result-layout-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: #64748b;
+    background: rgba(255,255,255,0.03);
+    padding: 3px 10px;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+    margin-left: 8px;
+}
+
 /* ===== Result Card (Magazine Style v2) ===== */
 .result-card {
     border-radius: 20px;
@@ -837,7 +998,7 @@
         <div class="divider"></div>
         <div class="result-card">
             <div class="result-card-header">
-                <div class="result-card-badge">✦ InkFlow 为你写下：</div>
+                <div class="result-card-badge">✦ InkFlow 为你写下：<span class="result-layout-badge" id="layoutBadge"></span></div>
             </div>
             {% if result_title %}
             <div class="result-card-title-wrap">
@@ -845,7 +1006,10 @@
             </div>
             {% endif %}
             <div class="result-card-body">
-                <div class="result-box" id="resultBox">{{ result_content }}</div>
+                <!-- 智能排版容器：由 JS 根据字数/结构自动渲染 -->
+                <div id="smartLayoutContainer"></div>
+                <!-- 保留原始数据（隐藏），供复制/收藏/分享使用 -->
+                <div id="resultBox" style="display:none;">{{ result_content }}</div>
             </div>
             {% if result_tags %}
             <div class="result-card-tags-section">
@@ -862,6 +1026,7 @@
                 </form>
                 {% endif %}
                 <button onclick="shareCard()" class="btn-result-action">📤 分享</button>
+                <button onclick="exportImage()" class="btn-result-action" id="exportImageBtn" style="display:none;">🖼️ 导出图片</button>
             </div>
             <div class="result-card-rewrite">
                 <div class="rewrite-label">✏️ 二次编辑</div>
@@ -1075,6 +1240,145 @@ function selectEmotion(el) {
     if (input) input.value = emotionId;
 }
 
+// ===== 智能文学排版引擎 =====
+function renderSmartLayout() {
+    var container = document.getElementById('smartLayoutContainer');
+    var source = document.getElementById('resultBox');
+    var badge = document.getElementById('layoutBadge');
+    if (!container || !source) return;
+
+    var rawText = source.textContent || source.innerText || '';
+    var text = rawText.trim();
+    if (!text) return;
+
+    // 统计字数（去除空白字符）
+    var charCount = text.replace(/\s/g, '').length;
+
+    // 统计换行数
+    var newlineCount = (text.match(/\n/g) || []).length;
+
+    // 判断是否换行密集（平均每行字数 < 30 且换行数 >= 3）
+    var lines = text.split('\n').filter(function(l) { return l.trim(); });
+    var avgLineLength = lines.length > 0 ? charCount / lines.length : 0;
+    var isDenseNewlines = newlineCount >= 3 && avgLineLength < 30;
+
+    // 判断是否有明显段落结构（连续多行文本 + 空行分隔）
+    var hasParagraphs = false;
+    var blocks = text.split(/\n\s*\n/);
+    if (blocks.length >= 2) {
+        var longBlocks = blocks.filter(function(b) {
+            return b.replace(/\s/g, '').length > 30;
+        });
+        if (longBlocks.length >= 2) hasParagraphs = true;
+    }
+
+    // 决定排版模式
+    var mode = 'essay'; // 默认图文随笔
+    var modeLabel = '图文随笔';
+
+    if (charCount <= 20) {
+        mode = 'poster';       // 金句海报
+        modeLabel = '金句卡片';
+    } else if (charCount <= 180 && isDenseNewlines) {
+        mode = 'poem';         // 现代诗居中
+        modeLabel = '诗歌排版';
+    } else if (charCount > 500) {
+        mode = 'longread';     // 长文阅读
+        modeLabel = '长文模式';
+    } else if (charCount <= 180 && !hasParagraphs) {
+        mode = 'poem';
+        modeLabel = '诗歌排版';
+    }
+
+    // 更新模式标签
+    if (badge) badge.textContent = modeLabel;
+
+    // 显示导出图片按钮（金句海报和诗歌模式支持导出）
+    var exportBtn = document.getElementById('exportImageBtn');
+    if (exportBtn) {
+        exportBtn.style.display = (mode === 'poster' || mode === 'poem') ? 'inline-flex' : 'none';
+    }
+
+    // 渲染对应布局
+    var html = '';
+    if (mode === 'poster') {
+        // 金句海报模式
+        html = '<div class="result-layout-poster">';
+        html += '<div class="poster-quote-mark">"</div>';
+        html += '<div class="poster-text">' + escapeHtml(text) + '</div>';
+        html += '<div class="poster-divider"></div>';
+        html += '<div class="poster-author">— InkFlow · 文字有温度</div>';
+        html += '</div>';
+    } else if (mode === 'poem') {
+        // 现代诗居中模式
+        html = '<div class="result-layout-poem">';
+        var stanzas = text.split(/\n\s*\n/);
+        for (var si = 0; si < stanzas.length; si++) {
+            var stanza = stanzas[si].trim();
+            if (!stanza) continue;
+            html += '<div class="poem-stanza">';
+            var poemLines = stanza.split('\n');
+            for (var li = 0; li < poemLines.length; li++) {
+                var pl = poemLines[li].trim();
+                if (!pl) continue;
+                html += '<span class="poem-line" style="animation-delay:' + (li * 0.08) + 's;">' + escapeHtml(pl) + '</span>';
+            }
+            html += '</div>';
+        }
+        html += '<div class="poem-author">— InkFlow · 文字有温度</div>';
+        html += '</div>';
+    } else if (mode === 'longread') {
+        // 长文阅读模式
+        html = '<div class="result-layout-longread">';
+        var longBlocks = text.split(/\n\s*\n/);
+        for (var bi = 0; bi < longBlocks.length; bi++) {
+            var block = longBlocks[bi].trim();
+            if (!block) continue;
+            // 如果块很短（< 20字），作为小标题
+            if (block.replace(/\s/g, '').length < 20 && bi > 0) {
+                html += '<div class="longread-section-title">' + escapeHtml(block) + '</div>';
+            } else {
+                var paras = block.split('\n');
+                for (var pi = 0; pi < paras.length; pi++) {
+                    var p = paras[pi].trim();
+                    if (!p) continue;
+                    html += '<div class="longread-paragraph">' + escapeHtml(p) + '</div>';
+                }
+            }
+            if (bi < longBlocks.length - 1) {
+                html += '<div class="longread-divider">· · ·</div>';
+            }
+        }
+        html += '</div>';
+    } else {
+        // 图文随笔模式（默认）
+        html = '<div class="result-layout-essay">';
+        var essayBlocks = text.split(/\n\s*\n/);
+        for (var ei = 0; ei < essayBlocks.length; ei++) {
+            var eBlock = essayBlocks[ei].trim();
+            if (!eBlock) continue;
+            var eParas = eBlock.split('\n');
+            for (var epi = 0; epi < eParas.length; epi++) {
+                var ep = eParas[epi].trim();
+                if (!ep) continue;
+                html += '<div class="essay-paragraph">' + escapeHtml(ep) + '</div>';
+            }
+            if (ei < essayBlocks.length - 1) {
+                html += '<div class="essay-divider">✦</div>';
+            }
+        }
+        html += '</div>';
+    }
+
+    container.innerHTML = html;
+}
+
+function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+}
+
 // 页面加载时默认选中第二个（心里话）
 window.addEventListener('DOMContentLoaded', function() {
     var cards = document.querySelectorAll('.emotion-choice');
@@ -1087,10 +1391,12 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 
 window.addEventListener('DOMContentLoaded', function() {
-    var hasResult = document.querySelector('.result-box');
-    if (hasResult) {
+    var hasResult = document.querySelector('#resultBox');
+    if (hasResult && hasResult.textContent.trim()) {
         setPageView('generate');
         document.getElementById('loadingOverlay').style.display = 'none';
+        // 执行智能排版
+        renderSmartLayout();
     }
     // 初始化自定义选择器
     initCustomSelects();
@@ -1217,6 +1523,8 @@ function showToast(msg) {
                 }
                 if (data.content) {
                     bodyEl.textContent = data.content;
+                    // 重绘智能排版
+                    renderSmartLayout();
                 }
                 if (data.tags && data.tags.length > 0) {
                     var tagContainer = document.querySelector('.result-card-tags-section');
@@ -1428,6 +1736,50 @@ function shareCard() {
             showToast('✅ 已复制分享卡片，快去朋友圈分享吧');
         }).catch(function() {});
     }
+}
+
+// ===== 导出图片（兼容 html2canvas） =====
+function exportImage() {
+    var container = document.getElementById('smartLayoutContainer');
+    if (!container || !container.innerHTML.trim()) {
+        showToast('❌ 没有可导出的内容');
+        return;
+    }
+    // 检查 html2canvas 是否已加载
+    if (typeof html2canvas === 'undefined') {
+        // 动态加载 html2canvas
+        var script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+        script.onload = function() {
+            doExportImage(container);
+        };
+        script.onerror = function() {
+            showToast('❌ 图片导出库加载失败，请稍后重试');
+        };
+        document.head.appendChild(script);
+    } else {
+        doExportImage(container);
+    }
+}
+
+function doExportImage(container) {
+    showToast('⏳ 正在生成图片...');
+    html2canvas(container, {
+        backgroundColor: '#0f172a',
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        width: container.scrollWidth,
+        height: container.scrollHeight,
+    }).then(function(canvas) {
+        var link = document.createElement('a');
+        link.download = 'inkflow-card.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showToast('✅ 图片已导出');
+    }).catch(function(err) {
+        showToast('❌ 导出失败：' + (err.message || '未知错误'));
+    });
 }</script>
 
 {% endblock %}
