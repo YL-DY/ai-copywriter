@@ -178,10 +178,13 @@
         /* ——— 阶段一：InkFlow / 灵笔 ——— */
         .splash-phase1 {
             opacity: 1;
-            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: scale(1) translateY(0);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                        transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .splash-phase1.hide {
             opacity: 0;
+            transform: scale(0.3) translateY(-120px);
         }
         .splash-brand {
             display: inline-block;
@@ -776,13 +779,13 @@
                 }
 
                 // 阶段一：InkFlow 显示约 2s
-                // 2s 后淡出阶段一，显示"每个人都有故事"
+                // 2s 后 Logo 缩小移向导航栏 + 阶段二文字淡入
                 setTimeout(function() {
                     if (phase1) phase1.classList.add('hide');
                     if (phase2) phase2.classList.add('show');
                 }, 2000);
 
-                // 阶段二保持约 3.5s 后整体淡出
+                // 阶段二保持约 3.5s 后整体淡出（保留粒子背景）
                 setTimeout(function() {
                     splash.classList.add('hide');
                     document.body.classList.remove('splash-active');

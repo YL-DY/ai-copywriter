@@ -168,10 +168,26 @@ TODAY_SENTENCES = [
 
 # ========== 风格灵感展示数据 ==========
 STYLE_SAMPLES = [
-    {"id": "modern_poetry", "name": "现代诗", "sample": "我想见见你\n仅此而已"},
-    {"id": "youth_campus", "name": "青春随笔", "sample": "他早就下课铃响\n是你的心在拖堂"},
-    {"id": "late_night", "name": "深夜独白", "sample": "长途电话的最后一秒\n我们谁都没有挂断"},
-    {"id": "short_sentence", "name": "短句", "sample": "有些人\n光是遇见\n就已经是上上签了"},
+    {
+        "id": "modern_poetry",
+        "name": "现代诗",
+        "sample": "我想见见你\n在月亮还没落下的清晨\n在风刚刚好的路口\n在你还记得我之前"
+    },
+    {
+        "id": "youth_campus",
+        "name": "青春随笔",
+        "sample": "他早就下课铃响了\n是你的心还在拖堂\n走廊的风吹过那年夏天\n把暗恋吹成了\n一封没有寄出的信"
+    },
+    {
+        "id": "late_night",
+        "name": "深夜独白",
+        "sample": "凌晨两点\n手机屏幕亮了又暗\n长途电话的最后一秒\n我们谁都没有挂断\n沉默比告别更漫长"
+    },
+    {
+        "id": "regret_lit",
+        "name": "遗憾文学",
+        "sample": '后来我才明白\n遗憾不是没得到\n而是差一点就得到了\n我们之间隔着一整个青春\n却只差一句\u201c你好\u201d'
+    },
 ]
 
 # 旧风格名 → 新风格名映射（用于历史数据兼容显示）
