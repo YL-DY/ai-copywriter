@@ -1042,7 +1042,7 @@ def api_today_sentence():
         History.result != ''
     ).order_by(db.func.random()).first()
     if history and history.result and history.result.strip():
-        text = history.result.strip()
+        text = clean_content(history.result)
         author = history.user.nickname or history.user.username if history.user else "匿名用户"
         style = map_style_name(history.style) if history.style else ""
         source = f"\u2014\u2014 {author} \u00b7 {style}" if style else f"\u2014\u2014 {author}"

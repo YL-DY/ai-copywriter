@@ -2135,6 +2135,8 @@ function loadNextSentence() {
 function typewriteSentence(text, container) {
     if (!container) return;
     container.innerHTML = '';
+    // 将字面 \n（两个字符）替换为真实换行
+    text = text.replace(/\\n/g, '\n');
     var i = 0;
     var cursorSpan = document.createElement('span');
     cursorSpan.className = 'cursor';
