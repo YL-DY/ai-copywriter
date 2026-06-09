@@ -15,8 +15,9 @@ from community.routes import community_bp
 # 文学体系
 from literary import (
     generate_short_text, get_daily_pick, get_daily_detail,
-    mark_user_read, get_user_reads,
-    WORLDS, WORLD_LABELS, WORLD_DESCRIPTIONS, EMOTION_TO_WORLDS,
+    mark_user_read, get_user_reads, WORLDS, WORLD_LABELS,
+    WORLD_DESCRIPTIONS, EMOTION_TO_WORLDS,
+    generate_with_style, STYLES, STYLE_LABELS,
 )
 
 app = Flask(__name__)
@@ -759,9 +760,11 @@ def inject_globals():
             daily_used = current_user.daily_count
         daily_remaining = max(0, 10 - daily_used)
         return dict(daily_remaining=daily_remaining,
-                    emotion_cards=EMOTION_CARDS)
+                    emotion_cards=EMOTION_CARDS,
+                    style_labels=STYLE_LABELS)
     return dict(daily_remaining=10,
-                emotion_cards=EMOTION_CARDS)
+                emotion_cards=EMOTION_CARDS,
+                style_labels=STYLE_LABELS)
 
 
 import re as _re
@@ -831,13 +834,32 @@ def api_literary_worlds():
 @app.route("/api/literary/generate", methods=["POST"])
 @login_required
 def api_literary_generate():
-    """文学体系生成短文"""
+    """文学体系生成短文（支持 v2 风格系统 + 原有世界系统）"""
     data = request.get_json() or {}
     world_id = data.get("world_id")
+    style_id = data.get("style_id")
+    auto_mix = data.get("auto_mix", True)
     emotion_id = data.get("emotion_id")
     length = data.get("length", "short")
     seed_words = data.get("seed_words", "")
 
+    # 如果指定了风格或启用自动混合，使用 v2 风格系统
+    if style_id or auto_mix:
+        result = generate_with_style(
+            style_id=style_id,
+            seed_words=seed_words,
+            length=length,
+            auto_mix=auto_mix,
+        )
+        return jsonify({
+            "ok": True,
+            "title": result["title"],
+            "content": result["content"],
+            "style_id": result.get("style_id", style_id or ""),
+            "style_label": result.get("style_label", ""),
+        })
+
+    # 原有世界生成逻辑（向后兼容）
     result = generate_short_text(
         world_id=world_id,
         emotion_id=emotion_id,
