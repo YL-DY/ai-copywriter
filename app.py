@@ -248,6 +248,69 @@ def parse_result(raw):
     return title, emoji, content, tags
 
 
+def clean_content(text):
+    """统一内容清洗函数：去除 JSON 结构字符、转义换行、无关标记
+    
+    处理内容：
+    - 如果 text 是 JSON 字符串，提取 content 字段
+    - 将 \n 转义字符转换为真实换行
+    - 去除 { } [ ] " title: content: tags: 等结构字段
+    - 去除多余的空白行
+    """
+    import json as _json
+    
+    if not text:
+        return ""
+    
+    # 1. 尝试解析 JSON（兼容 parse_result 的逻辑）
+    cleaned = text
+    try:
+        t = text.strip()
+        if t.startswith("```"):
+            lines = t.split("\n", 1)
+            if len(lines) > 1:
+                t = lines[1]
+            if t.endswith("```"):
+                t = t[:-3].rstrip()
+        start = t.find("{")
+        end = t.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            t = t[start:end+1]
+        parsed = _json.loads(t)
+        if isinstance(parsed, dict):
+            # 优先取 content 字段
+            content_val = parsed.get("content", "")
+            if content_val and isinstance(content_val, str):
+                cleaned = content_val
+            else:
+                # 如果没有 content 字段，尝试取第一个字符串值
+                for v in parsed.values():
+                    if isinstance(v, str) and len(v) > 20:
+                        cleaned = v
+                        break
+    except Exception:
+        # 不是 JSON，保持原样
+        pass
+    
+    # 2. 将转义 \n 转换为真实换行
+    cleaned = cleaned.replace("\\n", "\n")
+    
+    # 3. 去除残留的 JSON 结构标记
+    import re as _re
+    # 去除 "title:", "content:", "tags:" 等字段名标记
+    cleaned = _re.sub(r'(?i)"(title|content|tags|emoji|style_id|style_label)\s*"\s*:\s*"', '', cleaned)
+    cleaned = _re.sub(r'(?i)(title|content|tags|emoji)\s*:', '', cleaned)
+    # 去除孤立的 { } [ ] " 字符（但保留引号内的内容）
+    cleaned = _re.sub(r'^[\s]*[{}\[\]"]+[\s]*$', '', cleaned, flags=_re.MULTILINE)
+    # 去除行首行尾的引号
+    cleaned = _re.sub(r'^"|"$', '', cleaned, flags=_re.MULTILINE)
+    
+    # 4. 规范化空白行（最多保留一个连续空行）
+    cleaned = _re.sub(r'\n{3,}', '\n\n', cleaned)
+    
+    return cleaned.strip()
+
+
 def generate_messages(product, emotion_id, style_id="", custom_prompt="", word_count=""):
     """返回 system + user 消息对
     情绪（emotion_id）+ 风格（style_id）共同决定最终 Prompt
@@ -421,6 +484,9 @@ def history():
             paragraphs = [p.strip() for p in content.split("\n\n") if p.strip()]
             preview = "\n\n".join(paragraphs[:2])
 
+        # 清洗内容：去除 JSON 结构、转义字符
+        cleaned = clean_content(item.result)
+
         parsed_items.append({
             "id": item.id,
             "title": title,
@@ -428,7 +494,7 @@ def history():
             "created_at": item.created_at,
             "is_favorited": item.is_favorited,
             "share_token": item.share_token,
-            "raw_result": item.result,
+            "raw_result": cleaned,
         })
 
     return render_template("history.html", pagination=pagination, search=search,
@@ -698,17 +764,15 @@ def view_share(token):
     if not item:
         return "该分享不存在或已失效", 404
     style_icon = "📝"
-    # 解析 result JSON，拆分成结构化数据
+    # 使用统一清洗函数处理内容
+    cleaned = clean_content(item.result)
+    # 尝试解析结构化数据
     title, emoji, content, tags = parse_result(item.result)
-    # 如果解析后 content 还是原始 JSON 样子（包含 "title" 等字段），回退到纯文本
-    if content and content.strip().startswith("{"):
-        content = item.result
-        title = ""
-        emoji = ""
-        tags = []
+    if not title:
+        title = item.product
     return render_template("share.html", item=item, style_icon=style_icon,
                            parsed_title=title, parsed_emoji=emoji,
-                           parsed_content=content, parsed_tags=tags)
+                           parsed_content=cleaned, parsed_tags=tags)
 
 
 @app.route("/export", methods=["POST"])

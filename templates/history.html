@@ -29,7 +29,9 @@
             <div class="entry-preview">{{ item.preview }}</div>
             <details class="entry-full">
                 <summary>继续阅读</summary>
-                <div class="entry-full-content">{{ item.raw_result }}</div>
+                <div class="entry-full-content">
+                    <div class="smart-layout" data-content="{{ item.raw_result | e }}"></div>
+                </div>
                 <div class="entry-full-actions">
                     <button onclick="copyText(this)" class="entry-copy-btn">📋 复制全文</button>
                     <a href="{{ url_for('regenerate', history_id=item.id) }}" class="entry-copy-btn" onclick="return confirm('基于此记录重新生成？')">🔄 基于此再写一篇</a>
@@ -180,10 +182,76 @@
         background: var(--bg-hover);
         border-radius: 10px;
         border: 1px solid var(--border-color);
-        white-space: pre-wrap;
+    }
+    /* 智能排版容器 */
+    .smart-layout {
         line-height: 1.9;
         font-size: 14px;
         color: var(--text-secondary);
+    }
+    /* 诗歌居中模式 */
+    .smart-layout.poem-mode {
+        text-align: center;
+        padding: 24px 16px;
+    }
+    .smart-layout.poem-mode .sl-stanza {
+        margin-bottom: 20px;
+    }
+    .smart-layout.poem-mode .sl-stanza:last-child {
+        margin-bottom: 0;
+    }
+    .smart-layout.poem-mode .sl-line {
+        display: block;
+        line-height: 2.2;
+        font-size: 14px;
+        letter-spacing: 0.5px;
+        color: var(--text-secondary);
+    }
+    /* 文章左对齐模式 */
+    .smart-layout.article-mode {
+        text-align: left;
+        max-width: 680px;
+        margin: 0 auto;
+    }
+    .smart-layout.article-mode .sl-paragraph {
+        margin-bottom: 16px;
+        line-height: 2;
+        font-size: 14px;
+        color: var(--text-secondary);
+        text-indent: 2em;
+        letter-spacing: 0.3px;
+    }
+    .smart-layout.article-mode .sl-divider {
+        text-align: center;
+        color: rgba(212,163,115,0.2);
+        font-size: 14px;
+        margin: 20px 0;
+        letter-spacing: 6px;
+    }
+    /* 金句海报模式 */
+    .smart-layout.poster-mode {
+        text-align: center;
+        padding: 32px 20px 28px;
+        background: linear-gradient(160deg, rgba(212,163,115,0.03) 0%, rgba(233,196,106,0.02) 100%);
+        border-radius: 16px;
+        position: relative;
+        overflow: hidden;
+    }
+    .smart-layout.poster-mode .poster-quote {
+        font-size: 36px;
+        color: rgba(212,163,115,0.12);
+        line-height: 1;
+        margin-bottom: 4px;
+        font-family: "Cormorant Garamond", serif;
+    }
+    .smart-layout.poster-mode .poster-text {
+        font-size: 18px;
+        font-weight: 600;
+        line-height: 1.6;
+        color: var(--text-primary);
+        letter-spacing: 1px;
+        position: relative;
+        z-index: 1;
     }
     .entry-full-actions {
         display: flex;
@@ -262,10 +330,96 @@
         .collection-title { font-size: 22px; }
         .entry-header { flex-direction: column; }
         .entry-actions { align-self: flex-end; }
+        .entry-full-content { padding: 14px 12px; }
+        .smart-layout.poem-mode { padding: 16px 8px; }
+        .smart-layout.poem-mode .sl-line { font-size: 14px; line-height: 2.0; }
+        .smart-layout.article-mode .sl-paragraph { font-size: 14px; text-indent: 1.5em; }
+        .smart-layout.poster-mode { padding: 24px 16px 20px; }
+        .smart-layout.poster-mode .poster-text { font-size: 16px; }
     }
 </style>
 
 <script>
+    // 智能排版渲染函数
+    function renderSmartLayout(container) {
+        var text = container.getAttribute('data-content');
+        if (!text) return;
+        // 自动检测排版模式
+        var charCount = text.replace(/\s/g, '').length;
+        var lines = text.split('\n');
+        var newlineRatio = lines.length > 1 ? (text.match(/\n/g) || []).length / text.length : 0;
+        var isDenseNewlines = newlineRatio > 0.08;
+        // 判断是否有长段落（>30字）
+        var hasParagraphs = false;
+        var blocks = text.split(/\n\s*\n/);
+        for (var i = 0; i < blocks.length; i++) {
+            if (blocks[i].replace(/\s/g, '').length > 30) {
+                hasParagraphs = true;
+                break;
+            }
+        }
+        // 决定模式
+        var mode = 'article';
+        if (charCount <= 20) {
+            mode = 'poster';
+        } else if ((charCount <= 180 && isDenseNewlines) || (charCount <= 180 && !hasParagraphs)) {
+            mode = 'poem';
+        }
+        // 渲染
+        var html = '';
+        if (mode === 'poster') {
+            html = '<div class="poster-quote">"</div>';
+            html += '<div class="poster-text">' + escapeHtml(text) + '</div>';
+        } else if (mode === 'poem') {
+            var stanzas = text.split(/\n\s*\n/);
+            for (var si = 0; si < stanzas.length; si++) {
+                var stanza = stanzas[si].trim();
+                if (!stanza) continue;
+                html += '<div class="sl-stanza">';
+                var poemLines = stanza.split('\n');
+                for (var li = 0; li < poemLines.length; li++) {
+                    var pl = poemLines[li].trim();
+                    if (!pl) continue;
+                    html += '<span class="sl-line">' + escapeHtml(pl) + '</span>';
+                }
+                html += '</div>';
+            }
+        } else {
+            var blocks2 = text.split(/\n\s*\n/);
+            for (var bi = 0; bi < blocks2.length; bi++) {
+                var block = blocks2[bi].trim();
+                if (!block) continue;
+                var paras = block.split('\n');
+                for (var pi = 0; pi < paras.length; pi++) {
+                    var p = paras[pi].trim();
+                    if (!p) continue;
+                    html += '<div class="sl-paragraph">' + escapeHtml(p) + '</div>';
+                }
+                if (bi < blocks2.length - 1) {
+                    html += '<div class="sl-divider">· · ·</div>';
+                }
+            }
+        }
+        container.innerHTML = html;
+        container.className = 'smart-layout ' + mode + '-mode';
+    }
+    function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+    }
+    // 页面加载后渲染所有智能排版容器
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.smart-layout').forEach(renderSmartLayout);
+    });
+    // details 展开时重新渲染（因为内容可能被延迟加载）
+    document.addEventListener('toggle', function(e) {
+        if (e.target.tagName === 'DETAILS') {
+            var layouts = e.target.querySelectorAll('.smart-layout');
+            layouts.forEach(renderSmartLayout);
+        }
+    });
+
     function copyText(btn) {
         var details = btn.closest('details');
         var text = details.querySelector('.entry-full-content').innerText;

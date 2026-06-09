@@ -71,9 +71,72 @@
             font-size: 16px;
             line-height: 2.2;
             color: #cbd5e1;
-            white-space: pre-wrap;
             word-break: break-word;
             letter-spacing: 0.3px;
+        }
+        /* 智能排版 - 诗歌居中模式 */
+        .main-content.poem-mode {
+            text-align: center;
+            padding: 16px 8px;
+        }
+        .main-content.poem-mode .sl-stanza {
+            margin-bottom: 24px;
+        }
+        .main-content.poem-mode .sl-stanza:last-child {
+            margin-bottom: 0;
+        }
+        .main-content.poem-mode .sl-line {
+            display: block;
+            line-height: 2.4;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+            color: #cbd5e1;
+        }
+        /* 智能排版 - 文章左对齐模式 */
+        .main-content.article-mode {
+            text-align: left;
+            max-width: 680px;
+            margin: 0 auto;
+        }
+        .main-content.article-mode .sl-paragraph {
+            margin-bottom: 20px;
+            line-height: 2;
+            font-size: 16px;
+            color: #cbd5e1;
+            text-indent: 2em;
+            letter-spacing: 0.3px;
+        }
+        .main-content.article-mode .sl-divider {
+            text-align: center;
+            color: rgba(212,163,115,0.2);
+            font-size: 14px;
+            margin: 28px 0;
+            letter-spacing: 6px;
+        }
+        /* 智能排版 - 金句海报模式 */
+        .main-content.poster-mode {
+            text-align: center;
+            padding: 40px 24px 36px;
+            background: linear-gradient(160deg, rgba(212,163,115,0.03) 0%, rgba(233,196,106,0.02) 100%);
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .main-content.poster-mode .poster-quote {
+            font-size: 48px;
+            color: rgba(212,163,115,0.12);
+            line-height: 1;
+            margin-bottom: 4px;
+            font-family: "Cormorant Garamond", serif;
+        }
+        .main-content.poster-mode .poster-text {
+            font-size: 22px;
+            font-weight: 600;
+            line-height: 1.6;
+            color: #f1f5f9;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 1;
         }
         .content-divider {
             text-align: center;
@@ -181,8 +244,13 @@
             .brand-section { margin-bottom: 36px; }
             .brand-name { font-size: 24px; letter-spacing: 4px; }
             .ornament-line { margin-bottom: 36px; }
-            .main-title { font-size: 24px; margin-bottom: 28px; }
+            .main-title { font-size: 24px; margin-bottom: 28px; word-break: break-word; }
             .main-content { font-size: 15px; line-height: 2.0; }
+            .main-content.poem-mode { padding: 12px 4px; }
+            .main-content.poem-mode .sl-line { font-size: 15px; line-height: 2.0; }
+            .main-content.article-mode .sl-paragraph { font-size: 15px; text-indent: 1.5em; }
+            .main-content.poster-mode { padding: 28px 16px 24px; }
+            .main-content.poster-mode .poster-text { font-size: 18px; }
             .actions { bottom: 24px; gap: 8px; flex-wrap: wrap; justify-content: center; }
             .btn { padding: 8px 18px; font-size: 12px; }
             .footer-section { padding: 28px 0 0; }
@@ -199,7 +267,7 @@
         {% if parsed_title %}
         <div class="main-title">{{ parsed_title }}</div>
         {% endif %}
-        <div class="main-content" id="shareContent">{{ parsed_content }}</div>
+        <div class="main-content" id="shareContent"></div>
         <div class="content-divider">· · ·</div>
         <div class="footer-section">
             <span class="footer-brand">InkFlow 灵笔</span>
@@ -213,6 +281,76 @@
     </div>
     <div class="toast" id="toast"></div>
     <script>
+        // 从后端传递的清洗后内容
+        var shareContent = {{ parsed_content | tojson | safe }};
+
+        // 智能排版渲染
+        function renderSmartLayout() {
+            var container = document.getElementById('shareContent');
+            var text = shareContent;
+            if (!text) return;
+            var charCount = text.replace(/\s/g, '').length;
+            var lines = text.split('\n');
+            var newlineRatio = lines.length > 1 ? (text.match(/\n/g) || []).length / text.length : 0;
+            var isDenseNewlines = newlineRatio > 0.08;
+            var hasParagraphs = false;
+            var blocks = text.split(/\n\s*\n/);
+            for (var i = 0; i < blocks.length; i++) {
+                if (blocks[i].replace(/\s/g, '').length > 30) {
+                    hasParagraphs = true;
+                    break;
+                }
+            }
+            var mode = 'article';
+            if (charCount <= 20) {
+                mode = 'poster';
+            } else if ((charCount <= 180 && isDenseNewlines) || (charCount <= 180 && !hasParagraphs)) {
+                mode = 'poem';
+            }
+            var html = '';
+            if (mode === 'poster') {
+                html = '<div class="poster-quote">"</div>';
+                html += '<div class="poster-text">' + escapeHtml(text) + '</div>';
+            } else if (mode === 'poem') {
+                var stanzas = text.split(/\n\s*\n/);
+                for (var si = 0; si < stanzas.length; si++) {
+                    var stanza = stanzas[si].trim();
+                    if (!stanza) continue;
+                    html += '<div class="sl-stanza">';
+                    var poemLines = stanza.split('\n');
+                    for (var li = 0; li < poemLines.length; li++) {
+                        var pl = poemLines[li].trim();
+                        if (!pl) continue;
+                        html += '<span class="sl-line">' + escapeHtml(pl) + '</span>';
+                    }
+                    html += '</div>';
+                }
+            } else {
+                var blocks2 = text.split(/\n\s*\n/);
+                for (var bi = 0; bi < blocks2.length; bi++) {
+                    var block = blocks2[bi].trim();
+                    if (!block) continue;
+                    var paras = block.split('\n');
+                    for (var pi = 0; pi < paras.length; pi++) {
+                        var p = paras[pi].trim();
+                        if (!p) continue;
+                        html += '<div class="sl-paragraph">' + escapeHtml(p) + '</div>';
+                    }
+                    if (bi < blocks2.length - 1) {
+                        html += '<div class="sl-divider">· · ·</div>';
+                    }
+                }
+            }
+            container.innerHTML = html;
+            container.className = 'main-content ' + mode + '-mode';
+        }
+        function escapeHtml(str) {
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        }
+        document.addEventListener('DOMContentLoaded', renderSmartLayout);
+
         function copyContent() {
             var el = document.getElementById('shareContent');
             var text = el.innerText;

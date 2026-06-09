@@ -17,10 +17,8 @@
 
   <h1 class="detail-title">{{ post.title }}</h1>
 
-  <div class="detail-content">
-    {% for paragraph in post.content.split('\n\n') %}
-    <p>{{ paragraph | replace('\n', '<br>') | safe }}</p>
-    {% endfor %}
+  <div class="detail-content" id="detailContent">
+    <div class="smart-layout" data-content="{{ post.content | e }}"></div>
   </div>
 
   {% if tags %}
@@ -113,10 +111,77 @@ async function deletePost(postId) {
     window.location.href = '/community';
   }
 }
+// 智能排版渲染函数
+function renderSmartLayout(container) {
+    var text = container.getAttribute('data-content');
+    if (!text) return;
+    var charCount = text.replace(/\s/g, '').length;
+    var lines = text.split('\n');
+    var newlineRatio = lines.length > 1 ? (text.match(/\n/g) || []).length / text.length : 0;
+    var isDenseNewlines = newlineRatio > 0.08;
+    var hasParagraphs = false;
+    var blocks = text.split(/\n\s*\n/);
+    for (var i = 0; i < blocks.length; i++) {
+        if (blocks[i].replace(/\s/g, '').length > 30) {
+            hasParagraphs = true;
+            break;
+        }
+    }
+    var mode = 'article';
+    if (charCount <= 20) {
+        mode = 'poster';
+    } else if ((charCount <= 180 && isDenseNewlines) || (charCount <= 180 && !hasParagraphs)) {
+        mode = 'poem';
+    }
+    var html = '';
+    if (mode === 'poster') {
+        html = '<div class="poster-quote">"</div>';
+        html += '<div class="poster-text">' + escapeHtml(text) + '</div>';
+    } else if (mode === 'poem') {
+        var stanzas = text.split(/\n\s*\n/);
+        for (var si = 0; si < stanzas.length; si++) {
+            var stanza = stanzas[si].trim();
+            if (!stanza) continue;
+            html += '<div class="sl-stanza">';
+            var poemLines = stanza.split('\n');
+            for (var li = 0; li < poemLines.length; li++) {
+                var pl = poemLines[li].trim();
+                if (!pl) continue;
+                html += '<span class="sl-line">' + escapeHtml(pl) + '</span>';
+            }
+            html += '</div>';
+        }
+    } else {
+        var blocks2 = text.split(/\n\s*\n/);
+        for (var bi = 0; bi < blocks2.length; bi++) {
+            var block = blocks2[bi].trim();
+            if (!block) continue;
+            var paras = block.split('\n');
+            for (var pi = 0; pi < paras.length; pi++) {
+                var p = paras[pi].trim();
+                if (!p) continue;
+                html += '<div class="sl-paragraph">' + escapeHtml(p) + '</div>';
+            }
+            if (bi < blocks2.length - 1) {
+                html += '<div class="sl-divider">· · ·</div>';
+            }
+        }
+    }
+    container.innerHTML = html;
+    container.className = 'smart-layout ' + mode + '-mode';
+}
+function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+}
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.smart-layout').forEach(renderSmartLayout);
+});
 </script>
 
 <style>
-.detail-page { max-width: 700px; margin: 0 auto; padding: 30px 20px 80px; }
+.detail-page { max-width: 800px; margin: 0 auto; padding: 30px 20px 80px; }
 .detail-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
 .author-link { display: flex; align-items: center; gap: 12px; text-decoration: none; }
 .avatar-md {
@@ -128,9 +193,76 @@ async function deletePost(postId) {
 .author-name { font-size: 14px; font-weight: 600; color: var(--text-color); }
 .author-bio { font-size: 12px; color: var(--text-subtle); }
 .detail-time { font-size: 12px; color: var(--text-subtle); }
-.detail-title { font-size: 26px; font-weight: 700; line-height: 1.3; margin: 0 0 24px; }
+.detail-title { font-size: 26px; font-weight: 700; line-height: 1.3; margin: 0 0 24px; word-break: break-word; }
 .detail-content { font-size: 15px; line-height: 1.8; color: var(--text-color); }
-.detail-content p { margin: 0 0 1.2em; }
+/* 智能排版容器 */
+.detail-content .smart-layout { line-height: 1.9; }
+/* 诗歌居中模式 */
+.detail-content .smart-layout.poem-mode {
+  text-align: center;
+  padding: 24px 16px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+.detail-content .smart-layout.poem-mode .sl-stanza {
+  margin-bottom: 20px;
+}
+.detail-content .smart-layout.poem-mode .sl-stanza:last-child {
+  margin-bottom: 0;
+}
+.detail-content .smart-layout.poem-mode .sl-line {
+  display: block;
+  line-height: 2.2;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  color: var(--text-color);
+}
+/* 文章左对齐模式 */
+.detail-content .smart-layout.article-mode {
+  text-align: left;
+  max-width: 680px;
+  margin: 0 auto;
+}
+.detail-content .smart-layout.article-mode .sl-paragraph {
+  margin-bottom: 18px;
+  line-height: 2;
+  font-size: 16px;
+  color: var(--text-color);
+  text-indent: 2em;
+  letter-spacing: 0.3px;
+}
+.detail-content .smart-layout.article-mode .sl-divider {
+  text-align: center;
+  color: rgba(212,163,115,0.2);
+  font-size: 14px;
+  margin: 24px 0;
+  letter-spacing: 6px;
+}
+/* 金句海报模式 */
+.detail-content .smart-layout.poster-mode {
+  text-align: center;
+  padding: 40px 24px 36px;
+  background: linear-gradient(160deg, rgba(212,163,115,0.03) 0%, rgba(233,196,106,0.02) 100%);
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.detail-content .smart-layout.poster-mode .poster-quote {
+  font-size: 48px;
+  color: rgba(212,163,115,0.12);
+  line-height: 1;
+  margin-bottom: 4px;
+  font-family: "Cormorant Garamond", serif;
+}
+.detail-content .smart-layout.poster-mode .poster-text {
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.6;
+  color: var(--text-color);
+  letter-spacing: 1px;
+  position: relative;
+  z-index: 1;
+}
 .detail-tags { display: flex; gap: 6px; flex-wrap: wrap; margin: 24px 0; }
 .tag-badge {
   display: inline-block; padding: 4px 12px; border-radius: 20px;
@@ -151,5 +283,16 @@ async function deletePost(postId) {
 .detail-back { margin-top: 24px; }
 .detail-back a { color: var(--text-subtle); text-decoration: none; font-size: 13px; }
 .detail-back a:hover { color: var(--primary-color); }
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .detail-page { padding: 20px 16px 80px; }
+  .detail-title { font-size: 22px; }
+  .detail-content .smart-layout.poem-mode { padding: 16px 8px; }
+  .detail-content .smart-layout.poem-mode .sl-line { font-size: 15px; line-height: 2.0; }
+  .detail-content .smart-layout.article-mode .sl-paragraph { font-size: 15px; text-indent: 1.5em; }
+  .detail-content .smart-layout.poster-mode { padding: 28px 16px 24px; }
+  .detail-content .smart-layout.poster-mode .poster-text { font-size: 18px; }
+  .detail-actions { flex-wrap: wrap; gap: 8px; }
+}
 </style>
 {% endblock %}
